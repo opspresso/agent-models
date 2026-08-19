@@ -10,6 +10,7 @@
  */
 
 import type { Registry } from "../registry.ts";
+import { observePresence } from "./presence.ts";
 import { fetchJson, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
 export const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
@@ -42,6 +43,9 @@ export async function fetchAnthropicModels(
     }
     collected.push(...(body.data as AnthropicModel[]));
     if (body.has_more !== true || typeof body.last_id !== "string" || body.last_id === "") {
+      if (collected.length === 0) {
+        throw new Error(`GET ${ANTHROPIC_MODELS_URL} → empty catalog`);
+      }
       return collected;
     }
     cursor = body.last_id;
@@ -57,6 +61,7 @@ export function undated(id: string): string {
 export function applyAnthropic(
   registry: Registry,
   catalog: AnthropicModel[],
+  today: string,
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
@@ -80,8 +85,8 @@ export function applyAnthropic(
       continue;
     }
     const entry = byName.get(offering.wireId ?? offering.family);
+    observePresence(offering, entry !== undefined, "Anthropic", today, changes, notes);
     if (entry === undefined) {
-      notes.push(`anthropic/${offering.family}: not in Anthropic's models catalog`);
       continue;
     }
     const window = entry.max_input_tokens;

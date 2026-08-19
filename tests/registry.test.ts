@@ -241,3 +241,33 @@ describe("buildCatalog", () => {
     assert.equal(buildCatalog(fixture(), first, later).updatedAt, later.toISOString());
   });
 });
+
+describe("retirement bookkeeping", () => {
+  it("accepts missingSince as a date on a live route and rejects it on a hidden one", () => {
+    const r = fixture();
+    r.offerings[0]!.missingSince = "2026-08-20";
+    assert.deepEqual(validateRegistry(r), []);
+    r.offerings[0]!.missingSince = "yesterday";
+    assert.match(validateRegistry(r).join("\n"), /missingSince must be a YYYY-MM-DD date/);
+    r.offerings[0]!.missingSince = "2026-08-20";
+    r.offerings[0]!.hidden = true;
+    assert.match(validateRegistry(r).join("\n"), /hidden route is not watched/);
+  });
+
+  it("keeps missingSince out of the catalog", () => {
+    const r = fixture();
+    r.offerings[0]!.missingSince = "2026-08-20";
+    const catalog = buildCatalog(r, null, new Date("2026-08-20T00:00:00.000Z"));
+    assert.ok(!("missingSince" in (catalog.models[0] as object)));
+  });
+
+  it("accepts a discount as a fraction and nothing else", () => {
+    const r = fixture();
+    r.families["gpt-x"]!.pricing.discount = 0.5;
+    assert.deepEqual(validateRegistry(r), []);
+    r.families["gpt-x"]!.pricing.discount = 1;
+    assert.match(validateRegistry(r).join("\n"), /discount must be a fraction/);
+    r.families["gpt-x"]!.pricing.discount = 0;
+    assert.match(validateRegistry(r).join("\n"), /discount must be a fraction/);
+  });
+});

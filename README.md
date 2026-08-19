@@ -45,6 +45,10 @@ can use it the same way. A browsable view of the same file is at
 Prices are USD per million tokens; image models add `imageInputPer1M`, `imageOutputPer1M`,
 `perImage` and `perInputImage`, and are priced by token rate *or* per image. Every rate is
 the provider's base, standard-tier rate — a long-context or priority tier is not expressed.
+`pricing.discount`, when present, is a promotional discount (a fraction) that the stated
+rates are **already net of** — OpenRouter publishes one per endpoint, and the catalog's
+price is the default endpoint's — so a reader can tell a promotion from a price and put the
+list rate back with `inputPer1M / (1 - discount)`. Absent means no discount is known.
 `reasoningWithTools: false` marks a model whose provider rejects `tools` together with
 `reasoning_effort` on chat/completions.
 
@@ -61,7 +65,7 @@ models/
   providers.json              the routes a model id may be prefixed with, in catalog order
   makers.json                 maker id → display label
   families/<maker>.json       { "<family>": { displayName, pricing, capabilities, contextWindow, maxTokens, note? } }
-  offerings/<provider>.json   [ { family, wireId?, pricing?, capabilities?, maxTokens?, hidden?, note? } ]
+  offerings/<provider>.json   [ { family, wireId?, pricing?, capabilities?, maxTokens?, hidden?, missingSince?, note? } ]
 ```
 
 A **family** states the model once — price, window, what it can do. An **offering** says a
@@ -115,17 +119,30 @@ whatever moved, which republishes the Pages site (`main:/docs`, served at
 
 | Source | Needs | May change |
 |---|---|---|
-| OpenRouter `/api/v1/models` | nothing | a **router-only** family's price, window and output cap; an OpenRouter offering's price override (set while the router's rate differs from the family's, dropped when they agree) |
-| xAI `/v1/language-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) |
+| OpenRouter `/api/v1/models`, `/images/models`, `/models/{id}/endpoints` | nothing | a **router-only** family's price, discount, window and output cap; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) |
+| xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) |
 | Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) |
-| OpenAI `/v1/models` | `OPENAI_API_KEY` | nothing — reports a registered model the catalog no longer lists |
+| OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only |
 
 A key that is not set skips its source and says so in the job summary. Every run writes
 the summary: a table of what changed, and a *needs a look* list for what it noticed but
-would not touch — an id a catalog no longer lists, a window a router disagrees on. **A
-model is never hidden or deleted by the job**: an outage and a retirement look the same for
-one day, so that is a person's call. The job goes red when a source could not be read, but
-still commits what the others found.
+would not touch — a window a router disagrees on, an endpoint it could not read. The job
+goes red when a source could not be read, but still commits what the others found.
+
+### Retirement
+
+Every source also watches **presence**: whether each live route is still in its provider's
+catalog. A route that is not gets `missingSince` (the first day it was not found); the day
+it is back, the field goes. After **7 consecutive days** absent the route is set
+`hidden: true`, `missingSince` is dropped and a sentence is appended to its `note` saying
+when and why. The summary announces the first absence (with the date it would be hidden
+on), counts the days, and reports the hiding. What it never does is delete: a stored
+configuration may still name the id, and past usage is priced by looking it up.
+
+A day a source could not be read is not observed at all — the clock neither starts nor
+advances — and an empty catalog is treated as a failed read, not as everything retired.
+Google and Bedrock have no presence source here, so their routes are retired by hand: set
+`hidden: true` and say why in `note`.
 
 Run it locally with `pnpm update-models` (`--dry-run` to only report); the keys are read
 from the same environment variable names.

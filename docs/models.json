@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-19T15:43:15.774Z",
+  "updatedAt": "2026-08-19T16:04:09.411Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1169,7 +1169,8 @@
       "pricing": {
         "inputPer1M": 2.5,
         "outputPer1M": 15,
-        "cachedInputPer1M": 0.25
+        "cachedInputPer1M": 0.25,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -1298,7 +1299,8 @@
       "pricing": {
         "inputPer1M": 0.375,
         "outputPer1M": 1.875,
-        "cachedInputPer1M": 0.0375
+        "cachedInputPer1M": 0.0375,
+        "discount": 0.75
       },
       "capabilities": {
         "tools": true,
@@ -1382,7 +1384,8 @@
       "pricing": {
         "inputPer1M": 0.0826,
         "outputPer1M": 0.1652,
-        "cachedInputPer1M": 0.01652
+        "cachedInputPer1M": 0.01652,
+        "discount": 0.41
       },
       "capabilities": {
         "tools": true,
@@ -1403,7 +1406,8 @@
       "pricing": {
         "inputPer1M": 1.44,
         "outputPer1M": 2.88,
-        "cachedInputPer1M": 0.1215
+        "cachedInputPer1M": 0.1215,
+        "discount": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -1655,7 +1659,8 @@
       "pricing": {
         "inputPer1M": 0.03,
         "outputPer1M": 0.12,
-        "cachedInputPer1M": 0.006
+        "cachedInputPer1M": 0.006,
+        "discount": 0.9
       },
       "capabilities": {
         "tools": true,

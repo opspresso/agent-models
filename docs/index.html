@@ -24,6 +24,8 @@
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
   .chip { display: inline-block; padding: 0 .45rem; border-radius: 999px; background: var(--chip); font-size: .8em; margin-right: .25rem; }
   .hidden-row { color: var(--muted); }
+  .promo { display: inline-block; margin-left: .35rem; padding: 0 .35rem; border-radius: 4px; background: #dcfce7; color: #166534; font-size: .75em; font-weight: 600; vertical-align: middle; cursor: help; }
+  @media (prefers-color-scheme: dark) { .promo { background: #14532d; color: #bbf7d0; } }
   .caps span { display: inline-block; width: 1.1em; text-align: center; }
   .caps .off { color: var(--muted); opacity: .4; }
   footer { margin-top: 1rem; color: var(--muted); font-size: .85em; }
@@ -108,11 +110,13 @@
       if (m.hidden) tr.className = "hidden-row";
       const caps = CAPS.map(([k, l, t]) => `<span class="${m.capabilities[k] ? "" : "off"}" title="${t}">${l}</span>`).join("");
       const hiddenChip = m.hidden ? `<span class="chip">hidden</span>` : "";
+      const d = m.pricing.discount;
+      const promo = d ? `<span class="promo" title="promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off the list price of $${num(p.in / (1 - d))} / $${num(p.out / (1 - d))} per M">−${Math.round(d * 100)}%</span>` : "";
       tr.innerHTML = `
         <td><code>${m.id}</code> ${hiddenChip}</td>
         <td>${m.displayName}</td>
         <td>${catalog.makers[m.maker] ?? m.maker}</td>
-        <td class="num">${num(p.in)}</td>
+        <td class="num">${num(p.in)}${promo}</td>
         <td class="num" title="${p.imageNote}">${p.out === null ? p.imageNote : num(p.out)}</td>
         <td class="num">${num(p.cached)}</td>
         <td class="num" title="${m.contextWindow.toLocaleString("en-US")}">${fmtTokens(m.contextWindow)}</td>
@@ -134,7 +138,7 @@
   $("q").addEventListener("input", render);
   $("provider").addEventListener("change", render);
   $("hidden").addEventListener("change", render);
-  $("meta").textContent = `version ${catalog.version} · updated ${catalog.updatedAt} · capabilities: T tools · S structured output · I image input · R reasoning · G image generation`;
+  $("meta").textContent = `version ${catalog.version} · updated ${catalog.updatedAt} · capabilities: T tools · S structured output · I image input · R reasoning · G image generation · −n% = promotional rate, already applied`;
   render();
 })();
 </script>

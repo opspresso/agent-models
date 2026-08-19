@@ -7,17 +7,20 @@
  *
  * The catalog lists canonical ids only, with every accepted spelling in an
  * `aliases` array — `grok-4.20` is an alias of `grok-4.20-0309-reasoning` —
- * so a family is matched on either. A retired family (its xAI route hidden)
- * is not looked up at all: reporting it missing every day would say nothing.
+ * so a family is matched on either. A hidden route is not looked up at all.
  *
  * Only the text families' token prices move. The drawing models are priced
- * per image, from what an edit was actually billed, and stay hand-kept.
+ * per image, from what an edit was actually billed, and stay hand-kept — they
+ * are only looked up in their own catalog so a retirement is noticed.
  */
 
 import type { Registry } from "../registry.ts";
+import { observePresence } from "./presence.ts";
 import { fetchJson, samePricing, type Change, type SourceResult } from "./types.ts";
 
 export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
+/** The drawing models' own catalog — read for existence; their per-image price stays hand-kept. */
+export const XAI_IMAGE_MODELS_URL = "https://api.x.ai/v1/image-generation-models";
 
 /** 1e-10 USD per token → USD per million tokens. */
 const TICKS_PER_USD_PER_MILLION = 10_000;
@@ -30,19 +33,37 @@ export interface XaiLanguageModel {
   completion_text_token_price?: number;
 }
 
-export async function fetchXaiLanguageModels(
-  apiKey: string,
-  fetchFn: typeof fetch = fetch,
-): Promise<XaiLanguageModel[]> {
-  const body = (await fetchJson(
-    XAI_LANGUAGE_MODELS_URL,
-    { headers: { Authorization: `Bearer ${apiKey}` } },
-    fetchFn,
-  )) as { models?: unknown };
-  if (!Array.isArray(body.models)) {
-    throw new Error(`GET ${XAI_LANGUAGE_MODELS_URL} → no "models" array`);
+export interface XaiCatalog {
+  language: XaiLanguageModel[];
+  /** The image catalog's ids and aliases — the names it answers to. */
+  imageNames: string[];
+}
+
+async function fetchModels(url: string, apiKey: string, fetchFn: typeof fetch): Promise<unknown[]> {
+  const body = (await fetchJson(url, { headers: { Authorization: `Bearer ${apiKey}` } }, fetchFn)) as {
+    models?: unknown;
+  };
+  if (!Array.isArray(body.models) || body.models.length === 0) {
+    throw new Error(`GET ${url} → no "models" array, or an empty one`);
   }
-  return body.models as XaiLanguageModel[];
+  return body.models;
+}
+
+export async function fetchXaiCatalog(apiKey: string, fetchFn: typeof fetch = fetch): Promise<XaiCatalog> {
+  const [language, images] = await Promise.all([
+    fetchModels(XAI_LANGUAGE_MODELS_URL, apiKey, fetchFn),
+    fetchModels(XAI_IMAGE_MODELS_URL, apiKey, fetchFn),
+  ]);
+  const imageNames: string[] = [];
+  for (const entry of images as Array<{ id?: unknown; aliases?: unknown }>) {
+    if (typeof entry.id === "string") {
+      imageNames.push(entry.id);
+    }
+    if (Array.isArray(entry.aliases)) {
+      imageNames.push(...entry.aliases.filter((alias): alias is string => typeof alias === "string"));
+    }
+  }
+  return { language: language as XaiLanguageModel[], imageNames };
 }
 
 function ticksToPerMillion(ticks: number | undefined): number | undefined {
@@ -54,31 +75,38 @@ function ticksToPerMillion(ticks: number | undefined): number | undefined {
 
 export function applyXai(
   registry: Registry,
-  catalog: XaiLanguageModel[],
+  catalog: XaiCatalog,
+  today: string,
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
   const notes: string[] = [];
 
   const byName = new Map<string, XaiLanguageModel>();
-  for (const model of catalog) {
+  for (const model of catalog.language) {
     byName.set(model.id, model);
     for (const alias of model.aliases ?? []) {
       byName.set(alias, model);
     }
   }
+  const drawn = new Set(catalog.imageNames);
 
   for (const offering of next.offerings) {
     if (offering.provider !== "xai" || offering.hidden) {
       continue;
     }
     const family = next.families[offering.family];
-    if (family === undefined || family.capabilities.imageGeneration) {
+    if (family === undefined) {
       continue;
     }
-    const entry = byName.get(offering.wireId ?? offering.family);
+    const name = offering.wireId ?? offering.family;
+    if (family.capabilities.imageGeneration) {
+      observePresence(offering, drawn.has(name), "xAI", today, changes, notes);
+      continue;
+    }
+    const entry = byName.get(name);
+    observePresence(offering, entry !== undefined, "xAI", today, changes, notes);
     if (entry === undefined) {
-      notes.push(`xai/${offering.family}: not in xAI's language-models catalog`);
       continue;
     }
     const input = ticksToPerMillion(entry.prompt_text_token_price);

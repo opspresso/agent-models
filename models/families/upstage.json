@@ -4,7 +4,8 @@
     "pricing": {
       "inputPer1M": 0.03,
       "outputPer1M": 0.12,
-      "cachedInputPer1M": 0.006
+      "cachedInputPer1M": 0.006,
+      "discount": 0.9
     },
     "capabilities": {
       "tools": true,

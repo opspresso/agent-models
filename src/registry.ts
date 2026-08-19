@@ -43,6 +43,14 @@ export interface ModelPricing {
   perImage?: number;
   /** Flat charge for each source image supplied to an image edit. */
   perInputImage?: number;
+  /**
+   * A promotional discount, as a fraction in (0, 1), that the rates above are
+   * *already net of* — so a reader can tell a promotion from a price and put
+   * the list rate back (`inputPer1M / (1 - discount)`). Carried only where a
+   * source publishes it (OpenRouter, per endpoint); absent means no discount
+   * is known, not that there is none.
+   */
+  discount?: number;
 }
 
 export interface ModelCapabilities {
@@ -87,6 +95,13 @@ export interface ModelOffering {
   maxTokens?: number;
   /** Hidden from a model picker but still resolvable — a retired route keeps pricing history honest. */
   hidden?: boolean;
+  /**
+   * `YYYY-MM-DD` the daily update first found this live route missing from its
+   * provider's catalog. Cleared when it is back; turned into `hidden` after
+   * the grace period (`src/sources/presence.ts`). Bookkeeping, not a fact
+   * about the model — the catalog does not carry it.
+   */
+  missingSince?: string;
   note?: string;
 }
 
@@ -145,6 +160,7 @@ const PRICING_KEYS = [
   "imageOutputPer1M",
   "perImage",
   "perInputImage",
+  "discount",
 ] as const;
 
 const CAPABILITY_KEYS = [
@@ -172,6 +188,7 @@ const OFFERING_KEYS = [
   "capabilities",
   "maxTokens",
   "hidden",
+  "missingSince",
   "note",
 ] as const;
 
@@ -404,6 +421,12 @@ function checkPricing(where: string, pricing: unknown, partial: boolean, errors:
       }
       continue;
     }
+    if (key === "discount") {
+      if (typeof value !== "number" || !(value > 0 && value < 1)) {
+        errors.push(`${where}: pricing.discount must be a fraction in (0, 1)`);
+      }
+      continue;
+    }
     if (!isPrice(value)) {
       errors.push(`${where}: pricing.${key} must be a non-negative number`);
     }
@@ -523,6 +546,14 @@ export function validateRegistry(registry: Registry): string[] {
     }
     if (offering.hidden !== undefined && offering.hidden !== true) {
       errors.push(`${where}: hidden is either true or absent`);
+    }
+    if (offering.missingSince !== undefined) {
+      if (typeof offering.missingSince !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(offering.missingSince)) {
+        errors.push(`${where}: missingSince must be a YYYY-MM-DD date`);
+      }
+      if (offering.hidden) {
+        errors.push(`${where}: a hidden route is not watched — drop missingSince`);
+      }
     }
     if (offering.note !== undefined && typeof offering.note !== "string") {
       errors.push(`${where}: note must be a string`);

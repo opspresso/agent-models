@@ -20,13 +20,16 @@ import { appendFileSync } from "node:fs";
 import { loadRegistry, validateRegistry, writeRegistry, type Registry } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
 import { applyAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
-import { checkOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
+import { applyOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
 import { applyOpenRouter, fetchOpenRouterCatalog } from "../src/sources/openrouter.ts";
-import { applyXai, fetchXaiLanguageModels } from "../src/sources/xai.ts";
+import { utcDate } from "../src/sources/presence.ts";
+import { applyXai, fetchXaiCatalog } from "../src/sources/xai.ts";
 import type { SourceResult } from "../src/sources/types.ts";
 import { ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");
+/** The job's clock: one UTC date for the whole run, so every source agrees on what "today" is. */
+const today = utcDate(new Date());
 
 interface Source {
   name: string;
@@ -44,28 +47,28 @@ const SOURCES: Source[] = [
     name: "OpenRouter",
     disabled: null,
     run: async (registry) => {
-      const { models, imageIds } = await fetchOpenRouterCatalog();
-      return applyOpenRouter(registry, models, imageIds);
+      const routes = registry.offerings
+        .filter((o) => o.provider === "openrouter" && !o.hidden && o.wireId !== undefined)
+        .map((o) => o.wireId as string);
+      return applyOpenRouter(registry, await fetchOpenRouterCatalog(routes), today);
     },
   },
   {
     name: "xAI",
     disabled: keyed("XAI_API_KEY"),
-    run: async (registry) => applyXai(registry, await fetchXaiLanguageModels(process.env.XAI_API_KEY as string)),
+    run: async (registry) => applyXai(registry, await fetchXaiCatalog(process.env.XAI_API_KEY as string), today),
   },
   {
     name: "Anthropic",
     disabled: keyed("ANTHROPIC_API_KEY"),
     run: async (registry) =>
-      applyAnthropic(registry, await fetchAnthropicModels(process.env.ANTHROPIC_API_KEY as string)),
+      applyAnthropic(registry, await fetchAnthropicModels(process.env.ANTHROPIC_API_KEY as string), today),
   },
   {
     name: "OpenAI",
     disabled: keyed("OPENAI_API_KEY"),
-    run: async (registry) => ({
-      registry,
-      result: checkOpenAi(registry, await fetchOpenAiModelIds(process.env.OPENAI_API_KEY as string)),
-    }),
+    run: async (registry) =>
+      applyOpenAi(registry, await fetchOpenAiModelIds(process.env.OPENAI_API_KEY as string), today),
   },
 ];
 
@@ -97,7 +100,7 @@ for (const source of SOURCES) {
   }
 }
 
-const report = renderReport(outcomes, new Date().toISOString().slice(0, 10));
+const report = renderReport(outcomes, today);
 console.log(report);
 if (process.env.GITHUB_STEP_SUMMARY) {
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
