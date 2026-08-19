@@ -317,8 +317,34 @@
     const o = document.createElement("option"); o.value = p; o.textContent = p; $("provider").append(o);
   }
 
-  // ---- state (the console's ModelTableState, in the URL-less form) ----
+  // ---- state: the console's ModelTableState, kept in localStorage the same
+  // way (`useLocalStorage`), so the page opens the way it was left. The search
+  // text is deliberately not kept — the console does not keep it either.
+  const STORAGE_KEY = "agent-models.viewer-state.v1";
+  const CAPS = new Set(CAPABILITY_COLUMNS.map(([k]) => k));
+  const SORT_KEYS = new Set(["provider", "name", "price"]);
   const state = { provider: "", capabilities: new Set(), sortKey: "provider", direction: "asc", filter: "", retired: false };
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+    if (stored && typeof stored === "object") {
+      if (typeof stored.provider === "string" && catalog.providers.includes(stored.provider)) state.provider = stored.provider;
+      if (Array.isArray(stored.capabilities)) for (const c of stored.capabilities) if (CAPS.has(c)) state.capabilities.add(c);
+      if (SORT_KEYS.has(stored.sortKey)) state.sortKey = stored.sortKey;
+      if (stored.direction === "desc") state.direction = "desc";
+      if (stored.retired === true) state.retired = true;
+    }
+  } catch {}
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        provider: state.provider, capabilities: [...state.capabilities], sortKey: state.sortKey, direction: state.direction, retired: state.retired,
+      }));
+    } catch {}
+  }
+  // Reflect the restored state in the controls.
+  $("provider").value = state.provider;
+  $("retired").checked = state.retired;
+  for (const c of document.querySelectorAll("input[data-cap]")) c.checked = state.capabilities.has(c.dataset.cap);
   const sortButtons = [...$("sort").querySelectorAll("button")];
   const CHEVRON = { asc: "↑", desc: "↓" };
   function paintSort() {
@@ -333,7 +359,7 @@
     const key = b.dataset.key;
     state.direction = state.sortKey === key && state.direction === "asc" ? "desc" : "asc";
     state.sortKey = key;
-    paintSort(); render();
+    paintSort(); persist(); render();
   });
 
   // ---- render ----
@@ -392,11 +418,11 @@
   }
 
   $("q").addEventListener("input", (e) => { state.filter = e.target.value; render(); });
-  $("provider").addEventListener("change", (e) => { state.provider = e.target.value; render(); });
-  $("retired").addEventListener("change", (e) => { state.retired = e.target.checked; render(); });
+  $("provider").addEventListener("change", (e) => { state.provider = e.target.value; persist(); render(); });
+  $("retired").addEventListener("change", (e) => { state.retired = e.target.checked; persist(); render(); });
   for (const c of document.querySelectorAll("input[data-cap]")) c.addEventListener("change", (e) => {
     if (e.target.checked) state.capabilities.add(e.target.dataset.cap); else state.capabilities.delete(e.target.dataset.cap);
-    render();
+    persist(); render();
   });
   paintSort();
   render();
