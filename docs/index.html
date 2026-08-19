@@ -4,141 +4,433 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Models</title>
+<meta name="description" content="The model registry behind Agent Studio — prices, limits and capability flags for every model it can run, refreshed from the providers every day.">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#f4f5ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12111a" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: light dark; --muted: #6b7280; --line: #e5e7eb; --bg: #fff; --fg: #111827; --chip: #f3f4f6; }
-  @media (prefers-color-scheme: dark) { :root { --muted: #9ca3af; --line: #374151; --bg: #111827; --fg: #f9fafb; --chip: #1f2937; } }
-  body { margin: 0; padding: 2rem 1.5rem; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
-  main { max-width: 1200px; margin: 0 auto; }
-  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
-  p.lead { margin: 0 0 1.25rem; color: var(--muted); }
-  p.lead code { font-size: .9em; }
-  .controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1rem; }
-  input[type=search], select { font: inherit; padding: .35rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
-  label { display: inline-flex; gap: .35rem; align-items: center; color: var(--muted); }
-  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
-  table { border-collapse: collapse; width: 100%; white-space: nowrap; }
-  th, td { padding: .45rem .7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-  th { position: sticky; top: 0; background: var(--bg); font-weight: 600; cursor: pointer; user-select: none; }
-  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tr:last-child td { border-bottom: 0; }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
-  .chip { display: inline-block; padding: 0 .45rem; border-radius: 999px; background: var(--chip); font-size: .8em; margin-right: .25rem; }
-  .hidden-row { color: var(--muted); }
-  .promo { display: inline-block; margin-left: .35rem; padding: 0 .35rem; border-radius: 4px; background: #dcfce7; color: #166534; font-size: .75em; font-weight: 600; vertical-align: middle; cursor: help; }
-  @media (prefers-color-scheme: dark) { .promo { background: #14532d; color: #bbf7d0; } }
-  .caps span { display: inline-block; width: 1.1em; text-align: center; }
-  .caps .off { color: var(--muted); opacity: .4; }
-  footer { margin-top: 1rem; color: var(--muted); font-size: .85em; }
+  /*
+   * The same tokens Agent Studio's console is built on: a lavender page with
+   * a little grain, white surfaces told apart by a soft violet shadow rather
+   * than a border, the indigo-violet brand ramp (hue 290), and the three
+   * faces — Chakra Petch for display, Figtree for reading, JetBrains Mono for
+   * anything a run would name. This page is that console's registry, and it
+   * should look like it came from the same hand.
+   */
+  :root {
+    color-scheme: light dark;
+    --page: #f4f5ff;
+    --ink: #1b1830;
+    --ink-2: #4a4664;
+    --muted: #7b7794;
+    --surface: rgba(255, 255, 255, 0.82);
+    --surface-raised: rgba(255, 255, 255, 0.96);
+    --hairline: rgba(60, 52, 110, 0.12);
+    --hairline-strong: rgba(60, 52, 110, 0.22);
+    --brand-1: #e9e7fd;
+    --brand-2: #d5d1fb;
+    --brand-5: #957ef5;
+    --brand-6: #805fe9;
+    --brand-7: #6b3dd8;
+    --brand-8: #5b33b8;
+    --brand-ink: #3c2a86;
+    --warm-a: #ff5c8a;
+    --warm-b: #ffb03b;
+    --promo-bg: #dcfce7;
+    --promo-ink: #166534;
+    --shadow: 0 1px 2px rgba(38, 26, 74, 0.04), 0 10px 26px rgba(38, 26, 74, 0.06);
+    --shadow-lift: 0 2px 4px rgba(38, 26, 74, 0.05), 0 18px 40px rgba(38, 26, 74, 0.11);
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+    --font-display: "Chakra Petch", "Figtree", system-ui, sans-serif;
+    --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #12111a;
+      --ink: #ece9f7;
+      --ink-2: #bdb8d4;
+      --muted: #8d88a6;
+      --surface: rgba(255, 255, 255, 0.035);
+      --surface-raised: rgba(255, 255, 255, 0.07);
+      --hairline: rgba(255, 255, 255, 0.08);
+      --hairline-strong: rgba(255, 255, 255, 0.16);
+      --brand-1: #231d45;
+      --brand-2: #2e2660;
+      --brand-ink: #c9bdfc;
+      --promo-bg: #14532d;
+      --promo-ink: #bbf7d0;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 26px rgba(0, 0, 0, 0.35);
+      --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 18px 40px rgba(0, 0, 0, 0.5);
+      --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.05' style='mix-blend-mode:screen'/%3E%3C/svg%3E");
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font: 15px/1.5 var(--font-sans);
+    color: var(--ink);
+    background: var(--page);
+    background-image: var(--noise), radial-gradient(1200px 520px at 18% -10%, color-mix(in oklab, var(--brand-6) 14%, transparent), transparent 70%);
+    background-attachment: fixed;
+  }
+  a { color: var(--brand-7); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  @media (prefers-color-scheme: dark) { a { color: var(--brand-5); } }
+  code, .mono { font-family: var(--font-mono); font-size: .92em; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--brand-6); outline-offset: 2px; border-radius: 6px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 2.25rem 1.5rem 4rem; }
+
+  /* ---------- masthead ---------- */
+  .mast { display: grid; grid-template-columns: auto 1fr; gap: 1.25rem 1.5rem; align-items: center; }
+  .mast img.logo { width: 76px; height: 76px; border-radius: 22px; box-shadow: var(--shadow); }
+  .mast .title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; }
+  .mast h1 {
+    margin: 0; font: 700 2.35rem/1 var(--font-display); letter-spacing: -.01em; text-transform: uppercase;
+  }
+  .mast .kicker {
+    font: 500 .78rem/1 var(--font-display); letter-spacing: .16em; text-transform: uppercase; color: var(--brand-7);
+    padding: .32rem .55rem; border-radius: 999px; background: var(--brand-1);
+  }
+  .mast p.lead { margin: .5rem 0 0; max-width: 62ch; color: var(--ink-2); font-size: 1.02rem; }
+  .mast .links { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .6rem .8rem; align-items: center; }
+  .pill {
+    display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .75rem; border-radius: 999px;
+    background: var(--surface-raised); box-shadow: var(--shadow); border: 1px solid var(--hairline); color: var(--ink);
+    font-size: .9rem; cursor: pointer; transition: box-shadow .15s ease, transform .15s ease;
+  }
+  .pill:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); text-decoration: none; }
+  .pill code { color: var(--brand-ink); }
+  .pill svg { width: 16px; height: 16px; }
+  .pill.copied { border-color: var(--brand-6); }
+
+  /* the freshness line — what this page exists to promise */
+  .fresh {
+    margin-top: 1.5rem; padding: .9rem 1.1rem; border-radius: 14px;
+    background: var(--surface); box-shadow: var(--shadow); border: 1px solid var(--hairline);
+    display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; align-items: center; font-size: .92rem; color: var(--ink-2);
+    position: relative; overflow: hidden;
+  }
+  .fresh::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 4px;
+    background: linear-gradient(180deg, var(--warm-a), var(--warm-b));
+  }
+  .fresh b { font: 600 1.05rem/1 var(--font-display); color: var(--ink); }
+  .fresh .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warm-b); box-shadow: 0 0 0 4px color-mix(in oklab, var(--warm-b) 25%, transparent); }
+  .fresh .sp { flex: 1 1 auto; }
+
+  /* ---------- controls ---------- */
+  .controls { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+  .search { position: relative; flex: 1 1 260px; max-width: 420px; }
+  .search input {
+    width: 100%; padding: .6rem .9rem .6rem 2.3rem; border-radius: 12px; border: 1px solid var(--hairline-strong);
+    background: var(--surface-raised); color: var(--ink); font: inherit; box-shadow: var(--shadow);
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip {
+    padding: .38rem .7rem; border-radius: 999px; border: 1px solid var(--hairline-strong); background: transparent;
+    color: var(--ink-2); font-size: .86rem; cursor: pointer; font-family: var(--font-mono);
+  }
+  .chip[aria-pressed="true"] { background: var(--brand-7); border-color: var(--brand-7); color: #fff; }
+  .chip:hover:not([aria-pressed="true"]) { background: var(--brand-1); }
+  .toggle { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink-2); font-size: .9rem; cursor: pointer; }
+  .toggle input { accent-color: var(--brand-7); }
+  select.sort {
+    padding: .45rem .7rem; border-radius: 10px; border: 1px solid var(--hairline-strong); background: var(--surface-raised);
+    color: var(--ink); font: inherit; font-size: .9rem;
+  }
+  .count { color: var(--muted); font-size: .9rem; margin-left: auto; font-family: var(--font-mono); }
+
+  /* ---------- the ledger ---------- */
+  .ledger { margin-top: 1.2rem; display: grid; gap: .7rem; }
+  .fam {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 16px; box-shadow: var(--shadow);
+    padding: .9rem 1rem .6rem; transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .fam:hover { box-shadow: var(--shadow-lift); }
+  .fam-head { display: grid; grid-template-columns: 36px 1fr auto; gap: .8rem 1rem; align-items: center; }
+  .mark {
+    width: 36px; height: 36px; border-radius: 10px; background: #fff; display: grid; place-items: center;
+    color: #141222; box-shadow: inset 0 0 0 1px rgba(60, 52, 110, 0.10);
+  }
+  .mark img { width: 22px; height: 22px; display: block; }
+  .mark.blank { color: var(--muted); font: 600 .8rem var(--font-display); }
+  .fam-name { min-width: 0; }
+  .fam-name h2 { margin: 0; font: 600 1.12rem/1.2 var(--font-display); letter-spacing: .005em; }
+  .fam-name .sub { color: var(--muted); font-size: .85rem; margin-top: .1rem; display: flex; flex-wrap: wrap; gap: .2rem .6rem; align-items: baseline; }
+  .fam-name .sub code { color: var(--ink-2); }
+  .fam-meta { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: flex-end; align-items: center; }
+  .lim { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-2); padding: .2rem .5rem; border-radius: 6px; background: var(--brand-1); }
+  .cap { font-size: .76rem; color: var(--ink-2); padding: .18rem .5rem; border-radius: 999px; border: 1px solid var(--hairline-strong); }
+  .cap.draw { border-color: transparent; background: linear-gradient(135deg, color-mix(in oklab, var(--warm-a) 22%, transparent), color-mix(in oklab, var(--warm-b) 22%, transparent)); color: var(--ink); }
+  .cap.no { text-decoration: line-through; color: var(--muted); border-style: dashed; }
+
+  .routes { margin-top: .7rem; border-top: 1px dashed var(--hairline-strong); }
+  .route {
+    display: grid; grid-template-columns: minmax(230px, 1.5fr) minmax(130px, 1fr) minmax(110px, .8fr) minmax(150px, 1.4fr);
+    gap: .4rem 1rem; align-items: center; padding: .5rem 0; border-bottom: 1px solid var(--hairline);
+    font-size: .92rem;
+  }
+  .route:last-child { border-bottom: 0; }
+  .route.retired { color: var(--muted); }
+  .route .id { font-family: var(--font-mono); font-size: .86rem; display: flex; align-items: center; gap: .45rem; min-width: 0; }
+  .route .id .prov {
+    padding: .12rem .45rem; border-radius: 6px; font-size: .78rem; background: var(--brand-1); color: var(--brand-ink); flex-shrink: 0;
+  }
+  .route .id .prov.router { background: transparent; box-shadow: inset 0 0 0 1px var(--hairline-strong); color: var(--ink-2); }
+  .route .id .fam-id { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .price { font-family: var(--font-mono); font-size: .9rem; white-space: nowrap; }
+  .price .lbl { color: var(--muted); font-size: .74rem; margin-right: .25rem; font-family: var(--font-sans); }
+  .price .sep { color: var(--muted); margin: 0 .2rem; }
+  .promo {
+    display: inline-block; margin-left: .45rem; padding: .05rem .4rem; border-radius: 5px; background: var(--promo-bg); color: var(--promo-ink);
+    font: 600 .74rem/1.4 var(--font-sans); vertical-align: 1px; cursor: help;
+  }
+  .route .wire { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .route .wire .tag { font-family: var(--font-sans); font-size: .72rem; padding: .05rem .4rem; border-radius: 999px; background: var(--brand-1); color: var(--brand-ink); margin-right: .4rem; }
+  .route .wire .tag.ret { background: transparent; box-shadow: inset 0 0 0 1px var(--hairline-strong); color: var(--muted); }
+
+  .empty { text-align: center; color: var(--muted); padding: 3rem 1rem; }
+  footer.foot { margin-top: 2.2rem; color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 1.4rem 1rem 3rem; }
+    .mast { grid-template-columns: 1fr; }
+    .mast img.logo { width: 56px; height: 56px; border-radius: 16px; }
+    .mast h1 { font-size: 1.9rem; }
+    .fam-head { grid-template-columns: 36px 1fr; }
+    .fam-meta { grid-column: 1 / -1; justify-content: flex-start; }
+    .route { grid-template-columns: 1fr 1fr; }
+    .route .wire { grid-column: 1 / -1; }
+    .count { margin-left: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<main>
-  <h1>Agent Models</h1>
-  <p class="lead">
-    A curated LLM model registry — pricing, limits and capability flags — served as
-    <a href="models.json"><code>models.json</code></a>.
-    Source and how it is kept current: <a href="https://github.com/opspresso/agent-models">opspresso/agent-models</a>.
-  </p>
-  <div class="controls">
-    <input id="q" type="search" placeholder="filter by id, name, maker…" size="32" autofocus>
-    <select id="provider"><option value="">all providers</option></select>
-    <label><input id="hidden" type="checkbox"> show hidden</label>
-    <span id="count" style="color: var(--muted)"></span>
-  </div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th data-k="id">Model id</th>
-          <th data-k="displayName">Name</th>
-          <th data-k="maker">Maker</th>
-          <th class="num" data-k="in">In $/M</th>
-          <th class="num" data-k="out">Out $/M</th>
-          <th class="num" data-k="cached">Cached $/M</th>
-          <th class="num" data-k="contextWindow">Context</th>
-          <th class="num" data-k="maxTokens">Max out</th>
-          <th>Capabilities</th>
-          <th>Wire id</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
-  <footer id="meta"></footer>
-</main>
+<div class="wrap">
+  <header class="mast">
+    <img class="logo" src="logo.png" alt="" width="76" height="76">
+    <div>
+      <div class="title">
+        <h1>Agent Models</h1>
+        <span class="kicker">model registry</span>
+      </div>
+      <p class="lead">
+        Every model <a href="https://github.com/opspresso/agent-studio">Agent Studio</a> can run — what it costs,
+        how much it can hold, what it can do — stated once per model and once per route, and refreshed from the
+        providers every day.
+      </p>
+    </div>
+    <div class="links">
+      <button class="pill" id="copy" type="button" title="Copy the catalog URL">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <code>https://models.opspresso.com/models.json</code>
+      </button>
+      <a class="pill" href="models.json">Open JSON</a>
+      <a class="pill" href="https://github.com/opspresso/agent-models">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.62-5.49 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .5z"/></svg>
+        Source
+      </a>
+    </div>
+  </header>
+
+  <section class="fresh" id="fresh" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <span><b id="n-models">—</b> models</span>
+    <span><b id="n-routes">—</b> routes</span>
+    <span><b id="n-makers">—</b> makers</span>
+    <span class="sp"></span>
+    <span>Checked daily at 00:00 UTC · last change <b id="updated">—</b></span>
+  </section>
+
+  <section class="controls">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Find a model, maker, id…" autocomplete="off" aria-label="Filter models">
+    </label>
+    <div class="chips" id="providers" role="group" aria-label="Routes"></div>
+    <select class="sort" id="sort" aria-label="Sort">
+      <option value="maker">Sort: maker</option>
+      <option value="name">name</option>
+      <option value="in">cheapest input</option>
+      <option value="out">cheapest output</option>
+      <option value="ctx">largest context</option>
+    </select>
+    <label class="toggle"><input id="retired" type="checkbox"> show retired routes</label>
+    <span class="count" id="count"></span>
+  </section>
+
+  <main class="ledger" id="ledger"></main>
+
+  <footer class="foot">
+    <span>Prices in USD per million tokens; image models per image or per million image tokens.</span>
+    <span>−n% marks a promotional rate at the route's default endpoint, already applied.</span>
+    <span>Brand marks identify the model's maker and remain their owners' property.</span>
+  </footer>
+</div>
+
 <script>
 (async () => {
+  const $ = (id) => document.getElementById(id);
   const res = await fetch("models.json", { cache: "no-cache" });
   const catalog = await res.json();
-  const $ = (id) => document.getElementById(id);
-  const fmtTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : String(n);
-  const price = (m) => {
-    const p = m.pricing;
-    if (m.capabilities.imageGeneration) {
-      return { in: p.inputPer1M, out: p.imageOutputPer1M ? p.imageOutputPer1M : null, cached: null, imageNote: p.perImage ? `$${p.perImage}/image` : (p.imageOutputPer1M ? `$${p.imageOutputPer1M}/M img tok` : "") };
+
+  // ---- derive families from the flat catalog: one model, its routes ----
+  const families = new Map();
+  for (const m of catalog.models) {
+    if (!families.has(m.family)) {
+      families.set(m.family, { family: m.family, maker: m.maker, displayName: m.displayName, contextWindow: m.contextWindow, maxTokens: m.maxTokens, capabilities: m.capabilities, routes: [] });
     }
-    return { in: p.inputPer1M, out: p.outputPer1M, cached: p.cachedInputPer1M ?? null, imageNote: "" };
-  };
-  const CAPS = [["tools", "T", "tools"], ["structuredOutput", "S", "structured output"], ["imageInput", "I", "image input"], ["reasoning", "R", "reasoning"], ["imageGeneration", "G", "image generation"]];
-  const num = (v) => v === null || v === undefined ? "" : (Math.round(v * 1e4) / 1e4).toString();
-
-  for (const p of catalog.providers) {
-    const o = document.createElement("option"); o.value = p; o.textContent = p; $("provider").append(o);
+    families.get(m.family).routes.push(m);
   }
-  let sortKey = "id", sortDir = 1;
-  const rows = catalog.models.map((m) => ({ m, ...price(m) }));
+  const ROUTERS = new Set(["bedrock", "openrouter"]);
+  const fmtTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : String(n);
+  const money = (v) => v === undefined || v === null ? "—" : (Math.round(v * 1e4) / 1e4).toString();
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const makerLabel = (id) => catalog.makers[id] ?? id;
+  const KNOWN_MARKS = new Set(Object.keys(catalog.makers));
 
-  function render() {
-    const q = $("q").value.trim().toLowerCase();
-    const provider = $("provider").value;
-    const showHidden = $("hidden").checked;
-    const visible = rows.filter(({ m }) =>
-      (showHidden || !m.hidden) &&
-      (!provider || m.provider === provider) &&
-      (!q || [m.id, m.displayName, m.maker, catalog.makers[m.maker] ?? "", m.wireId ?? ""].join(" ").toLowerCase().includes(q)),
-    );
-    const key = (r) => sortKey in r ? r[sortKey] : r.m[sortKey];
-    visible.sort((a, b) => {
-      const x = key(a), y = key(b);
-      if (x === y) return a.m.id.localeCompare(b.m.id);
-      if (x === null || x === undefined) return 1;
-      if (y === null || y === undefined) return -1;
-      return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * sortDir;
-    });
-    $("rows").replaceChildren(...visible.map(({ m, ...p }) => {
-      const tr = document.createElement("tr");
-      if (m.hidden) tr.className = "hidden-row";
-      const caps = CAPS.map(([k, l, t]) => `<span class="${m.capabilities[k] ? "" : "off"}" title="${t}">${l}</span>`).join("");
-      const hiddenChip = m.hidden ? `<span class="chip">hidden</span>` : "";
-      const d = m.pricing.discount;
-      const promo = d ? `<span class="promo" title="promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off the list price of $${num(p.in / (1 - d))} / $${num(p.out / (1 - d))} per M">−${Math.round(d * 100)}%</span>` : "";
-      tr.innerHTML = `
-        <td><code>${m.id}</code> ${hiddenChip}</td>
-        <td>${m.displayName}</td>
-        <td>${catalog.makers[m.maker] ?? m.maker}</td>
-        <td class="num">${num(p.in)}${promo}</td>
-        <td class="num" title="${p.imageNote}">${p.out === null ? p.imageNote : num(p.out)}</td>
-        <td class="num">${num(p.cached)}</td>
-        <td class="num" title="${m.contextWindow.toLocaleString("en-US")}">${fmtTokens(m.contextWindow)}</td>
-        <td class="num" title="${m.maxTokens.toLocaleString("en-US")}">${fmtTokens(m.maxTokens)}</td>
-        <td class="caps">${caps}</td>
-        <td>${m.wireId ? `<code>${m.wireId}</code>` : ""}</td>`;
-      return tr;
-    }));
-    $("count").textContent = `${visible.length} of ${catalog.models.length} models`;
-  }
-  for (const th of document.querySelectorAll("th[data-k]")) {
-    th.addEventListener("click", () => {
-      const k = th.dataset.k;
-      sortDir = sortKey === k ? -sortDir : 1;
-      sortKey = k;
+  // ---- masthead numbers ----
+  $("n-models").textContent = [...families.values()].filter((f) => f.routes.some((r) => !r.hidden)).length;
+  $("n-routes").textContent = catalog.models.filter((m) => !m.hidden).length;
+  $("n-makers").textContent = new Set(catalog.models.map((m) => m.maker)).size;
+  $("updated").textContent = new Date(catalog.updatedAt).toLocaleDateString("en-CA", { timeZone: "UTC" });
+  $("updated").title = catalog.updatedAt;
+
+  // ---- copy the URL ----
+  $("copy").addEventListener("click", async () => {
+    const url = "https://models.opspresso.com/models.json";
+    try { await navigator.clipboard.writeText(url); $("copy").classList.add("copied"); setTimeout(() => $("copy").classList.remove("copied"), 1200); } catch {}
+  });
+
+  // ---- provider chips ----
+  const active = new Set();
+  const chips = $("providers");
+  const chip = (value, label) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = label; b.dataset.v = value;
+    b.setAttribute("aria-pressed", value === "" ? "true" : "false");
+    b.addEventListener("click", () => {
+      if (value === "") active.clear();
+      else if (active.has(value)) active.delete(value);
+      else active.add(value);
+      for (const c of chips.children) c.setAttribute("aria-pressed", c.dataset.v === "" ? String(active.size === 0) : String(active.has(c.dataset.v)));
       render();
     });
+    return b;
+  };
+  chips.append(chip("", "all routes"), ...catalog.providers.map((p) => chip(p, p)));
+
+  // ---- price helpers ----
+  const priceCells = (m) => {
+    const p = m.pricing;
+    const d = p.discount;
+    const promo = d ? `<span class="promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off a list price of $${money(p.inputPer1M / (1 - d))} in / $${money((m.capabilities.imageGeneration ? (p.imageOutputPer1M ?? 0) : p.outputPer1M) / (1 - d))} out">−${Math.round(d * 100)}%</span>` : "";
+    if (m.capabilities.imageGeneration) {
+      const main = p.perImage && !p.imageOutputPer1M
+        ? `<span class="lbl">per image</span>$${money(p.perImage)}${p.perInputImage ? `<span class="sep">+</span>$${money(p.perInputImage)}<span class="lbl"> /source</span>` : ""}`
+        : `<span class="lbl">in</span>$${money(p.inputPer1M)}<span class="sep">/</span><span class="lbl">img out</span>$${money(p.imageOutputPer1M)}`;
+      const extra = p.perImage && p.imageOutputPer1M ? `<span class="lbl">≈ per image</span>$${money(p.perImage)}` : "";
+      return [`${main}${promo}`, extra];
+    }
+    return [
+      `$${money(p.inputPer1M)}<span class="sep">/</span>$${money(p.outputPer1M)}${promo}`,
+      p.cachedInputPer1M !== undefined ? `<span class="lbl">cached</span>$${money(p.cachedInputPer1M)}` : `<span class="lbl" style="opacity:.6">no cache rate</span>`,
+    ];
+  };
+  const caps = (c) => {
+    const out = [];
+    if (c.imageGeneration) out.push('<span class="cap draw">draws images</span>');
+    out.push(c.tools ? '<span class="cap">tools</span>' : '<span class="cap no">tools</span>');
+    out.push(c.structuredOutput ? '<span class="cap">JSON schema</span>' : '<span class="cap no">JSON schema</span>');
+    out.push(c.imageInput ? '<span class="cap">sees images</span>' : '<span class="cap no">sees images</span>');
+    out.push(c.reasoning ? '<span class="cap">reasoning</span>' : '<span class="cap no">reasoning</span>');
+    if (c.reasoningWithTools === false) out.push('<span class="cap no" title="The provider rejects tools together with reasoning_effort; the effort is forced to none">reasoning + tools</span>');
+    return out.join("");
+  };
+  const minPrice = (f, key) => Math.min(...f.routes.filter((r) => !r.hidden).map((r) => r.pricing[key] ?? Infinity), Infinity);
+
+  // ---- render ----
+  function render() {
+    const q = $("q").value.trim().toLowerCase();
+    const showRetired = $("retired").checked;
+    const sort = $("sort").value;
+    const rows = [];
+    for (const f of families.values()) {
+      let routes = f.routes.filter((r) => showRetired || !r.hidden);
+      if (active.size > 0) routes = routes.filter((r) => active.has(r.provider));
+      if (routes.length === 0) continue;
+      if (q) {
+        const hay = [f.displayName, f.family, f.maker, makerLabel(f.maker), ...routes.flatMap((r) => [r.id, r.wireId ?? ""])].join(" ").toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
+      rows.push({ f, routes });
+    }
+    rows.sort((a, b) => {
+      const fa = a.f, fb = b.f;
+      const byName = fa.displayName.localeCompare(fb.displayName);
+      if (sort === "in") return (minPrice(fa, "inputPer1M") - minPrice(fb, "inputPer1M")) || byName;
+      if (sort === "out") return (minPrice(fa, "outputPer1M") - minPrice(fb, "outputPer1M")) || byName;
+      if (sort === "ctx") return (fb.contextWindow - fa.contextWindow) || byName;
+      if (sort === "maker") return makerLabel(fa.maker).localeCompare(makerLabel(fb.maker)) || byName;
+      return byName;
+    });
+
+    const ledger = $("ledger");
+    if (rows.length === 0) {
+      ledger.innerHTML = `<div class="empty">No model matches. Clear the search or widen the routes.</div>`;
+    } else {
+      ledger.innerHTML = rows.map(({ f, routes }) => {
+        const mark = KNOWN_MARKS.has(f.maker)
+          ? `<span class="mark" title="${esc(makerLabel(f.maker))}"><img src="icons/brands/${esc(f.maker)}.svg" alt="${esc(makerLabel(f.maker))}" width="22" height="22" onerror="this.parentNode.classList.add('blank');this.replaceWith(document.createTextNode('${esc(makerLabel(f.maker).slice(0, 2).toUpperCase())}'))"></span>`
+          : `<span class="mark blank">${esc(f.maker.slice(0, 2).toUpperCase())}</span>`;
+        const routeRows = routes.map((r) => {
+          const [main, extra] = priceCells(r);
+          const wire = r.wireId ? `<code>${esc(r.wireId)}</code>` : "";
+          const tag = r.hidden ? `<span class="tag ret">retired</span>` : ROUTERS.has(r.provider) ? `<span class="tag">via ${esc(r.provider)}</span>` : "";
+          return `<div class="route${r.hidden ? " retired" : ""}">
+            <div class="id"><span class="prov${ROUTERS.has(r.provider) ? " router" : ""}">${esc(r.provider)}</span><span class="fam-id" title="The id a run names">${esc(r.id)}</span></div>
+            <div class="price">${main}</div>
+            <div class="price">${extra}</div>
+            <div class="wire" title="${r.wireId ? `Sent to ${esc(r.provider)} as ${esc(r.wireId)}` : ""}">${tag}${wire}</div>
+          </div>`;
+        }).join("");
+        return `<article class="fam">
+          <div class="fam-head">
+            ${mark}
+            <div class="fam-name">
+              <h2>${esc(f.displayName)}</h2>
+              <div class="sub"><span>${esc(makerLabel(f.maker))}</span><code>${esc(f.family)}</code></div>
+            </div>
+            <div class="fam-meta">
+              <span class="lim" title="${f.contextWindow.toLocaleString("en-US")} tokens of context">ctx ${fmtTokens(f.contextWindow)}</span>
+              <span class="lim" title="${f.maxTokens.toLocaleString("en-US")} tokens of output">out ${fmtTokens(f.maxTokens)}</span>
+              ${caps(f.capabilities)}
+            </div>
+          </div>
+          <div class="routes">${routeRows}</div>
+        </article>`;
+      }).join("");
+    }
+    const nRoutes = rows.reduce((n, r) => n + r.routes.length, 0);
+    $("count").textContent = `${rows.length} models · ${nRoutes} routes`;
   }
+
   $("q").addEventListener("input", render);
-  $("provider").addEventListener("change", render);
-  $("hidden").addEventListener("change", render);
-  $("meta").textContent = `version ${catalog.version} · updated ${catalog.updatedAt} · capabilities: T tools · S structured output · I image input · R reasoning · G image generation · −n% = promotional rate, already applied`;
+  $("sort").addEventListener("change", render);
+  $("retired").addEventListener("change", render);
   render();
 })();
 </script>
