@@ -1,0 +1,16 @@
+{
+  "openai": "OpenAI",
+  "anthropic": "Anthropic",
+  "google": "Google",
+  "xai": "xAI",
+  "deepseek": "DeepSeek",
+  "zhipu": "Z.ai",
+  "minimax": "MiniMax",
+  "moonshot": "Moonshot AI",
+  "qwen": "Alibaba Qwen",
+  "nvidia": "NVIDIA",
+  "xiaomimimo": "Xiaomi",
+  "tencent": "Tencent",
+  "stepfun": "StepFun",
+  "upstage": "Upstage"
+}

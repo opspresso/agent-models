@@ -1,0 +1,36 @@
+[
+  {
+    "family": "grok-4.6"
+  },
+  {
+    "family": "grok-4.5"
+  },
+  {
+    "family": "grok-4.20"
+  },
+  {
+    "family": "grok-4.3"
+  },
+  {
+    "family": "grok-build-0.1"
+  },
+  {
+    "family": "grok-4.1-fast",
+    "hidden": true,
+    "note": "Retired 2026-05-15; hidden, not deleted — a stored version may still name it and past usage is priced by it."
+  },
+  {
+    "family": "grok-code-fast-1",
+    "hidden": true,
+    "note": "Retired 2026-05-15; still resolves (redirects to grok-build-0.1). Hidden, not deleted, for the same reason as grok-4.1-fast."
+  },
+  {
+    "family": "grok-imagine-image"
+  },
+  {
+    "family": "grok-imagine-image-quality"
+  },
+  {
+    "family": "grok-imagine-image-2.0"
+  }
+]

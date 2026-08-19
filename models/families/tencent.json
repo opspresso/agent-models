@@ -1,0 +1,18 @@
+{
+  "hy3": {
+    "displayName": "Tencent Hy3",
+    "pricing": {
+      "inputPer1M": 0.132,
+      "outputPer1M": 0.528,
+      "cachedInputPer1M": 0.033
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 128000
+  }
+}

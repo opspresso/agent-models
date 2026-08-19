@@ -1,0 +1,81 @@
+name: Update models
+
+# Brings `models/` up to date with what the providers publish and republishes
+# `docs/models.json` — every day at 00:00 UTC, or on demand.
+#
+# OpenRouter's catalog is public and always read. The vendor catalogs are read
+# when their key is present and skipped (and said so in the job summary)
+# otherwise; a missing secret narrows the update, it does not fail it. What
+# each source may change is documented in README.md and in `src/sources/`.
+#
+# Optional repository secrets: XAI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY.
+#
+# The commit is made with the workflow's own token, which is enough for the
+# Pages site (models.opspresso.com): it is served from `main:/docs` by the
+# classic Pages build, which runs on every push to the branch — the push below
+# included.
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-models
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Writes `models/` and the job summary. Exits 1 when a source could not be
+      # read; the step is allowed to continue so what the other sources found is
+      # still built and committed, and the failure is raised again at the end.
+      - name: Update sources from the providers
+        id: update
+        continue-on-error: true
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: pnpm update-models
+
+      - name: Build the catalog
+        run: pnpm build
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Commit and push when anything changed
+        run: |
+          if git diff --quiet -- models docs; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models docs
+          git commit -m "chore: update models $(date -u +%F)"
+          git push
+
+      - name: Fail when a source could not be read
+        if: steps.update.outcome == 'failure'
+        run: |
+          echo "::error::at least one provider catalog could not be read — see the job summary"
+          exit 1

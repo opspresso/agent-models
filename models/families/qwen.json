@@ -1,0 +1,82 @@
+{
+  "qwen3.8-max": {
+    "displayName": "Qwen3.8 Max",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 6,
+      "cachedInputPer1M": 0.25
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 131072
+  },
+  "qwen3.8-2.4t-a95b": {
+    "displayName": "Qwen3.8 2.4T A95B",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 6,
+      "cachedInputPer1M": 0.25
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 262144
+  },
+  "qwen3.8-27b": {
+    "displayName": "Qwen3.8 27B",
+    "pricing": {
+      "inputPer1M": 0.45,
+      "outputPer1M": 3.2,
+      "cachedInputPer1M": 0.05
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 131072
+  },
+  "qwen3-coder-next": {
+    "displayName": "Qwen3 Coder Next",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 1.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 262144,
+    "maxTokens": 262144,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "qwen3-235b-a22b": {
+    "displayName": "Qwen3 235B A22B Instruct 2507",
+    "pricing": {
+      "inputPer1M": 0.22,
+      "outputPer1M": 0.88
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 262144,
+    "maxTokens": 16384,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  }
+}

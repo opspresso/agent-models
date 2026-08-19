@@ -1,0 +1,51 @@
+{
+  "kimi-k3": {
+    "displayName": "Kimi K3",
+    "pricing": {
+      "inputPer1M": 3,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 262144,
+    "note": "Max output is not published for K3; K2.7 Code's cap, the nearest sibling that states one."
+  },
+  "kimi-k2.5": {
+    "displayName": "Kimi K2.5",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 262144,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "kimi-k2-thinking": {
+    "displayName": "Kimi K2 Thinking",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 2.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 100352,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  }
+}

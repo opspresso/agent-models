@@ -1,0 +1,156 @@
+[
+  {
+    "family": "claude-fable-5",
+    "wireId": "anthropic/claude-fable-5"
+  },
+  {
+    "family": "claude-opus-5",
+    "wireId": "anthropic/claude-opus-5"
+  },
+  {
+    "family": "claude-sonnet-5",
+    "wireId": "anthropic/claude-sonnet-5"
+  },
+  {
+    "family": "claude-opus-4.8",
+    "wireId": "anthropic/claude-opus-4.8"
+  },
+  {
+    "family": "claude-haiku-4.5",
+    "wireId": "anthropic/claude-haiku-4.5"
+  },
+  {
+    "family": "gpt-5.6-sol",
+    "wireId": "openai/gpt-5.6-sol",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.25
+    }
+  },
+  {
+    "family": "gpt-5.6-terra",
+    "wireId": "openai/gpt-5.6-terra"
+  },
+  {
+    "family": "gpt-5.6-luna",
+    "wireId": "openai/gpt-5.6-luna"
+  },
+  {
+    "family": "gpt-5.4",
+    "wireId": "openai/gpt-5.4"
+  },
+  {
+    "family": "gpt-5.4-mini",
+    "wireId": "openai/gpt-5.4-mini"
+  },
+  {
+    "family": "gemini-3.6-flash",
+    "wireId": "google/gemini-3.6-flash"
+  },
+  {
+    "family": "gemini-3.7-flash",
+    "wireId": "google/gemini-3.7-flash",
+    "pricing": {
+      "inputPer1M": 0.375,
+      "outputPer1M": 1.875,
+      "cachedInputPer1M": 0.0375
+    }
+  },
+  {
+    "family": "grok-4.6",
+    "wireId": "x-ai/grok-4.6"
+  },
+  {
+    "family": "grok-4.5",
+    "wireId": "x-ai/grok-4.5"
+  },
+  {
+    "family": "grok-4.3",
+    "wireId": "x-ai/grok-4.3"
+  },
+  {
+    "family": "deepseek-v4-flash",
+    "wireId": "deepseek/deepseek-v4-flash"
+  },
+  {
+    "family": "deepseek-v4-pro",
+    "wireId": "deepseek/deepseek-v4-pro"
+  },
+  {
+    "family": "deepseek-v4-pro-0813",
+    "wireId": "deepseek/deepseek-v4-pro-0813"
+  },
+  {
+    "family": "mimo-v2.5",
+    "wireId": "xiaomi/mimo-v2.5"
+  },
+  {
+    "family": "hy3",
+    "wireId": "tencent/hy3"
+  },
+  {
+    "family": "glm-5.2",
+    "wireId": "z-ai/glm-5.2"
+  },
+  {
+    "family": "minimax-m3",
+    "wireId": "minimax/minimax-m3"
+  },
+  {
+    "family": "step-3.7-flash",
+    "wireId": "stepfun/step-3.7-flash"
+  },
+  {
+    "family": "kimi-k3",
+    "wireId": "moonshotai/kimi-k3"
+  },
+  {
+    "family": "qwen3.8-max",
+    "wireId": "qwen/qwen3.8-max"
+  },
+  {
+    "family": "qwen3.8-2.4t-a95b",
+    "wireId": "qwen/qwen3.8-2.4t-a95b"
+  },
+  {
+    "family": "qwen3.8-27b",
+    "wireId": "qwen/qwen3.8-27b"
+  },
+  {
+    "family": "nemotron-3.5-lightning",
+    "wireId": "nvidia/nemotron-3.5-lightning"
+  },
+  {
+    "family": "solar-pro-4",
+    "wireId": "upstage/solar-pro4"
+  },
+  {
+    "family": "solar-pro-3",
+    "wireId": "upstage/solar-pro-3"
+  },
+  {
+    "family": "gpt-image-2",
+    "wireId": "openai/gpt-image-2"
+  },
+  {
+    "family": "gemini-3-pro-image",
+    "wireId": "google/gemini-3-pro-image"
+  },
+  {
+    "family": "gemini-3.1-flash-image",
+    "wireId": "google/gemini-3.1-flash-image"
+  },
+  {
+    "family": "gemini-3.1-flash-lite-image",
+    "wireId": "google/gemini-3.1-flash-lite-image"
+  },
+  {
+    "family": "grok-imagine-image-quality",
+    "wireId": "x-ai/grok-imagine-image-quality"
+  },
+  {
+    "family": "grok-imagine-image-2.0",
+    "wireId": "x-ai/grok-imagine-image-2.0"
+  }
+]

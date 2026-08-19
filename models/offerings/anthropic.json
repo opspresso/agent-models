@@ -1,0 +1,28 @@
+[
+  {
+    "family": "claude-fable-5"
+  },
+  {
+    "family": "claude-opus-5"
+  },
+  {
+    "family": "claude-sonnet-5"
+  },
+  {
+    "family": "claude-opus-4.8",
+    "wireId": "claude-opus-4-8"
+  },
+  {
+    "family": "claude-opus-4.7",
+    "wireId": "claude-opus-4-7"
+  },
+  {
+    "family": "claude-sonnet-4.6",
+    "wireId": "claude-sonnet-4-6",
+    "hidden": true
+  },
+  {
+    "family": "claude-haiku-4.5",
+    "wireId": "claude-haiku-4-5"
+  }
+]

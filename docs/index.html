@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Models</title>
+<style>
+  :root { color-scheme: light dark; --muted: #6b7280; --line: #e5e7eb; --bg: #fff; --fg: #111827; --chip: #f3f4f6; }
+  @media (prefers-color-scheme: dark) { :root { --muted: #9ca3af; --line: #374151; --bg: #111827; --fg: #f9fafb; --chip: #1f2937; } }
+  body { margin: 0; padding: 2rem 1.5rem; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  p.lead { margin: 0 0 1.25rem; color: var(--muted); }
+  p.lead code { font-size: .9em; }
+  .controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1rem; }
+  input[type=search], select { font: inherit; padding: .35rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  label { display: inline-flex; gap: .35rem; align-items: center; color: var(--muted); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; white-space: nowrap; }
+  th, td { padding: .45rem .7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { position: sticky; top: 0; background: var(--bg); font-weight: 600; cursor: pointer; user-select: none; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+  .chip { display: inline-block; padding: 0 .45rem; border-radius: 999px; background: var(--chip); font-size: .8em; margin-right: .25rem; }
+  .hidden-row { color: var(--muted); }
+  .caps span { display: inline-block; width: 1.1em; text-align: center; }
+  .caps .off { color: var(--muted); opacity: .4; }
+  footer { margin-top: 1rem; color: var(--muted); font-size: .85em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Agent Models</h1>
+  <p class="lead">
+    A curated LLM model registry — pricing, limits and capability flags — served as
+    <a href="models.json"><code>models.json</code></a>.
+    Source and how it is kept current: <a href="https://github.com/opspresso/agent-models">opspresso/agent-models</a>.
+  </p>
+  <div class="controls">
+    <input id="q" type="search" placeholder="filter by id, name, maker…" size="32" autofocus>
+    <select id="provider"><option value="">all providers</option></select>
+    <label><input id="hidden" type="checkbox"> show hidden</label>
+    <span id="count" style="color: var(--muted)"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-k="id">Model id</th>
+          <th data-k="displayName">Name</th>
+          <th data-k="maker">Maker</th>
+          <th class="num" data-k="in">In $/M</th>
+          <th class="num" data-k="out">Out $/M</th>
+          <th class="num" data-k="cached">Cached $/M</th>
+          <th class="num" data-k="contextWindow">Context</th>
+          <th class="num" data-k="maxTokens">Max out</th>
+          <th>Capabilities</th>
+          <th>Wire id</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <footer id="meta"></footer>
+</main>
+<script>
+(async () => {
+  const res = await fetch("models.json", { cache: "no-cache" });
+  const catalog = await res.json();
+  const $ = (id) => document.getElementById(id);
+  const fmtTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : String(n);
+  const price = (m) => {
+    const p = m.pricing;
+    if (m.capabilities.imageGeneration) {
+      return { in: p.inputPer1M, out: p.imageOutputPer1M ? p.imageOutputPer1M : null, cached: null, imageNote: p.perImage ? `$${p.perImage}/image` : (p.imageOutputPer1M ? `$${p.imageOutputPer1M}/M img tok` : "") };
+    }
+    return { in: p.inputPer1M, out: p.outputPer1M, cached: p.cachedInputPer1M ?? null, imageNote: "" };
+  };
+  const CAPS = [["tools", "T", "tools"], ["structuredOutput", "S", "structured output"], ["imageInput", "I", "image input"], ["reasoning", "R", "reasoning"], ["imageGeneration", "G", "image generation"]];
+  const num = (v) => v === null || v === undefined ? "" : (Math.round(v * 1e4) / 1e4).toString();
+
+  for (const p of catalog.providers) {
+    const o = document.createElement("option"); o.value = p; o.textContent = p; $("provider").append(o);
+  }
+  let sortKey = "id", sortDir = 1;
+  const rows = catalog.models.map((m) => ({ m, ...price(m) }));
+
+  function render() {
+    const q = $("q").value.trim().toLowerCase();
+    const provider = $("provider").value;
+    const showHidden = $("hidden").checked;
+    const visible = rows.filter(({ m }) =>
+      (showHidden || !m.hidden) &&
+      (!provider || m.provider === provider) &&
+      (!q || [m.id, m.displayName, m.maker, catalog.makers[m.maker] ?? "", m.wireId ?? ""].join(" ").toLowerCase().includes(q)),
+    );
+    const key = (r) => sortKey in r ? r[sortKey] : r.m[sortKey];
+    visible.sort((a, b) => {
+      const x = key(a), y = key(b);
+      if (x === y) return a.m.id.localeCompare(b.m.id);
+      if (x === null || x === undefined) return 1;
+      if (y === null || y === undefined) return -1;
+      return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * sortDir;
+    });
+    $("rows").replaceChildren(...visible.map(({ m, ...p }) => {
+      const tr = document.createElement("tr");
+      if (m.hidden) tr.className = "hidden-row";
+      const caps = CAPS.map(([k, l, t]) => `<span class="${m.capabilities[k] ? "" : "off"}" title="${t}">${l}</span>`).join("");
+      const hiddenChip = m.hidden ? `<span class="chip">hidden</span>` : "";
+      tr.innerHTML = `
+        <td><code>${m.id}</code> ${hiddenChip}</td>
+        <td>${m.displayName}</td>
+        <td>${catalog.makers[m.maker] ?? m.maker}</td>
+        <td class="num">${num(p.in)}</td>
+        <td class="num" title="${p.imageNote}">${p.out === null ? p.imageNote : num(p.out)}</td>
+        <td class="num">${num(p.cached)}</td>
+        <td class="num" title="${m.contextWindow.toLocaleString("en-US")}">${fmtTokens(m.contextWindow)}</td>
+        <td class="num" title="${m.maxTokens.toLocaleString("en-US")}">${fmtTokens(m.maxTokens)}</td>
+        <td class="caps">${caps}</td>
+        <td>${m.wireId ? `<code>${m.wireId}</code>` : ""}</td>`;
+      return tr;
+    }));
+    $("count").textContent = `${visible.length} of ${catalog.models.length} models`;
+  }
+  for (const th of document.querySelectorAll("th[data-k]")) {
+    th.addEventListener("click", () => {
+      const k = th.dataset.k;
+      sortDir = sortKey === k ? -sortDir : 1;
+      sortKey = k;
+      render();
+    });
+  }
+  $("q").addEventListener("input", render);
+  $("provider").addEventListener("change", render);
+  $("hidden").addEventListener("change", render);
+  $("meta").textContent = `version ${catalog.version} · updated ${catalog.updatedAt} · capabilities: T tools · S structured output · I image input · R reasoning · G image generation`;
+  render();
+})();
+</script>
+</body>
+</html>

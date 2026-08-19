@@ -1,0 +1,221 @@
+{
+  "gemini-3.1-pro": {
+    "displayName": "Gemini 3.1 Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3.6-flash": {
+    "displayName": "Gemini 3.6 Flash",
+    "pricing": {
+      "inputPer1M": 0.75,
+      "outputPer1M": 3.75,
+      "cachedInputPer1M": 0.075
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Promotional standard rate through 2026-12-31."
+  },
+  "gemini-3.7-flash": {
+    "displayName": "Gemini 3.7 Flash",
+    "pricing": {
+      "inputPer1M": 0.75,
+      "outputPer1M": 3.75,
+      "cachedInputPer1M": 0.075
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Promotional standard rate through 2026-12-31."
+  },
+  "gemini-3.5-flash": {
+    "displayName": "Gemini 3.5 Flash",
+    "pricing": {
+      "inputPer1M": 1.5,
+      "outputPer1M": 9,
+      "cachedInputPer1M": 0.15
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3.5-flash-lite": {
+    "displayName": "Gemini 3.5 Flash Lite",
+    "pricing": {
+      "inputPer1M": 0.3,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.03
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3.1-flash-lite": {
+    "displayName": "Gemini 3.1 Flash Lite",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.5,
+      "cachedInputPer1M": 0.025
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3-pro": {
+    "displayName": "Gemini 3 Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3-flash": {
+    "displayName": "Gemini 3 Flash",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 3,
+      "cachedInputPer1M": 0.05
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-2.5-flash": {
+    "displayName": "Gemini 2.5 Flash",
+    "pricing": {
+      "inputPer1M": 0.3,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.03
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-2.5-flash-lite": {
+    "displayName": "Gemini 2.5 Flash Lite",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.01
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536
+  },
+  "gemini-3-pro-image": {
+    "displayName": "Nano Banana Pro (Gemini 3 Pro Image)",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "imageOutputPer1M": 120,
+      "perImage": 0.134
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 32768,
+    "note": "Window from Google's own model page — the image models carry their own, much smaller window than the text models."
+  },
+  "gemini-3.1-flash-lite-image": {
+    "displayName": "Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.5,
+      "imageOutputPer1M": 30,
+      "perImage": 0.034
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 65536,
+    "note": "Window from OpenRouter's context_length. imageInput is off because Google documents this variant as not optimized for multiple reference inputs or multi-turn editing, so it is not handed a conversation's attachments."
+  },
+  "gemini-3.1-flash-image": {
+    "displayName": "Nano Banana 2 (Gemini 3.1 Flash Image)",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 3,
+      "imageOutputPer1M": 60,
+      "perImage": 0.067
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 131072,
+    "maxTokens": 32768,
+    "note": "Window from OpenRouter's context_length, the only machine-readable source that carries it."
+  }
+}

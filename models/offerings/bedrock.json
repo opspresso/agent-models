@@ -1,0 +1,86 @@
+[
+  {
+    "family": "gpt-oss-120b",
+    "wireId": "openai.gpt-oss-120b",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "gpt-oss-20b",
+    "wireId": "openai.gpt-oss-20b",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "deepseek-v3.2",
+    "wireId": "deepseek.v3.2",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "glm-5",
+    "wireId": "zai.glm-5",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "glm-4.7",
+    "wireId": "zai.glm-4.7",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "glm-4.7-flash",
+    "wireId": "zai.glm-4.7-flash",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "minimax-m2.5",
+    "wireId": "minimax.minimax-m2.5",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "kimi-k2.5",
+    "wireId": "moonshotai.kimi-k2.5",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "qwen3-coder-next",
+    "wireId": "qwen.qwen3-coder-next",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "qwen3-235b-a22b",
+    "wireId": "qwen.qwen3-235b-a22b-2507",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "nemotron-3-super-120b",
+    "wireId": "nvidia.nemotron-super-3-120b",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  },
+  {
+    "family": "kimi-k2-thinking",
+    "wireId": "moonshotai.kimi-k2-thinking",
+    "capabilities": {
+      "structuredOutput": false
+    }
+  }
+]

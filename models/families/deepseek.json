@@ -1,0 +1,66 @@
+{
+  "deepseek-v4-flash": {
+    "displayName": "DeepSeek V4 Flash",
+    "pricing": {
+      "inputPer1M": 0.0826,
+      "outputPer1M": 0.1652,
+      "cachedInputPer1M": 0.01652
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 384000
+  },
+  "deepseek-v4-pro": {
+    "displayName": "DeepSeek V4 Pro",
+    "pricing": {
+      "inputPer1M": 1.44,
+      "outputPer1M": 2.88,
+      "cachedInputPer1M": 0.1215
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 393216
+  },
+  "deepseek-v4-pro-0813": {
+    "displayName": "DeepSeek V4 Pro 0813",
+    "pricing": {
+      "inputPer1M": 0.66,
+      "outputPer1M": 1.98,
+      "cachedInputPer1M": 0.022
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 384000
+  },
+  "deepseek-v3.2": {
+    "displayName": "DeepSeek V3.2",
+    "pricing": {
+      "inputPer1M": 0.62,
+      "outputPer1M": 1.85
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 163840,
+    "maxTokens": 65536,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  }
+}

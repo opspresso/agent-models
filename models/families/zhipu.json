@@ -1,0 +1,66 @@
+{
+  "glm-5.2": {
+    "displayName": "GLM 5.2",
+    "pricing": {
+      "inputPer1M": 0.966,
+      "outputPer1M": 3.036,
+      "cachedInputPer1M": 0.1932
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 131072
+  },
+  "glm-5": {
+    "displayName": "GLM 5",
+    "pricing": {
+      "inputPer1M": 1,
+      "outputPer1M": 3.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 204800,
+    "maxTokens": 131072,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "glm-4.7": {
+    "displayName": "GLM 4.7",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 2.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 204800,
+    "maxTokens": 131072,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "glm-4.7-flash": {
+    "displayName": "GLM 4.7 Flash",
+    "pricing": {
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.4
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 202752,
+    "maxTokens": 16384,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  }
+}

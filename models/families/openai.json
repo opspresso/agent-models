@@ -1,0 +1,173 @@
+{
+  "gpt-5.6-sol": {
+    "displayName": "GPT-5.6 Sol",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 30,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true,
+      "reasoningWithTools": false
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Every GPT-5.6 rejects tools together with reasoning_effort on chat/completions (reasoningWithTools: false); the provider's remedy is an explicit effort of none."
+  },
+  "gpt-5.6-terra": {
+    "displayName": "GPT-5.6 Terra",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true,
+      "reasoningWithTools": false
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "OpenAI's 2026-07-30 cut; the launch rate was 2.5 / 15.0 / 0.25."
+  },
+  "gpt-5.6-luna": {
+    "displayName": "GPT-5.6 Luna",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 1.2,
+      "cachedInputPer1M": 0.02
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true,
+      "reasoningWithTools": false
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "OpenAI's 2026-07-30 cut; the launch rate was 1.0 / 6.0 / 0.1."
+  },
+  "gpt-5.4": {
+    "displayName": "GPT-5.4",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.25
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "OpenAI's model page puts 5.4 at the 1,050,000 window of the 5.6 family, not the 400,000 of 5.1."
+  },
+  "gpt-5.4-mini": {
+    "displayName": "GPT 5.4 Mini",
+    "pricing": {
+      "inputPer1M": 0.75,
+      "outputPer1M": 4.5,
+      "cachedInputPer1M": 0.075
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000
+  },
+  "gpt-5.1": {
+    "displayName": "GPT-5.1",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000
+  },
+  "gpt-5-mini": {
+    "displayName": "GPT 5 Mini",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 2,
+      "cachedInputPer1M": 0.025
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000
+  },
+  "gpt-oss-120b": {
+    "displayName": "GPT OSS 120B",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.6
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16000,
+    "note": "Bedrock-only. Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
+  },
+  "gpt-oss-20b": {
+    "displayName": "GPT OSS 20B",
+    "pricing": {
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16000,
+    "note": "Bedrock-only. Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
+  },
+  "gpt-image-2": {
+    "displayName": "GPT Image 2",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 0,
+      "cachedInputPer1M": 1.25,
+      "imageInputPer1M": 8,
+      "imageOutputPer1M": 30
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "cachedInputPer1M is the cached text-input rate; OpenAI's cached image-input rate ($2.00/MTok) has no field here."
+  }
+}

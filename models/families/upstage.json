@@ -1,0 +1,34 @@
+{
+  "solar-pro-4": {
+    "displayName": "Solar Pro 4",
+    "pricing": {
+      "inputPer1M": 0.03,
+      "outputPer1M": 0.12,
+      "cachedInputPer1M": 0.006
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 524288,
+    "maxTokens": 131072
+  },
+  "solar-pro-3": {
+    "displayName": "Solar Pro 3",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.6,
+      "cachedInputPer1M": 0.015
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 131072,
+    "maxTokens": 131072
+  }
+}

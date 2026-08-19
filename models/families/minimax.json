@@ -1,0 +1,34 @@
+{
+  "minimax-m3": {
+    "displayName": "MiniMax M3",
+    "pricing": {
+      "inputPer1M": 0.3,
+      "outputPer1M": 1.2,
+      "cachedInputPer1M": 0.06
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 512000
+  },
+  "minimax-m2.5": {
+    "displayName": "MiniMax M2.5",
+    "pricing": {
+      "inputPer1M": 0.3,
+      "outputPer1M": 1.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 204800,
+    "maxTokens": 196608,
+    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  }
+}

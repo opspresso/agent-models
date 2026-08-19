@@ -1,0 +1,18 @@
+{
+  "step-3.7-flash": {
+    "displayName": "Step 3.7 Flash",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 1.15,
+      "cachedInputPer1M": 0.04
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 256000
+  }
+}

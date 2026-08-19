@@ -1,0 +1,23 @@
+{
+  "name": "agent-models",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Curated LLM model registry — pricing, limits and capability flags — published as a static JSON",
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "build:check": "node scripts/build.ts --check",
+    "format": "node scripts/format.ts",
+    "update-models": "node scripts/update.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"tests/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2"
+  }
+}

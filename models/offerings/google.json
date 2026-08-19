@@ -1,0 +1,43 @@
+[
+  {
+    "family": "gemini-3.1-pro"
+  },
+  {
+    "family": "gemini-3.7-flash"
+  },
+  {
+    "family": "gemini-3.6-flash"
+  },
+  {
+    "family": "gemini-3.5-flash"
+  },
+  {
+    "family": "gemini-3.5-flash-lite"
+  },
+  {
+    "family": "gemini-3.1-flash-lite"
+  },
+  {
+    "family": "gemini-3-pro",
+    "hidden": true,
+    "note": "Shut down by Google on 2026-03-09 (the served id was gemini-3-pro-preview; gemini-3.1-pro is the documented successor). Hidden rather than deleted: a past run's usage row is priced by looking it up here."
+  },
+  {
+    "family": "gemini-3-flash"
+  },
+  {
+    "family": "gemini-2.5-flash"
+  },
+  {
+    "family": "gemini-2.5-flash-lite"
+  },
+  {
+    "family": "gemini-3-pro-image"
+  },
+  {
+    "family": "gemini-3.1-flash-lite-image"
+  },
+  {
+    "family": "gemini-3.1-flash-image"
+  }
+]
