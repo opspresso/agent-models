@@ -58,6 +58,7 @@ function fixture(): Registry {
   return {
     providers: ["openai", "anthropic", "openrouter"],
     makers: { openai: "OpenAI", anthropic: "Anthropic" },
+    openrouterVendors: { openai: "openai", anthropic: "anthropic" },
     families: {
       "gpt-x": {
         maker: "openai",
@@ -108,6 +109,12 @@ describe("validateRegistry", () => {
     const errors = validateRegistry(r).join("\n");
     assert.match(errors, /maker "acme" is not in makers.json/);
     assert.match(errors, /provider "bedrock" is not in providers.json/);
+  });
+
+  it("rejects an OpenRouter vendor mapped from a maker it does not know", () => {
+    const r = fixture();
+    r.openrouterVendors = { ...r.openrouterVendors, acme: "acme-ai" };
+    assert.match(validateRegistry(r).join("\n"), /openrouter-vendors.json: maker "acme" is not in makers.json/);
   });
 
   it("rejects a duplicate offering", () => {

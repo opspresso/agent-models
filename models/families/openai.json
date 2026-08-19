@@ -132,7 +132,7 @@
     },
     "contextWindow": 128000,
     "maxTokens": 16000,
-    "note": "Bedrock-only. Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
+    "note": "Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
   },
   "gpt-oss-20b": {
     "displayName": "GPT OSS 20B",
@@ -148,7 +148,7 @@
     },
     "contextWindow": 128000,
     "maxTokens": 16000,
-    "note": "Bedrock-only. Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
+    "note": "Price from the AWS Pricing API (us-east-1 standard-tier mantle); limits are the model card's own rounding (128K / 16K), kept because it is what the route enforces."
   },
   "gpt-image-2": {
     "displayName": "GPT Image 2",

@@ -13,6 +13,7 @@
     "build:check": "node scripts/build.ts --check",
     "format": "node scripts/format.ts",
     "update-models": "node scripts/update.ts",
+    "notify": "node scripts/notify.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"tests/**/*.test.ts\""
   },

@@ -1,19 +1,21 @@
 name: Update models
 
-# Brings `models/` up to date with what the providers publish and republishes
-# `docs/models.json` — every day at 00:00 UTC, or on demand.
+# Brings `models/` up to date with what the providers publish, republishes
+# `docs/models.json`, and tells people what moved — every day at 00:00 UTC, or
+# on demand.
 #
 # OpenRouter's catalog is public and always read. The vendor catalogs are read
 # when their key is present and skipped (and said so in the job summary)
 # otherwise; a missing secret narrows the update, it does not fail it. What
-# each source may change is documented in README.md and in `src/sources/`.
+# each source may change and add is documented in README.md and `src/sources/`.
 #
-# Optional repository secrets: XAI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY.
+# Optional repository secrets: XAI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,
+# GOOGLE_API_KEY, SLACK_WEBHOOK_URL.
 #
 # The commit is made with the workflow's own token, which is enough for the
 # Pages site (models.opspresso.com): it is served from `main:/docs` by the
 # classic Pages build, which runs on every push to the branch — the push below
-# included.
+# included. The same token keeps the rolling "needs a look" issue.
 on:
   schedule:
     - cron: "0 0 * * *"
@@ -21,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: update-models
@@ -29,6 +32,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v7
 
@@ -44,9 +49,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Writes `models/` and the job summary. Exits 1 when a source could not be
-      # read; the step is allowed to continue so what the other sources found is
-      # still built and committed, and the failure is raised again at the end.
+      # Writes `models/`, `update-report.json` and the job summary. Exits 1 when
+      # a source could not be read; the step is allowed to continue so what the
+      # other sources found is still built and committed, and the failure is
+      # raised again at the end.
       - name: Update sources from the providers
         id: update
         continue-on-error: true
@@ -54,6 +60,7 @@ jobs:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: pnpm update-models
 
       - name: Build the catalog
@@ -63,6 +70,7 @@ jobs:
         run: pnpm test
 
       - name: Commit and push when anything changed
+        id: commit
         run: |
           if git diff --quiet -- models docs; then
             echo "nothing changed"
@@ -73,6 +81,16 @@ jobs:
           git add models docs
           git commit -m "chore: update models $(date -u +%F)"
           git push
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # After the commit, so the message can point at it. Slack carries what
+      # changed or failed; the issue carries what needs a person.
+      - name: Notify
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_URL: ${{ steps.commit.outputs.sha && format('{0}/{1}/commit/{2}', github.server_url, github.repository, steps.commit.outputs.sha) || '' }}
+        run: pnpm notify
 
       - name: Fail when a source could not be read
         if: steps.update.outcome == 'failure'

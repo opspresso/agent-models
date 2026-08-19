@@ -7,6 +7,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence } from "./presence.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, type Change, type SourceResult } from "./types.ts";
 
 export const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
@@ -45,4 +46,26 @@ export function applyOpenAi(
     observePresence(offering, served.has(offering.wireId ?? offering.family), "OpenAI", today, changes, notes);
   }
   return { registry: next, result: { source: "OpenAI", changes, notes } };
+}
+
+/**
+ * An `openai/` route for every live OpenAI-made text family the catalog lists
+ * by the family's own id and this registry does not yet route there. The
+ * family's price is then the list price (`promoteFamily`), which is what
+ * OpenAI charges and what OpenRouter's listing was discounting from.
+ */
+export function discoverOpenAi(registry: Registry, ids: string[]): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const served = new Set(ids);
+  for (const [id, family] of Object.entries(next.families)) {
+    if (family.maker !== "openai" || family.capabilities.imageGeneration) {
+      continue;
+    }
+    if (familyHasRoute(next, id, "openai") || !familyIsLive(next, id) || !served.has(id)) {
+      continue;
+    }
+    addRoute(next, { provider: "openai", family: id }, changes);
+  }
+  return { registry: next, result: { source: "OpenAI", changes, notes: [] } };
 }

@@ -29,7 +29,7 @@
     },
     "contextWindow": 204800,
     "maxTokens": 131072,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
   },
   "glm-4.7": {
     "displayName": "GLM 4.7",
@@ -45,7 +45,7 @@
     },
     "contextWindow": 204800,
     "maxTokens": 131072,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
   },
   "glm-4.7-flash": {
     "displayName": "GLM 4.7 Flash",
@@ -61,6 +61,23 @@
     },
     "contextWindow": 202752,
     "maxTokens": 16384,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "glm-5.3": {
+    "displayName": "GLM 5.3",
+    "pricing": {
+      "inputPer1M": 1.4,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.26
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-19 from OpenRouter's catalog (listed 2026-08-18); numbers and flags are OpenRouter's."
   }
 }

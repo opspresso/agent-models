@@ -5,37 +5,58 @@
  *   node scripts/update.ts            # apply, write models/**, print the report
  *   node scripts/update.ts --dry-run  # report only
  *
- * Sources run independently. OpenRouter needs no key and always runs; xAI,
- * Anthropic and OpenAI run when their key is in the environment and are
- * reported as skipped otherwise. One source failing does not stop the others —
- * what they found is still written — but the exit code is 1, so the run shows
- * red and nobody reads a quiet summary as a clean one.
+ * Three phases, so every source sees the same registry:
+ *
+ *   1. fetch     — every source reads its catalog; one failing does not stop
+ *                  the others, and is reported as failed.
+ *   2. discover  — what the catalogs list that the registry does not: new
+ *                  families (OpenRouter) and new routes (every source).
+ *   3. apply     — numbers, discounts, presence and retirement for every route
+ *                  the registry now has, the ones just added included.
+ *
+ * OpenRouter needs no key and always runs; xAI, Anthropic, OpenAI and Google
+ * run when their key is in the environment and are reported as skipped
+ * otherwise. The exit code is 1 when a source failed, so the run shows red and
+ * nobody reads a quiet summary as a clean one — what the other sources found
+ * is still written.
  *
  * Nothing is written if the patched registry fails validation: a provider
  * publishing a max output above its own window is a thing to look at, not a
  * thing to publish.
+ *
+ * Besides the Markdown report (stdout and the job summary) the run leaves
+ * `update-report.json` for `scripts/notify.ts`, which runs after the commit.
  */
 
-import { appendFileSync } from "node:fs";
+import { appendFileSync, writeFileSync } from "node:fs";
 import { loadRegistry, validateRegistry, writeRegistry, type Registry } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
-import { applyAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
-import { applyOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
-import { applyOpenRouter, fetchOpenRouterCatalog } from "../src/sources/openrouter.ts";
+import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
+import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
+import { applyOpenAi, discoverOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
+import {
+  applyOpenRouter,
+  discoverOpenRouter,
+  discoveryEndpointIds,
+  fetchOpenRouterCatalog,
+} from "../src/sources/openrouter.ts";
 import { utcDate } from "../src/sources/presence.ts";
-import { applyXai, fetchXaiCatalog } from "../src/sources/xai.ts";
+import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
 import type { SourceResult } from "../src/sources/types.ts";
-import { ROOT } from "./_root.ts";
+import { REPORT_PATH, ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");
 /** The job's clock: one UTC date for the whole run, so every source agrees on what "today" is. */
 const today = utcDate(new Date());
 
+type Step = (registry: Registry) => { registry: Registry; result: SourceResult };
+
 interface Source {
   name: string;
   /** Why the source cannot run, or null when it can. */
   disabled: string | null;
-  run: (registry: Registry) => Promise<{ registry: Registry; result: SourceResult }>;
+  /** Read the catalog once; answer the discover and apply steps bound to it. */
+  fetch: (registry: Registry) => Promise<{ discover: Step; apply: Step }>;
 }
 
 function keyed(name: string): string | null {
@@ -46,29 +67,51 @@ const SOURCES: Source[] = [
   {
     name: "OpenRouter",
     disabled: null,
-    run: async (registry) => {
+    fetch: async (registry) => {
       const routes = registry.offerings
         .filter((o) => o.provider === "openrouter" && !o.hidden && o.wireId !== undefined)
         .map((o) => o.wireId as string);
-      return applyOpenRouter(registry, await fetchOpenRouterCatalog(routes), today);
+      const catalog = await fetchOpenRouterCatalog((models) => [
+        ...routes,
+        ...discoveryEndpointIds(registry, models, today),
+      ]);
+      return {
+        discover: (r) => discoverOpenRouter(r, catalog, today),
+        apply: (r) => applyOpenRouter(r, catalog, today),
+      };
     },
   },
   {
     name: "xAI",
     disabled: keyed("XAI_API_KEY"),
-    run: async (registry) => applyXai(registry, await fetchXaiCatalog(process.env.XAI_API_KEY as string), today),
+    fetch: async () => {
+      const catalog = await fetchXaiCatalog(process.env.XAI_API_KEY as string);
+      return { discover: (r) => discoverXai(r, catalog), apply: (r) => applyXai(r, catalog, today) };
+    },
   },
   {
     name: "Anthropic",
     disabled: keyed("ANTHROPIC_API_KEY"),
-    run: async (registry) =>
-      applyAnthropic(registry, await fetchAnthropicModels(process.env.ANTHROPIC_API_KEY as string), today),
+    fetch: async () => {
+      const catalog = await fetchAnthropicModels(process.env.ANTHROPIC_API_KEY as string);
+      return { discover: (r) => discoverAnthropic(r, catalog), apply: (r) => applyAnthropic(r, catalog, today) };
+    },
   },
   {
     name: "OpenAI",
     disabled: keyed("OPENAI_API_KEY"),
-    run: async (registry) =>
-      applyOpenAi(registry, await fetchOpenAiModelIds(process.env.OPENAI_API_KEY as string), today),
+    fetch: async () => {
+      const ids = await fetchOpenAiModelIds(process.env.OPENAI_API_KEY as string);
+      return { discover: (r) => discoverOpenAi(r, ids), apply: (r) => applyOpenAi(r, ids, today) };
+    },
+  },
+  {
+    name: "Google",
+    disabled: keyed("GOOGLE_API_KEY"),
+    fetch: async () => {
+      const catalog = await fetchGoogleModels(process.env.GOOGLE_API_KEY as string);
+      return { discover: (r) => discoverGoogle(r, catalog), apply: (r) => applyGoogle(r, catalog, today) };
+    },
   },
 ];
 
@@ -79,7 +122,9 @@ if (before.length > 0) {
   process.exit(1);
 }
 
+// Phase 1 — fetch.
 const outcomes: SourceOutcome[] = [];
+const ready: Array<{ source: Source; discover: Step; apply: Step }> = [];
 let failed = false;
 for (const source of SOURCES) {
   if (source.disabled !== null) {
@@ -87,9 +132,8 @@ for (const source of SOURCES) {
     continue;
   }
   try {
-    const applied = await source.run(registry);
-    registry = applied.registry;
-    outcomes.push({ kind: "applied", result: applied.result });
+    const steps = await source.fetch(registry);
+    ready.push({ source, ...steps });
   } catch (error) {
     failed = true;
     outcomes.push({
@@ -99,6 +143,28 @@ for (const source of SOURCES) {
     });
   }
 }
+
+// Phase 2 — discover, phase 3 — apply; one merged result per source.
+const merged = new Map<string, SourceResult>();
+function run(step: Step, name: string): void {
+  const { registry: next, result } = step(registry);
+  registry = next;
+  const sofar = merged.get(name) ?? { source: name, changes: [], notes: [] };
+  merged.set(name, {
+    source: name,
+    changes: [...sofar.changes, ...result.changes],
+    notes: [...sofar.notes, ...result.notes],
+  });
+}
+for (const { source, discover } of ready) run(discover, source.name);
+for (const { source, apply } of ready) run(apply, source.name);
+for (const { source } of ready) {
+  outcomes.push({ kind: "applied", result: merged.get(source.name) as SourceResult });
+}
+// The report in source order, whatever order the outcomes were pushed in.
+const order = (outcome: SourceOutcome): number =>
+  SOURCES.findIndex((s) => s.name === (outcome.kind === "applied" ? outcome.result.source : outcome.source));
+outcomes.sort((a, b) => order(a) - order(b));
 
 const report = renderReport(outcomes, today);
 console.log(report);
@@ -116,7 +182,8 @@ if (dryRun) {
   console.log("\n(dry run — nothing written)");
 } else {
   writeRegistry(ROOT, registry);
-  console.log("\nwrote models/");
+  writeFileSync(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
+  console.log("\nwrote models/ and update-report.json");
 }
 
 process.exit(failed ? 1 : 0);

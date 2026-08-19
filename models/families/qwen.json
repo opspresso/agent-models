@@ -61,7 +61,7 @@
     },
     "contextWindow": 262144,
     "maxTokens": 262144,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
   },
   "qwen3-235b-a22b": {
     "displayName": "Qwen3 235B A22B Instruct 2507",
@@ -77,6 +77,23 @@
     },
     "contextWindow": 262144,
     "maxTokens": 16384,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "qwen3.7-flash": {
+    "displayName": "Qwen3.7 Flash",
+    "pricing": {
+      "inputPer1M": 0.03,
+      "outputPer1M": 0.13,
+      "cachedInputPer1M": 0.006
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-19 from OpenRouter's catalog (listed 2026-07-27); numbers and flags are OpenRouter's."
   }
 }

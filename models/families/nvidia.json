@@ -29,6 +29,6 @@
     },
     "contextWindow": 1000000,
     "maxTokens": 16384,
-    "note": "Bedrock-only. Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+    "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
   }
 }

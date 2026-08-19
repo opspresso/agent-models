@@ -154,5 +154,117 @@
   {
     "family": "grok-imagine-image-2.0",
     "wireId": "x-ai/grok-imagine-image-2.0"
+  },
+  {
+    "family": "glm-5.3",
+    "wireId": "z-ai/glm-5.3"
+  },
+  {
+    "family": "qwen3.7-flash",
+    "wireId": "qwen/qwen3.7-flash"
+  },
+  {
+    "family": "claude-opus-5-fast",
+    "wireId": "anthropic/claude-opus-5-fast"
+  },
+  {
+    "family": "gemini-3.5-flash-lite",
+    "wireId": "google/gemini-3.5-flash-lite"
+  },
+  {
+    "family": "grok-build-0.1",
+    "wireId": "x-ai/grok-build-0.1"
+  },
+  {
+    "family": "gemini-3.5-flash",
+    "wireId": "google/gemini-3.5-flash"
+  },
+  {
+    "family": "gemini-3.1-flash-lite",
+    "wireId": "google/gemini-3.1-flash-lite"
+  },
+  {
+    "family": "claude-opus-4.7",
+    "wireId": "anthropic/claude-opus-4.7"
+  },
+  {
+    "family": "minimax-m2.5",
+    "wireId": "minimax/minimax-m2.5",
+    "pricing": {
+      "inputPer1M": 0.225,
+      "outputPer1M": 0.9,
+      "cachedInputPer1M": 0.06
+    }
+  },
+  {
+    "family": "glm-5",
+    "wireId": "z-ai/glm-5",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 1.92,
+      "cachedInputPer1M": 0.12
+    }
+  },
+  {
+    "family": "qwen3-coder-next",
+    "wireId": "qwen/qwen3-coder-next",
+    "pricing": {
+      "inputPer1M": 0.12,
+      "outputPer1M": 0.8,
+      "cachedInputPer1M": 0.07
+    }
+  },
+  {
+    "family": "kimi-k2.5",
+    "wireId": "moonshotai/kimi-k2.5",
+    "pricing": {
+      "inputPer1M": 0.45,
+      "outputPer1M": 2.25,
+      "cachedInputPer1M": 0.07
+    }
+  },
+  {
+    "family": "glm-4.7-flash",
+    "wireId": "z-ai/glm-4.7-flash",
+    "pricing": {
+      "inputPer1M": 0.06,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.01
+    }
+  },
+  {
+    "family": "glm-4.7",
+    "wireId": "z-ai/glm-4.7",
+    "pricing": {
+      "inputPer1M": 0.4,
+      "outputPer1M": 1.75,
+      "cachedInputPer1M": 0.08
+    }
+  },
+  {
+    "family": "deepseek-v3.2",
+    "wireId": "deepseek/deepseek-v3.2",
+    "pricing": {
+      "inputPer1M": 0.269,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.1345
+    }
+  },
+  {
+    "family": "kimi-k2-thinking",
+    "wireId": "moonshotai/kimi-k2-thinking",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.15
+    }
+  },
+  {
+    "family": "gemini-2.5-flash-lite",
+    "wireId": "google/gemini-2.5-flash-lite"
+  },
+  {
+    "family": "gemini-2.5-flash",
+    "wireId": "google/gemini-2.5-flash"
   }
 ]

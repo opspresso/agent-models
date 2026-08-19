@@ -16,6 +16,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence } from "./presence.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, samePricing, type Change, type SourceResult } from "./types.ts";
 
 export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
@@ -133,4 +134,37 @@ export function applyXai(
   }
 
   return { registry: next, result: { source: "xAI", changes, notes } };
+}
+
+/** The names the language catalog answers to — ids and every alias. */
+function languageNames(catalog: XaiCatalog): Set<string> {
+  const names = new Set<string>();
+  for (const model of catalog.language) {
+    names.add(model.id);
+    for (const alias of model.aliases ?? []) {
+      names.add(alias);
+    }
+  }
+  return names;
+}
+
+/**
+ * An `xai/` route for every live xAI-made text family the catalog serves under
+ * the family's own name and this registry does not yet route there. The
+ * family's price follows xAI from then on (`applyXai`).
+ */
+export function discoverXai(registry: Registry, catalog: XaiCatalog): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const names = languageNames(catalog);
+  for (const [id, family] of Object.entries(next.families)) {
+    if (family.maker !== "xai" || family.capabilities.imageGeneration) {
+      continue;
+    }
+    if (familyHasRoute(next, id, "xai") || !familyIsLive(next, id) || !names.has(id)) {
+      continue;
+    }
+    addRoute(next, { provider: "xai", family: id }, changes);
+  }
+  return { registry: next, result: { source: "xAI", changes, notes: [] } };
 }

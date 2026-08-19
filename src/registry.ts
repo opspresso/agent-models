@@ -129,6 +129,13 @@ export interface ModelConfig {
 export interface Registry {
   providers: string[];
   makers: Record<string, string>;
+  /**
+   * Maker id → the vendor slug OpenRouter files that maker's models under
+   * (`xai` → `x-ai`, `moonshot` → `moonshotai`). A maker missing here is one
+   * whose OpenRouter listings are reported, never adopted. Not part of the
+   * catalog: it says where to look, not what was found.
+   */
+  openrouterVendors: Record<string, string>;
   /** Keyed by family id; the maker is on the entry because the file it came from said so. */
   families: Record<string, ModelFamily & { maker: string }>;
   offerings: PlacedOffering[];
@@ -291,6 +298,8 @@ export function loadRegistry(root: string): Registry {
   const base = join(root, "models");
   const providers = readJson(join(base, "providers.json")) as string[];
   const makers = readJson(join(base, "makers.json")) as Record<string, string>;
+  const vendorsPath = join(base, "openrouter-vendors.json");
+  const openrouterVendors = existsSync(vendorsPath) ? (readJson(vendorsPath) as Record<string, string>) : {};
 
   const families: Registry["families"] = {};
   for (const file of listJson(join(base, "families"))) {
@@ -321,7 +330,7 @@ export function loadRegistry(root: string): Registry {
     }
   }
 
-  return { providers, makers, families, offerings };
+  return { providers, makers, openrouterVendors, families, offerings };
 }
 
 /**
@@ -336,6 +345,7 @@ export function writeRegistry(root: string, registry: Registry): void {
 
   writeFileSync(join(base, "providers.json"), formatJson(registry.providers));
   writeFileSync(join(base, "makers.json"), formatJson(registry.makers));
+  writeFileSync(join(base, "openrouter-vendors.json"), formatJson(registry.openrouterVendors));
 
   const byMaker = new Map<string, Plain>();
   for (const [id, { maker, ...family }] of Object.entries(registry.families)) {
@@ -475,6 +485,14 @@ export function validateRegistry(registry: Registry): string[] {
   }
   if (!isPlain(registry.makers)) {
     errors.push("makers.json must be an object of maker id → label");
+  }
+  for (const [maker, slug] of Object.entries(registry.openrouterVendors ?? {})) {
+    if (registry.makers[maker] === undefined) {
+      errors.push(`openrouter-vendors.json: maker "${maker}" is not in makers.json`);
+    }
+    if (typeof slug !== "string" || slug === "" || slug.includes("/")) {
+      errors.push(`openrouter-vendors.json: "${maker}" needs a bare vendor slug`);
+    }
   }
 
   // Families

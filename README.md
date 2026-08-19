@@ -118,21 +118,53 @@ Google, which publish no API for it.
 
 ## Keeping it current
 
-`.github/workflows/update.yml` runs every day at 00:00 UTC (and on demand) and commits
-whatever moved, which republishes the Pages site (`main:/docs`, served at
-`models.opspresso.com`). It reads four sources, each independently:
+`.github/workflows/update.yml` runs every day at 00:00 UTC (and on demand), commits
+whatever moved — which republishes the Pages site (`main:/docs`, served at
+`models.opspresso.com`) — and tells people about it. Three phases, every source
+independent of the others:
 
-| Source | Needs | May change |
-|---|---|---|
-| OpenRouter `/api/v1/models`, `/images/models`, `/models/{id}/endpoints` | nothing | a **router-only** family's price, discount, window and output cap; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) |
-| xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) |
-| Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) |
-| OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only |
+1. **fetch** — each source reads its catalog; one failing is reported and the rest go on;
+2. **discover** — what the catalogs list that the registry does not: new families and new
+   routes (below);
+3. **apply** — numbers, discounts, presence and retirement for every route the registry
+   now has, the ones just added included.
 
-A key that is not set skips its source and says so in the job summary. Every run writes
-the summary: a table of what changed, and a *needs a look* list for what it noticed but
-would not touch — a window a router disagrees on, an endpoint it could not read. The job
-goes red when a source could not be read, but still commits what the others found.
+| Source | Needs | May change | May add |
+|---|---|---|---|
+| OpenRouter `/api/v1/models`, `/images/models`, `/models/{id}/endpoints` | nothing | a **router-only** family's price, discount, window and output cap; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | new families; OpenRouter routes to existing families |
+| xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
+| Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
+| OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
+| Google `/v1beta/models` | `GOOGLE_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `google/` routes |
+
+A key that is not set skips its source and says so. Bedrock has no source here: its routes
+are added and retired by hand, with numbers from the AWS Pricing API.
+
+### Additions
+
+**A new family** is created from OpenRouter's catalog when a listing is all of: filed under
+a maker in `makers.json` (through `models/openrouter-vendors.json`, which maps maker ids to
+OpenRouter's vendor slugs); first listed within the last **30 days**; a priced text model
+(not `:free`/`:batch`/`:nitro` variants, not a `-20250929`/`-0813` dated snapshot); and
+stating both a context window and a usable max output. It gets OpenRouter's numbers and
+flags (`tools`, `structured_outputs`, image input, `reasoning`), a `note` saying when and
+where it came from, and an OpenRouter route. Everything else the catalog lists goes to the
+*needs a look* list instead of the registry: a maker this registry does not know (add it to
+`makers.json` and `openrouter-vendors.json` and the next run adopts its recent models), an
+image model (priced per image, from another endpoint, by hand), a listing without an output
+cap. Older listings are the backlog, which is a person's — the window keeps a first run from
+importing a vendor's whole history.
+
+**A new route** is added when a catalog serves a family the registry already has: OpenRouter
+under `<vendor>/<family>`, a vendor under the family id (Anthropic's hyphenated spelling
+becomes the `wireId`). Two guards: a family every route of which is hidden is never routed
+again — it was retired on purpose — and an OpenRouter listing is routed only when its
+context window equals the family's, the one cheap identity check there is (`qwen/qwen3-235b-a22b`
+is the original model; this registry's `qwen3-235b-a22b` is the Instruct 2507). An
+OpenRouter route narrows `tools`/`structuredOutput` when the router lacks them; a route to an
+image family is never added automatically, since an image route is verified by drawing with
+it. The first *vendor* route to a router-only family puts the family at the list price (the
+router's discount moves to the router's offering).
 
 ### Retirement
 
@@ -140,21 +172,34 @@ Every source also watches **presence**: whether each live route is still in its 
 catalog. A route that is not gets `missingSince` (the first day it was not found); the day
 it is back, the field goes. After **7 consecutive days** absent the route is set
 `hidden: true`, `missingSince` is dropped and a sentence is appended to its `note` saying
-when and why. The summary announces the first absence (with the date it would be hidden
-on), counts the days, and reports the hiding. What it never does is delete: a stored
-configuration may still name the id, and past usage is priced by looking it up.
+when and why. What it never does is delete: a stored configuration may still name the id,
+and past usage is priced by looking it up.
 
 A day a source could not be read is not observed at all — the clock neither starts nor
 advances — and an empty catalog is treated as a failed read, not as everything retired.
-Google and Bedrock have no presence source here, so their routes are retired by hand: set
-`hidden: true` and say why in `note`.
+Bedrock has no presence source, so its routes are retired by hand: set `hidden: true` and
+say why in `note`. OpenRouter's announced `expiration_date` (within a year) is reported ahead
+of time.
 
-Run it locally with `pnpm update-models` (`--dry-run` to only report); the keys are read
-from the same environment variable names.
+### Notifications
 
-Not automated, by choice: Google and OpenAI publish no pricing API; Bedrock's Pricing API
-needs AWS credentials and a unit check per row; image pricing lives in per-image endpoints
-whose numbers were verified against what a call was actually billed.
+Two channels with two jobs, both optional and both run after the commit
+(`scripts/notify.ts`):
+
+- **Slack** (`SLACK_WEBHOOK_URL`) carries *events*: a message per run that changed
+  something — a price, a route added, a family added, a model retired — or could not read a
+  source, with the commit and the run linked. A quiet day posts nothing.
+- **A rolling GitHub issue** (the workflow's own token) carries *state*: "Model registry:
+  needs a look", rewritten by every run with everything that needs a person — an unknown
+  maker, a window a router disagrees on, an absence being counted down, a source that could
+  not be read — and closed the day the list is empty. Act on an item and it disappears the
+  next day.
+
+The job summary on every run still holds the full report: a table of what changed and the
+*needs a look* list.
+
+Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
+read from the same environment variable names.
 
 ## Commands
 
@@ -164,6 +209,7 @@ pnpm format          # canonical key order + validation of models/
 pnpm build           # models/ → docs/models.json
 pnpm build:check     # exit 1 if docs/models.json is stale (CI)
 pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
+pnpm notify          # deliver update-report.json to Slack / the issue (CI runs it after the commit)
 pnpm typecheck
 pnpm test
 ```

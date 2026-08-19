@@ -19,11 +19,28 @@
  *     the image catalog, so a retirement is noticed.
  *   - A live route the catalogs no longer list is recorded as missing and
  *     hidden after the grace period (`presence.ts`) — never deleted.
+ *
+ * And what it may add (`discoverOpenRouter`):
+ *
+ *   - A route to a family this registry already has, when the catalog lists
+ *     the family under its maker's vendor slug — the family is curated, the
+ *     router is one API, and "also via openrouter" is cheap to be right about.
+ *   - A new family, when a known maker's model appeared in the catalog within
+ *     `DISCOVERY_WINDOW_DAYS`, is a priced text model, and states its output
+ *     cap. Everything else it notices — an unknown maker, an image model, a
+ *     listing without an output cap — is reported for a person, because each
+ *     needs a judgement or a number this source does not carry.
  */
 
-import type { ModelPricing, Registry } from "../registry.ts";
-import { observePresence } from "./presence.ts";
+import type { ModelCapabilities, ModelFamily, ModelPricing, PlacedOffering, Registry } from "../registry.ts";
+import { daysBetween, observePresence, utcDate } from "./presence.ts";
+import { addRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isPositiveInt, perMillion, samePricing, type Change, type SourceResult } from "./types.ts";
+
+/** How far back a first listing counts as new. Older listings are the backlog, which is a person's. */
+export const DISCOVERY_WINDOW_DAYS = 30;
+/** An announced end further out than this is a placeholder, not a plan. */
+export const EXPIRATION_HORIZON_DAYS = 365;
 
 export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 /**
@@ -40,6 +57,9 @@ export function openRouterEndpointsUrl(id: string): string {
 
 export interface OpenRouterModel {
   id: string;
+  name?: string;
+  /** Unix seconds the listing was created — when OpenRouter first had it. */
+  created?: number;
   context_length?: number | null;
   pricing?: {
     prompt?: string;
@@ -49,6 +69,13 @@ export interface OpenRouterModel {
   top_provider?: {
     max_completion_tokens?: number | null;
   } | null;
+  architecture?: {
+    input_modalities?: string[];
+    output_modalities?: string[];
+  };
+  supported_parameters?: string[];
+  /** When OpenRouter has announced the listing's end. */
+  expiration_date?: string | null;
 }
 
 export interface OpenRouterEndpoint {
@@ -98,7 +125,7 @@ const ENDPOINT_CONCURRENCY = 4;
  * still good.
  */
 export async function fetchOpenRouterCatalog(
-  endpointIds: readonly string[],
+  selectEndpointIds: (models: OpenRouterModel[]) => readonly string[],
   fetchFn: typeof fetch = fetch,
 ): Promise<OpenRouterCatalog> {
   const [models, images] = await Promise.all([
@@ -110,7 +137,7 @@ export async function fetchOpenRouterCatalog(
   }
   const listed = new Set(idsOf(models));
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
-  const queue = endpointIds.filter((id) => listed.has(id));
+  const queue = [...new Set(selectEndpointIds(models as OpenRouterModel[]))].filter((id) => listed.has(id));
   await Promise.all(
     Array.from({ length: ENDPOINT_CONCURRENCY }, async () => {
       for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
@@ -218,6 +245,14 @@ export function applyOpenRouter(
     if (entry === undefined) {
       continue;
     }
+    if (typeof entry.expiration_date === "string" && entry.expiration_date !== "") {
+      // Some listings carry a placeholder decades out; only a real horizon is news.
+      const ends = entry.expiration_date.slice(0, 10);
+      const inDays = daysBetween(today, ends);
+      if (Number.isFinite(inDays) && inDays <= EXPIRATION_HORIZON_DAYS) {
+        notes.push(`${id}: OpenRouter has announced this listing ends ${ends}`);
+      }
+    }
     const routerPrice = tokenPricing(entry);
     if (routerPrice === null) {
       notes.push(`${id}: OpenRouter lists no token price`);
@@ -275,6 +310,181 @@ export function applyOpenRouter(
     if (isPositiveInt(window) && window !== family.contextWindow) {
       notes.push(`${id}: OpenRouter states a ${window} window; the family says ${family.contextWindow}`);
     }
+  }
+
+  return { registry: next, result: { source: "OpenRouter", changes, notes } };
+}
+
+// ---------------------------------------------------------------------------
+// Discovery — what the catalog lists that this registry does not
+// ---------------------------------------------------------------------------
+
+/** `vendor/slug`, or null for an alias entry (`~vendor/...`) or a bare id. */
+function splitId(id: string): { vendor: string; slug: string } | null {
+  const slash = id.indexOf("/");
+  if (slash <= 0 || id.startsWith("~")) {
+    return null;
+  }
+  return { vendor: id.slice(0, slash), slug: id.slice(slash + 1) };
+}
+
+/** `:free`, `:batch`, `:nitro`, `:thinking` — a serving variant, not a model. */
+function isVariant(slug: string): boolean {
+  return slug.includes(":");
+}
+
+/** `-20250929`, `-0813`, `-2025`: a dated snapshot; the undated alias is what a registry names. */
+function isDated(slug: string): boolean {
+  return /-\d{4}(\d{4})?$/.test(slug);
+}
+
+function outputs(model: OpenRouterModel, modality: string): boolean {
+  return (model.architecture?.output_modalities ?? ["text"]).includes(modality);
+}
+
+/** "Z.ai: GLM 5.3" → "GLM 5.3"; a name without the vendor prefix is kept as is. */
+function displayNameOf(model: OpenRouterModel, slug: string): string {
+  const raw = (model.name ?? "").trim();
+  const name = raw.includes(": ") ? raw.slice(raw.indexOf(": ") + 2).trim() : raw;
+  return name === "" ? slug : name;
+}
+
+function capabilitiesOf(model: OpenRouterModel): ModelCapabilities {
+  const params = new Set(model.supported_parameters ?? []);
+  const inputs = new Set(model.architecture?.input_modalities ?? ["text"]);
+  return {
+    tools: params.has("tools"),
+    // `response_format` alone is JSON mode; a schema needs `structured_outputs`.
+    structuredOutput: params.has("structured_outputs"),
+    imageInput: inputs.has("image"),
+    reasoning: params.has("reasoning") || params.has("include_reasoning"),
+  };
+}
+
+function isRecent(model: OpenRouterModel, today: string): boolean {
+  if (typeof model.created !== "number" || !Number.isFinite(model.created)) {
+    return false;
+  }
+  return daysBetween(utcDate(new Date(model.created * 1000)), today) <= DISCOVERY_WINDOW_DAYS;
+}
+
+/**
+ * The ids whose endpoints discovery will want read — the recent listings of
+ * known makers, so a new family can carry its discount from the first day.
+ */
+export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel[], today: string): string[] {
+  const known = new Set(Object.values(registry.openrouterVendors));
+  return models
+    .filter((model) => {
+      const parts = splitId(model.id);
+      return parts !== null && known.has(parts.vendor) && !isVariant(parts.slug) && isRecent(model, today);
+    })
+    .map((model) => model.id);
+}
+
+export function discoverOpenRouter(
+  registry: Registry,
+  catalog: OpenRouterCatalog,
+  today: string,
+): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const notes: string[] = [];
+  const makerOfVendor = new Map(Object.entries(next.openrouterVendors).map(([maker, vendor]) => [vendor, maker]));
+  const unknownVendors = new Map<string, string[]>();
+  // Ids this registry already routes to, whatever family name it files them
+  // under — `upstage/solar-pro4` is `solar-pro-4` here, not a second family.
+  const routed = new Set(next.offerings.filter((o) => o.provider === "openrouter").map((o) => o.wireId));
+
+  for (const model of catalog.models) {
+    const parts = splitId(model.id);
+    if (parts === null || isVariant(parts.slug) || routed.has(model.id) || !outputs(model, "text") && !outputs(model, "image")) {
+      continue;
+    }
+    const { vendor, slug } = parts;
+    const maker = makerOfVendor.get(vendor);
+
+    if (maker === undefined) {
+      if (isRecent(model, today) && !isDated(slug) && tokenPricing(model) !== null) {
+        unknownVendors.set(vendor, [...(unknownVendors.get(vendor) ?? []), slug]);
+      }
+      continue;
+    }
+
+    const family = next.families[slug];
+    if (family !== undefined) {
+      if (family.maker !== maker) {
+        notes.push(`openrouter: ${model.id} names family "${slug}", which this registry files under ${family.maker}; left alone`);
+        continue;
+      }
+      if (family.capabilities.imageGeneration) {
+        // An image route is verified by drawing with it, which this source cannot do.
+        continue;
+      }
+      if (!familyIsLive(next, slug) || next.offerings.some((o) => o.provider === "openrouter" && o.family === slug)) {
+        continue;
+      }
+      // A slug is a weak name for a model: `qwen/qwen3-235b-a22b` is the
+      // original, while this registry's `qwen3-235b-a22b` is the Instruct 2507.
+      // The window is the cheapest identity check there is — the same model
+      // has one — so a listing that states another one is left for a person.
+      if (model.context_length !== family.contextWindow) {
+        notes.push(
+          `openrouter: ${model.id} could route family "${slug}", but states a ${model.context_length ?? "missing"} window against the family's ${family.contextWindow} — add the route by hand if it is the same model`,
+        );
+        continue;
+      }
+      const offering: PlacedOffering = { provider: "openrouter", family: slug, wireId: model.id };
+      const narrowed = capabilitiesOf(model);
+      const caps: Partial<ModelCapabilities> = {};
+      if (family.capabilities.tools && !narrowed.tools) caps.tools = false;
+      if (family.capabilities.structuredOutput && !narrowed.structuredOutput) caps.structuredOutput = false;
+      if (Object.keys(caps).length > 0) offering.capabilities = caps;
+      addRoute(next, offering, changes);
+      continue;
+    }
+
+    // A family this registry does not have.
+    if (!isRecent(model, today) || isDated(slug)) {
+      continue;
+    }
+    const price = tokenPricing(model);
+    if (price === null) {
+      continue;
+    }
+    if (outputs(model, "image")) {
+      notes.push(`openrouter: new image model ${model.id} — per-image pricing is read from another endpoint; add it by hand`);
+      continue;
+    }
+    const maxOut = model.top_provider?.max_completion_tokens;
+    const window = model.context_length;
+    if (!isPositiveInt(window)) {
+      notes.push(`openrouter: new model ${model.id} states no context window; add it by hand`);
+      continue;
+    }
+    if (!isPositiveInt(maxOut) || maxOut > window) {
+      notes.push(`openrouter: new model ${model.id} states no usable max output (${maxOut ?? "none"} against a ${window} window); add it by hand`);
+      continue;
+    }
+    const discount = catalogDiscount(model, catalog.endpoints[model.id]);
+    const created: ModelFamily & { maker: string } = {
+      maker,
+      displayName: displayNameOf(model, slug),
+      pricing: { ...price, ...(typeof discount === "number" ? { discount } : {}) },
+      capabilities: capabilitiesOf(model),
+      contextWindow: window,
+      maxTokens: maxOut,
+      note: `Added automatically on ${today} from OpenRouter's catalog (listed ${utcDate(new Date((model.created as number) * 1000))}); numbers and flags are OpenRouter's.`,
+    };
+    next.families[slug] = created;
+    next.offerings.push({ provider: "openrouter", family: slug, wireId: model.id });
+    changes.push({ target: `family ${slug}`, field: "added", from: undefined, to: `${created.displayName} via openrouter (${model.id})` });
+  }
+
+  for (const [vendor, slugs] of [...unknownVendors].sort()) {
+    notes.push(
+      `openrouter: ${slugs.length} recent model${slugs.length === 1 ? "" : "s"} from "${vendor}", not a known maker (${slugs.slice(0, 6).join(", ")}${slugs.length > 6 ? ", …" : ""}) — add the maker to makers.json and openrouter-vendors.json to adopt them`,
+    );
   }
 
   return { registry: next, result: { source: "OpenRouter", changes, notes } };

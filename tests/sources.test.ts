@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { PlacedOffering, Registry } from "../src/registry.ts";
-import { applyOpenRouter, catalogDiscount, type OpenRouterCatalog, type OpenRouterModel } from "../src/sources/openrouter.ts";
-import { applyXai } from "../src/sources/xai.ts";
-import { applyAnthropic, undated } from "../src/sources/anthropic.ts";
-import { applyOpenAi } from "../src/sources/openai.ts";
+import {
+  applyOpenRouter,
+  catalogDiscount,
+  discoverOpenRouter,
+  discoveryEndpointIds,
+  DISCOVERY_WINDOW_DAYS,
+  type OpenRouterCatalog,
+  type OpenRouterModel,
+} from "../src/sources/openrouter.ts";
+import { applyXai, discoverXai } from "../src/sources/xai.ts";
+import { applyAnthropic, discoverAnthropic, undated } from "../src/sources/anthropic.ts";
+import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
+import { applyGoogle, discoverGoogle } from "../src/sources/google.ts";
 import { daysBetween, observePresence, RETIREMENT_GRACE_DAYS } from "../src/sources/presence.ts";
+import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
 import { perMillion, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
@@ -13,8 +23,9 @@ const TODAY = "2026-08-20";
 
 function fixture(): Registry {
   return {
-    providers: ["openai", "anthropic", "xai", "openrouter"],
-    makers: { openai: "OpenAI", anthropic: "Anthropic", xai: "xAI", deepseek: "DeepSeek" },
+    providers: ["openai", "anthropic", "xai", "google", "openrouter"],
+    makers: { openai: "OpenAI", anthropic: "Anthropic", xai: "xAI", deepseek: "DeepSeek", google: "Google" },
+    openrouterVendors: { openai: "openai", anthropic: "anthropic", xai: "x-ai", deepseek: "deepseek", google: "google" },
     families: {
       // Vendor-served, also routed through OpenRouter.
       "gpt-x": {
@@ -415,5 +426,228 @@ describe("applyOpenAi", () => {
     assert.equal(registry.offerings.find((o) => o.provider === "openai" && o.family === "gpt-x")?.missingSince, TODAY);
     assert.equal(registry.offerings.find((o) => o.provider === "openai" && o.family === "draw-1")?.missingSince, undefined);
     assert.equal(result.changes.length, 1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Discovery
+// ---------------------------------------------------------------------------
+
+/** Unix seconds for a UTC date. */
+const at = (date: string) => Math.floor(Date.parse(`${date}T12:00:00Z`) / 1000);
+const RECENT = at("2026-08-15");
+const OLD = at("2026-01-10");
+
+const NEW_TEXT: OpenRouterModel = {
+  id: "deepseek/deepseek-z2",
+  name: "DeepSeek: DeepSeek Z2",
+  created: RECENT,
+  context_length: 1_000_000,
+  pricing: { prompt: "0.0000002", completion: "0.0000008", input_cache_read: "0.00000002" },
+  top_provider: { max_completion_tokens: 128_000 },
+  architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+  supported_parameters: ["tools", "reasoning", "response_format"],
+};
+
+describe("undiscounted / promoteFamily", () => {
+  it("puts the list price back and drops the discount", () => {
+    assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
+      inputPer1M: 5,
+      outputPer1M: 30,
+      cachedInputPer1M: 0.5,
+    });
+    assert.deepEqual(undiscounted({ inputPer1M: 1, outputPer1M: 2 }), { inputPer1M: 1, outputPer1M: 2 });
+  });
+
+  it("promotes only a router-only family that carries a discount", () => {
+    const r = fixture();
+    r.families["deepseek-z"]!.pricing.discount = 0.5;
+    const changes: Change[] = [];
+    promoteFamily(r, "deepseek-z", changes);
+    assert.deepEqual(r.families["deepseek-z"]!.pricing, { inputPer1M: 0.28, outputPer1M: 0.56, cachedInputPer1M: 0.056 });
+    assert.equal(changes.length, 1);
+    promoteFamily(r, "gpt-x", changes); // vendor-routed already: nothing
+    assert.equal(changes.length, 1);
+  });
+});
+
+describe("addRoute", () => {
+  it("adds a route once, and never to a retired family", () => {
+    const r = fixture();
+    const changes: Change[] = [];
+    assert.equal(addRoute(r, { provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" }, changes), true);
+    assert.equal(addRoute(r, { provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" }, changes), false);
+    assert.equal(addRoute(r, { provider: "openrouter", family: "grok-old", wireId: "x-ai/grok-old" }, changes), false);
+    assert.equal(changes.length, 1);
+    assert.equal(changes[0]?.field, "added");
+  });
+});
+
+describe("discoverOpenRouter", () => {
+  it("adds a recent, priced text model of a known maker as a new family with its route", () => {
+    const { registry, result } = discoverOpenRouter(fixture(), orCatalog([NEW_TEXT]), TODAY);
+    const family = registry.families["deepseek-z2"];
+    assert.ok(family);
+    assert.equal(family.maker, "deepseek");
+    assert.equal(family.displayName, "DeepSeek Z2");
+    assert.deepEqual(family.pricing, { inputPer1M: 0.2, outputPer1M: 0.8, cachedInputPer1M: 0.02 });
+    assert.deepEqual(family.capabilities, { tools: true, structuredOutput: false, imageInput: false, reasoning: true });
+    assert.equal(family.contextWindow, 1_000_000);
+    assert.equal(family.maxTokens, 128_000);
+    assert.match(family.note ?? "", /Added automatically on 2026-08-20 from OpenRouter/);
+    assert.deepEqual(
+      registry.offerings.find((o) => o.family === "deepseek-z2"),
+      { provider: "openrouter", family: "deepseek-z2", wireId: "deepseek/deepseek-z2" },
+    );
+    assert.deepEqual(result.changes.map((c) => c.field), ["added"]);
+  });
+
+  it("carries the listing's discount on a new router-only family", () => {
+    const catalog = orCatalog([NEW_TEXT], {
+      endpoints: { "deepseek/deepseek-z2": [{ pricing: { prompt: "0.0000002", completion: "0.0000008", discount: 0.25 } }] },
+    });
+    const { registry } = discoverOpenRouter(fixture(), catalog, TODAY);
+    assert.equal(registry.families["deepseek-z2"]!.pricing.discount, 0.25);
+  });
+
+  it("leaves the backlog, variants, dated snapshots and unpriced listings alone", () => {
+    const { registry, result } = discoverOpenRouter(
+      fixture(),
+      orCatalog([
+        { ...NEW_TEXT, created: OLD },
+        { ...NEW_TEXT, id: "deepseek/deepseek-z2:free", pricing: { prompt: "0", completion: "0" } },
+        { ...NEW_TEXT, id: "deepseek/deepseek-z2-0815" },
+        { ...NEW_TEXT, id: "deepseek/deepseek-z3", pricing: { prompt: "0", completion: "0" } },
+      ]),
+      TODAY,
+    );
+    assert.deepEqual(Object.keys(registry.families), Object.keys(fixture().families));
+    assert.deepEqual(result.changes, []);
+    assert.deepEqual(result.notes, []);
+  });
+
+  it("reports what it will not add: an unknown maker, an image model, a listing without an output cap", () => {
+    const { registry, result } = discoverOpenRouter(
+      fixture(),
+      orCatalog([
+        { ...NEW_TEXT, id: "mistralai/mistral-z", name: "Mistral: Z" },
+        { ...NEW_TEXT, id: "deepseek/deepseek-draw", architecture: { input_modalities: ["text"], output_modalities: ["image"] } },
+        { ...NEW_TEXT, id: "deepseek/deepseek-nocap", top_provider: { max_completion_tokens: null } },
+      ]),
+      TODAY,
+    );
+    assert.deepEqual(Object.keys(registry.families), Object.keys(fixture().families));
+    const notes = result.notes.join("\n");
+    assert.match(notes, /1 recent model from "mistralai", not a known maker \(mistral-z\)/);
+    assert.match(notes, /new image model deepseek\/deepseek-draw/);
+    assert.match(notes, /deepseek\/deepseek-nocap states no usable max output/);
+  });
+
+  it("adds an OpenRouter route to a family it already has, narrowing capabilities the router lacks", () => {
+    const { registry, result } = discoverOpenRouter(
+      fixture(),
+      orCatalog([
+        { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD, context_length: 500_000, supported_parameters: ["tools"] },
+      ]),
+      TODAY,
+    );
+    const route = registry.offerings.find((o) => o.provider === "openrouter" && o.family === "grok-q");
+    assert.deepEqual(route, { provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q", capabilities: { structuredOutput: false } });
+    assert.equal(result.changes.length, 1);
+  });
+
+  it("does not route a same-named listing whose window says it is another model", () => {
+    const { registry, result } = discoverOpenRouter(
+      fixture(),
+      orCatalog([{ ...NEW_TEXT, id: "x-ai/grok-q", created: OLD, context_length: 131_072 }]),
+      TODAY,
+    );
+    assert.ok(!registry.offerings.some((o) => o.provider === "openrouter" && o.family === "grok-q"));
+    assert.match(result.notes.join("\n"), /x-ai\/grok-q could route family "grok-q", but states a 131072 window/);
+  });
+
+  it("skips an id it already routes to under another family name", () => {
+    const r = fixture();
+    r.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grokq" });
+    const { registry, result } = discoverOpenRouter(r, orCatalog([{ ...NEW_TEXT, id: "x-ai/grokq", created: RECENT }]), TODAY);
+    assert.equal(registry.families["grokq"], undefined);
+    assert.deepEqual(result.changes, []);
+  });
+
+  it("does not resurrect a retired family, re-route an image family, or cross makers", () => {
+    const r = fixture();
+    r.families["grok-old"]!.maker = "xai";
+    const { registry, result } = discoverOpenRouter(
+      r,
+      orCatalog([
+        { ...NEW_TEXT, id: "x-ai/grok-old", created: OLD },
+        { ...NEW_TEXT, id: "x-ai/grok-draw", created: OLD },
+        { ...NEW_TEXT, id: "anthropic/gpt-x", created: OLD },
+      ]),
+      TODAY,
+    );
+    assert.equal(registry.offerings.length, fixture().offerings.length);
+    assert.match(result.notes.join("\n"), /anthropic\/gpt-x names family "gpt-x", which this registry files under openai/);
+  });
+
+  it("names the endpoints discovery wants read", () => {
+    const ids = discoveryEndpointIds(fixture(), [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }], TODAY);
+    assert.deepEqual(ids, ["deepseek/deepseek-z2"]);
+    assert.equal(DISCOVERY_WINDOW_DAYS, 30);
+  });
+});
+
+describe("vendor route discovery", () => {
+  it("xAI: routes a live xAI family the catalog names, and promotes a router-only family", () => {
+    const r = fixture();
+    // grok-q served only via OpenRouter, with a discount.
+    r.offerings = r.offerings.filter((o) => !(o.provider === "xai" && o.family === "grok-q"));
+    r.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" });
+    r.families["grok-q"]!.pricing = { inputPer1M: 1, outputPer1M: 3, discount: 0.5 };
+    const { registry, result } = discoverXai(r, { language: [{ id: "grok-q-0309", aliases: ["grok-q"] }], imageNames: [] });
+    assert.deepEqual(registry.offerings.find((o) => o.provider === "xai" && o.family === "grok-q"), { provider: "xai", family: "grok-q" });
+    assert.deepEqual(registry.families["grok-q"]!.pricing, { inputPer1M: 2, outputPer1M: 6 });
+    assert.deepEqual(result.changes.map((c) => c.field), ["pricing", "added"]);
+  });
+
+  it("Anthropic: routes with the hyphenated wire id", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((o) => o.provider !== "anthropic");
+    r.offerings.push({ provider: "openrouter", family: "claude-y.1", wireId: "anthropic/claude-y.1" });
+    const { registry } = discoverAnthropic(r, [{ id: "claude-y-1-20260101" }]);
+    assert.deepEqual(registry.offerings.find((o) => o.provider === "anthropic"), { provider: "anthropic", family: "claude-y.1", wireId: "claude-y-1" });
+  });
+
+  it("OpenAI: routes a text family the catalog lists, not an image one", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((o) => o.provider !== "openai");
+    r.offerings.push({ provider: "openrouter", family: "draw-1", wireId: "openai/draw-1" });
+    const { registry } = discoverOpenAi(r, ["gpt-x", "draw-1"]);
+    // gpt-x still has its openrouter route, so it is live and gets the vendor route back.
+    assert.ok(registry.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"));
+    assert.ok(!registry.offerings.some((o) => o.provider === "openai" && o.family === "draw-1"));
+  });
+
+  it("Google: watches presence and limits, and routes a family the API serves", () => {
+    const r = fixture();
+    r.families["gemini-z"] = {
+      maker: "google",
+      displayName: "Gemini Z",
+      pricing: { inputPer1M: 0.5, outputPer1M: 3 },
+      capabilities: TEXT,
+      contextWindow: 1_000_000,
+      maxTokens: 65_536,
+    };
+    r.offerings.push({ provider: "openrouter", family: "gemini-z", wireId: "google/gemini-z" });
+    const catalog = [
+      { name: "models/gemini-z", inputTokenLimit: 1_048_576, outputTokenLimit: 65_536, supportedGenerationMethods: ["generateContent"] },
+      { name: "models/embedding-z", inputTokenLimit: 2048, supportedGenerationMethods: ["embedContent"] },
+    ];
+    const discovered = discoverGoogle(r, catalog);
+    assert.deepEqual(discovered.registry.offerings.find((o) => o.provider === "google"), { provider: "google", family: "gemini-z" });
+    const applied = applyGoogle(discovered.registry, catalog, TODAY);
+    assert.equal(applied.registry.families["gemini-z"]!.contextWindow, 1_048_576);
+    const missing = applyGoogle(discovered.registry, [], TODAY);
+    assert.equal(missing.registry.offerings.find((o) => o.provider === "google")?.missingSince, TODAY);
   });
 });
