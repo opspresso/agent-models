@@ -68,8 +68,8 @@ jobs:
             echo "nothing changed"
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "nalbam-bot"
+          git config user.email "bot@nalbam.com"
           git add models docs
           git commit -m "chore: update models $(date -u +%F)"
           git push
