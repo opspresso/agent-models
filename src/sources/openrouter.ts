@@ -369,15 +369,20 @@ function isRecent(model: OpenRouterModel, today: string): boolean {
 }
 
 /**
- * The ids whose endpoints discovery will want read — the recent listings of
- * known makers, so a new family can carry its discount from the first day.
+ * The ids whose endpoints discovery will want read — the known makers' recent
+ * listings (a new family) and their listings named after a family this
+ * registry has (a new route) — so either carries its discount from the first
+ * day rather than the second.
  */
 export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel[], today: string): string[] {
   const known = new Set(Object.values(registry.openrouterVendors));
   return models
     .filter((model) => {
       const parts = splitId(model.id);
-      return parts !== null && known.has(parts.vendor) && !isVariant(parts.slug) && isRecent(model, today);
+      if (parts === null || !known.has(parts.vendor) || isVariant(parts.slug)) {
+        return false;
+      }
+      return isRecent(model, today) || registry.families[parts.slug] !== undefined;
     })
     .map((model) => model.id);
 }

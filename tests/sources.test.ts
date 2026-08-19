@@ -591,8 +591,12 @@ describe("discoverOpenRouter", () => {
   });
 
   it("names the endpoints discovery wants read", () => {
-    const ids = discoveryEndpointIds(fixture(), [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }], TODAY);
-    assert.deepEqual(ids, ["deepseek/deepseek-z2"]);
+    const ids = discoveryEndpointIds(
+      fixture(),
+      [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }],
+      TODAY,
+    );
+    assert.deepEqual(ids, ["deepseek/deepseek-z2", "x-ai/grok-q"]);
     assert.equal(DISCOVERY_WINDOW_DAYS, 30);
   });
 });

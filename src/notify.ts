@@ -86,9 +86,7 @@ export function issueBody(context: NotifyContext): string | null {
   }
   return [
     `What the daily update noticed on ${context.date} and would not change on its own. This issue is rewritten by every run and closed when the list is empty — act on an item and it disappears the next day.`,
-    "",
     ...sections,
-    "",
     `[run](${context.runUrl})`,
   ].join("\n\n");
 }
