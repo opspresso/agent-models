@@ -44,7 +44,7 @@
       "imageInput": true,
       "reasoning": true
     },
-    "contextWindow": 262144,
+    "contextWindow": 1000000,
     "maxTokens": 131072
   },
   "qwen3-coder-next": {

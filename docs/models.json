@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-19T16:48:21.561Z",
+  "updatedAt": "2026-08-19T23:43:18.904Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1382,10 +1382,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash",
       "pricing": {
-        "inputPer1M": 0.0826,
-        "outputPer1M": 0.1652,
-        "cachedInputPer1M": 0.01652,
-        "discount": 0.41
+        "inputPer1M": 0.0742,
+        "outputPer1M": 0.1484,
+        "cachedInputPer1M": 0.01484,
+        "discount": 0.47
       },
       "capabilities": {
         "tools": true,
@@ -1625,7 +1625,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 262144,
+      "contextWindow": 1000000,
       "maxTokens": 131072,
       "wireId": "qwen/qwen3.8-27b"
     },
