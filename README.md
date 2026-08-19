@@ -14,9 +14,11 @@ for: every field mirrors its `src/domain/llm/models.ts`, and the catalog is the 
 registry will load instead of carrying the numbers in code. Anything that can read JSON
 can use it the same way. A browsable view of the same file is at
 <https://models.opspresso.com/> — `docs/index.html`, a static page that reads the catalog and
-groups routes under their model. It wears Agent Studio's look (same tokens, faces and brand
-marks under `docs/icons/brands/`, MIT-licensed Lobe Icons) with the studio's mark re-hued
-warm for the favicon, so the two are recognisably siblings and never mistaken for each other.
+mirrors the console's own Models page (<https://studio.opspresso.com/models>): the same
+catalog header, filter row (search, provider, capabilities, sort) and one card per route,
+drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
+Icons). The studio's mark is re-hued warm for the favicon, so the two are recognisably
+siblings and never mistaken for each other.
 
 ## The catalog
 
