@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-19T16:46:34.845Z",
+  "updatedAt": "2026-08-19T16:48:21.561Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2030,7 +2030,8 @@
       "pricing": {
         "inputPer1M": 0.6,
         "outputPer1M": 1.92,
-        "cachedInputPer1M": 0.12
+        "cachedInputPer1M": 0.12,
+        "discount": 0.4
       },
       "capabilities": {
         "tools": true,
