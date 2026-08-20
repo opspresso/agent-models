@@ -37,6 +37,16 @@ export function applyOpenAi(
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const served = new Set(ids);
+  // A provider that lists only dated snapshots still serves the undated alias
+  // (Anthropic does exactly this), and agent-studio's check-models credits
+  // both date forms — without the same folding here the two tools hand down
+  // different verdicts on the same catalog.
+  for (const id of ids) {
+    const alias = /^(.*)-(?:\d{8}|\d{4}-\d{2}-\d{2})$/.exec(id)?.[1];
+    if (alias !== undefined && alias !== "") {
+      served.add(alias);
+    }
+  }
   const changes: Change[] = [];
   const notes: string[] = [];
   for (const offering of next.offerings) {

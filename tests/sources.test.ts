@@ -12,10 +12,10 @@ import {
   type OpenRouterCatalog,
   type OpenRouterModel,
 } from "../src/sources/openrouter.ts";
-import { applyXai, discoverXai } from "../src/sources/xai.ts";
+import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
 import { applyAnthropic, discoverAnthropic, undated } from "../src/sources/anthropic.ts";
 import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
-import { applyGoogle, discoverGoogle } from "../src/sources/google.ts";
+import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { daysBetween, observePresence, RETIREMENT_GRACE_DAYS } from "../src/sources/presence.ts";
 import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
 import { perMillion, type Change } from "../src/sources/types.ts";
@@ -595,7 +595,9 @@ describe("discoverOpenRouter", () => {
   it("names the endpoints discovery wants read", () => {
     const ids = discoveryEndpointIds(
       fixture(),
-      [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }],
+      // The dated snapshot is recent and vendor-known, but discovery would
+      // skip it anyway — its endpoints are a wasted read.
+      [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }, { ...NEW_TEXT, id: "openai/gpt-x-20260101" }, { ...NEW_TEXT, id: "openai/gpt-x-2026-01-01" }],
       TODAY,
     );
     assert.deepEqual(ids, ["deepseek/deepseek-z2", "x-ai/grok-q"]);
@@ -696,5 +698,58 @@ describe("vendor route discovery", () => {
     assert.equal(byFamily.registry.offerings.find((o) => o.family === "gemini-w")?.missingSince, undefined);
     const byNeither = applyGoogle(r, [{ name: "models/other", supportedGenerationMethods: ["generateContent"] }], TODAY);
     assert.equal(byNeither.registry.offerings.find((o) => o.family === "gemini-w")?.missingSince, TODAY);
+  });
+});
+
+describe("fetch guards and snapshot folding", () => {
+  const jsonResponse = (body: unknown) =>
+    ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
+
+  it("OpenRouter: entries that carry no id are the same failed read", async () => {
+    const fetchFn = (async (url: string | URL | Request) =>
+      jsonResponse(
+        String(url).includes("/images/models")
+          ? { data: [{ id: "openai/gpt-image-2" }] }
+          : { data: [{ slug: "renamed-field" }] },
+      )) as unknown as typeof fetch;
+    await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
+  });
+
+  it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {
+    const fetchFn = (async (url: string | URL | Request) =>
+      jsonResponse(
+        String(url).includes("image-generation")
+          ? { models: [{ modelId: "renamed" }] }
+          : { models: [{ id: "grok-x" }] },
+      )) as unknown as typeof fetch;
+    await assert.rejects(fetchXaiCatalog("key", fetchFn), /image-generation-models.*no usable entries/);
+  });
+
+  it("Google: raw entries none of which are usable is a failed read, not a catalog", async () => {
+    const fetchFn = (async () =>
+      jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as unknown as typeof fetch;
+    await assert.rejects(fetchGoogleModels("key", fetchFn), /no usable entries/);
+  });
+
+  it("xAI: language entries that carry no id are the same failed read", async () => {
+    const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as unknown as typeof fetch;
+    await assert.rejects(fetchXaiCatalog("key", fetchFn), /no usable entries/);
+  });
+
+  it("OpenAI: credits a family its provider lists only as a dated snapshot — both date forms", () => {
+    const base = fixture();
+    for (const listing of ["gpt-x-20260101", "gpt-x-2026-01-01"]) {
+      const { registry } = applyOpenAi(base, [listing], TODAY);
+      assert.equal(
+        registry.offerings.find((o) => o.provider === "openai" && o.family === "gpt-x")?.missingSince,
+        undefined,
+        listing,
+      );
+    }
+    const { registry: gone } = applyOpenAi(base, ["something-else"], TODAY);
+    assert.equal(
+      gone.offerings.find((o) => o.provider === "openai" && o.family === "gpt-x")?.missingSince,
+      TODAY,
+    );
   });
 });

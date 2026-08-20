@@ -20,6 +20,29 @@ assertValid(registry);
 
 const previous = readCatalog(CATALOG_PATH);
 const catalog = buildCatalog(registry, previous, new Date());
+
+// The automation only ever hides; deleting a family is a person's edit, and a
+// published id that vanishes re-prices every consumer's past usage of it at
+// $0. README: "an entry is deleted only when nothing can ever have referred
+// to it" — so a build that drops a published id fails unless the removal is
+// stated on purpose: ALLOW_MODEL_REMOVALS=1 node scripts/build.ts
+if (previous === null && existsSync(CATALOG_PATH)) {
+  // A corrupt or truncated docs/models.json must not read as "first publish"
+  // and wave the removal tripwire through.
+  console.error("docs/models.json exists but is not a readable catalog — restore it before building");
+  process.exit(1);
+}
+if (previous !== null && process.env.ALLOW_MODEL_REMOVALS !== "1") {
+  const next = new Set(catalog.models.map((model) => model.id));
+  const removed = previous.models.map((model) => model.id).filter((id) => !next.has(id));
+  if (removed.length > 0) {
+    console.error(
+      `refusing to drop published id(s): ${removed.join(", ")} — hide the offering instead; a deliberate removal is rebuilt locally with ALLOW_MODEL_REMOVALS=1 and committed`,
+    );
+    process.exit(1);
+  }
+}
+
 const text = formatJson(catalog);
 
 if (check) {

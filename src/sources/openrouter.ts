@@ -141,6 +141,15 @@ export async function fetchOpenRouterCatalog(
   if (images.length === 0) {
     throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → empty catalog`);
   }
+  // The empty guards catch a missing list; these catch a renamed id field —
+  // raw entries none of which carry an id would read as a catalog that
+  // retired everything at once.
+  if (idsOf(models).length === 0) {
+    throw new Error(`GET ${OPENROUTER_MODELS_URL} → no usable entries (shape drift?)`);
+  }
+  if (idsOf(images).length === 0) {
+    throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → no usable entries (shape drift?)`);
+  }
   const listed = new Set(idsOf(models));
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
   const queue = [...new Set(selectEndpointIds(models as OpenRouterModel[]))].filter((id) => listed.has(id));
@@ -339,9 +348,15 @@ function isVariant(slug: string): boolean {
   return slug.includes(":");
 }
 
-/** `-20250929`, `-0813`, `-2025`: a dated snapshot; the undated alias is what a registry names. */
+/**
+ * `-20250929`, `-0813`, `-2025`, `-2025-09-29`: a dated snapshot; the undated
+ * alias is what a registry names. One judgment on purpose — discovery's
+ * adoption gate and the endpoints-read skip must call the same listings dated,
+ * or an ISO-dated slug is adopted as a family whose endpoints were never read
+ * and its discount silently missing on day one.
+ */
 function isDated(slug: string): boolean {
-  return /-\d{4}(\d{4})?$/.test(slug);
+  return /-(?:\d{4}|\d{8}|\d{4}-\d{2}-\d{2})$/.test(slug);
 }
 
 function outputs(model: OpenRouterModel, modality: string): boolean {
@@ -386,6 +401,11 @@ export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel
     .filter((model) => {
       const parts = splitId(model.id);
       if (parts === null || !known.has(parts.vendor) || isVariant(parts.slug)) {
+        return false;
+      }
+      // A dated snapshot is skipped by discovery either way — reading its
+      // endpoints first is a wasted request per snapshot per day.
+      if (isDated(parts.slug)) {
         return false;
       }
       return isRecent(model, today) || registry.families[parts.slug] !== undefined;
