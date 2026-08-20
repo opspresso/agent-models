@@ -40,6 +40,20 @@ describe("issueBody", () => {
 });
 
 describe("syncIssue", () => {
+  it("ignores a pull request that carries the label and title", async () => {
+    // GitHub's /issues listing returns PRs too; matching one by title would
+    // comment on and "close" a pull request.
+    const gh = fakeGitHub([{ number: 5, title: ISSUE_TITLE, body: "", pull_request: {} } as never]);
+    await syncIssue(
+      "t",
+      "o/r",
+      { ...base, outcomes: [{ kind: "failed", source: "xAI", error: "boom" }] },
+      gh.fetchFn,
+    );
+    assert.ok(gh.calls.some((call) => call.method === "POST" && call.path === "/issues"));
+    assert.ok(!gh.calls.some((call) => call.path.startsWith("/issues/5")));
+  });
+
   function fakeGitHub(open: Array<{ number: number; title: string; body: string }>) {
     const calls: Array<{ method: string; path: string; body: unknown }> = [];
     const fetchFn = (async (url: string | URL | Request, init?: RequestInit) => {

@@ -69,6 +69,9 @@ export async function fetchXaiCatalog(apiKey: string, fetchFn: typeof fetch = fe
   if (!language.some((entry) => typeof (entry as { id?: unknown }).id === "string")) {
     throw new Error(`GET ${XAI_LANGUAGE_MODELS_URL} → no usable entries (shape drift?)`);
   }
+  if (imageNames.length === 0) {
+    throw new Error(`GET ${XAI_IMAGE_MODELS_URL} → no usable entries (shape drift?)`);
+  }
   return { language: language as XaiLanguageModel[], imageNames };
 }
 

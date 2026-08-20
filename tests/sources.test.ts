@@ -597,7 +597,7 @@ describe("discoverOpenRouter", () => {
       fixture(),
       // The dated snapshot is recent and vendor-known, but discovery would
       // skip it anyway — its endpoints are a wasted read.
-      [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }, { ...NEW_TEXT, id: "openai/gpt-x-20260101" }],
+      [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }, { ...NEW_TEXT, id: "openai/gpt-x-20260101" }, { ...NEW_TEXT, id: "openai/gpt-x-2026-01-01" }],
       TODAY,
     );
     assert.deepEqual(ids, ["deepseek/deepseek-z2", "x-ai/grok-q"]);
@@ -704,6 +704,26 @@ describe("vendor route discovery", () => {
 describe("fetch guards and snapshot folding", () => {
   const jsonResponse = (body: unknown) =>
     ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
+
+  it("OpenRouter: entries that carry no id are the same failed read", async () => {
+    const fetchFn = (async (url: string | URL | Request) =>
+      jsonResponse(
+        String(url).includes("/images/models")
+          ? { data: [{ id: "openai/gpt-image-2" }] }
+          : { data: [{ slug: "renamed-field" }] },
+      )) as unknown as typeof fetch;
+    await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
+  });
+
+  it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {
+    const fetchFn = (async (url: string | URL | Request) =>
+      jsonResponse(
+        String(url).includes("image-generation")
+          ? { models: [{ modelId: "renamed" }] }
+          : { models: [{ id: "grok-x" }] },
+      )) as unknown as typeof fetch;
+    await assert.rejects(fetchXaiCatalog("key", fetchFn), /image-generation-models.*no usable entries/);
+  });
 
   it("Google: raw entries none of which are usable is a failed read, not a catalog", async () => {
     const fetchFn = (async () =>
