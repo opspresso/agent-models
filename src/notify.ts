@@ -127,7 +127,13 @@ export async function syncIssue(
     return response.status === 204 ? null : response.json();
   };
 
-  const open = ((await call("GET", `/issues?state=open&labels=${ISSUE_LABEL}&per_page=20`)) as GitHubIssue[]).find(
+  // GitHub's issues listing returns pull requests too; a PR that happened to
+  // carry the label and title would be commented on and "closed" here.
+  const open = ((await call("GET", `/issues?state=open&labels=${ISSUE_LABEL}&per_page=20`)) as Array<
+    GitHubIssue & { pull_request?: unknown }
+  >)
+    .filter((candidate) => candidate.pull_request === undefined)
+    .find(
     (issue) => issue.title === ISSUE_TITLE,
   );
   const body = issueBody(context);

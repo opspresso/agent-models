@@ -41,6 +41,12 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
       if (collected.length === 0) {
         throw new Error(`GET ${GOOGLE_MODELS_URL} → empty catalog`);
       }
+      // Raw entries but none this source can read is a renamed field, not a
+      // catalog — read as data it would start the retirement clock on every
+      // google route at once.
+      if (!collected.some(usable)) {
+        throw new Error(`GET ${GOOGLE_MODELS_URL} → no usable entries (shape drift?)`);
+      }
       return collected;
     }
     token = body.nextPageToken;

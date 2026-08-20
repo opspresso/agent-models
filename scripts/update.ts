@@ -157,7 +157,14 @@ function run(step: Step, name: string): void {
   });
 }
 for (const { source, discover } of ready) run(discover, source.name);
-for (const { source, apply } of ready) run(apply, source.name);
+// Vendors first, the router last: applyOpenRouter compares its listing to the
+// family's list price, and on the day a vendor moves that price the comparison
+// must see today's number — router-first left a one-day discount flap that
+// self-corrected the next run, as diff noise.
+const applyOrder = [...ready].sort(
+  (a, b) => Number(a.source.name === "OpenRouter") - Number(b.source.name === "OpenRouter"),
+);
+for (const { source, apply } of applyOrder) run(apply, source.name);
 for (const { source } of ready) {
   outcomes.push({ kind: "applied", result: merged.get(source.name) as SourceResult });
 }

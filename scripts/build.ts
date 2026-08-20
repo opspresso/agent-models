@@ -20,6 +20,23 @@ assertValid(registry);
 
 const previous = readCatalog(CATALOG_PATH);
 const catalog = buildCatalog(registry, previous, new Date());
+
+// The automation only ever hides; deleting a family is a person's edit, and a
+// published id that vanishes re-prices every consumer's past usage of it at
+// $0. README: "an entry is deleted only when nothing can ever have referred
+// to it" — so a build that drops a published id fails unless the removal is
+// stated on purpose: ALLOW_MODEL_REMOVALS=1 node scripts/build.ts
+if (previous !== null && process.env.ALLOW_MODEL_REMOVALS !== "1") {
+  const next = new Set(catalog.models.map((model) => model.id));
+  const removed = previous.models.map((model) => model.id).filter((id) => !next.has(id));
+  if (removed.length > 0) {
+    console.error(
+      `refusing to drop published id(s): ${removed.join(", ")} — hide the offering instead, or set ALLOW_MODEL_REMOVALS=1 for a deliberate removal`,
+    );
+    process.exit(1);
+  }
+}
+
 const text = formatJson(catalog);
 
 if (check) {

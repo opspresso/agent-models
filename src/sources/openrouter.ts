@@ -388,6 +388,11 @@ export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel
       if (parts === null || !known.has(parts.vendor) || isVariant(parts.slug)) {
         return false;
       }
+      // A dated snapshot is skipped by discovery either way — reading its
+      // endpoints first is a wasted request per snapshot per day.
+      if (/-(?:\d{8}|\d{4}-\d{2}-\d{2})$/.test(parts.slug)) {
+        return false;
+      }
       return isRecent(model, today) || registry.families[parts.slug] !== undefined;
     })
     .map((model) => model.id);
