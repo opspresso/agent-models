@@ -135,6 +135,12 @@ export async function fetchOpenRouterCatalog(
   if (models.length === 0) {
     throw new Error(`GET ${OPENROUTER_MODELS_URL} → empty catalog`);
   }
+  // The same contract as /models: six image routes live only in this listing,
+  // so an empty answer (an endpoint moved, a broken deploy) read as data would
+  // start the retirement clock on all of them at once.
+  if (images.length === 0) {
+    throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → empty catalog`);
+  }
   const listed = new Set(idsOf(models));
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
   const queue = [...new Set(selectEndpointIds(models as OpenRouterModel[]))].filter((id) => listed.has(id));

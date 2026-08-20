@@ -86,6 +86,14 @@ function fixture(): Registry {
 }
 
 describe("validateRegistry", () => {
+  it("refuses a selfhosted provider — deployments publish those models themselves", () => {
+    const registry = fixture();
+    registry.providers.push("selfhosted");
+    assert.ok(
+      validateRegistry(registry).some((error) => error.includes('must not carry "selfhosted"')),
+    );
+  });
+
   it("accepts the fixture", () => {
     assert.deepEqual(validateRegistry(fixture()), []);
   });

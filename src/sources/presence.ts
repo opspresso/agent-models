@@ -18,6 +18,25 @@ import type { Change } from "./types.ts";
 
 export const RETIREMENT_GRACE_DAYS = 7;
 
+/**
+ * The spellings under which a provider's own catalog may list an offering:
+ * its wire name first, then its family. Either one is the model being alive —
+ * a wireId exists to *rename dispatch*, not to narrow what counts as present,
+ * and a provider's two API surfaces (native catalog vs OpenAI-compatible) do
+ * not always list the same spelling. `google/gemini-3.1-pro` is the case in
+ * hand: dispatch needs `gemini-3.1-pro-preview` while which spelling a
+ * catalog lists has been observed to vary by the key reading it. Crediting
+ * only one spelling starts the retirement clock on a model that answers.
+ *
+ * Provider-direct sources only — a router (OpenRouter) serves nothing but its
+ * vendor-qualified wire ids, so its lookups stay on `wireId` alone.
+ */
+export function offeringNames(offering: PlacedOffering): string[] {
+  return offering.wireId !== undefined && offering.wireId !== offering.family
+    ? [offering.wireId, offering.family]
+    : [offering.family];
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Whole days from one `YYYY-MM-DD` to another, in UTC. */

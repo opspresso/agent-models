@@ -6,7 +6,7 @@
  */
 
 import type { Registry } from "../registry.ts";
-import { observePresence } from "./presence.ts";
+import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, type Change, type SourceResult } from "./types.ts";
 
@@ -43,7 +43,7 @@ export function applyOpenAi(
     if (offering.provider !== "openai" || offering.hidden) {
       continue;
     }
-    observePresence(offering, served.has(offering.wireId ?? offering.family), "OpenAI", today, changes, notes);
+    observePresence(offering, offeringNames(offering).some((name) => served.has(name)), "OpenAI", today, changes, notes);
   }
   return { registry: next, result: { source: "OpenAI", changes, notes } };
 }

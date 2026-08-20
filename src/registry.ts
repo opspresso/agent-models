@@ -483,6 +483,13 @@ export function validateRegistry(registry: Registry): string[] {
   if (!Array.isArray(registry.providers) || registry.providers.some((p) => typeof p !== "string")) {
     errors.push("providers.json must be an array of strings");
   }
+  // Self-hosted models are published by each deployment (Agent Studio's own
+  // declarations), never by this catalog: a selfhosted entry published here
+  // would install in every consumer's registry and block the deployment's own
+  // declarations against its catalog-collision rule.
+  if (Array.isArray(registry.providers) && registry.providers.includes("selfhosted")) {
+    errors.push('providers.json must not carry "selfhosted" — deployments publish those models themselves');
+  }
   if (!isPlain(registry.makers)) {
     errors.push("makers.json must be an object of maker id → label");
   }

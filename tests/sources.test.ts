@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { PlacedOffering, Registry } from "../src/registry.ts";
 import {
+  DISCOVERY_WINDOW_DAYS,
+  OPENROUTER_IMAGE_MODELS_URL,
   applyOpenRouter,
   catalogDiscount,
   discoverOpenRouter,
   discoveryEndpointIds,
-  DISCOVERY_WINDOW_DAYS,
+  fetchOpenRouterCatalog,
   type OpenRouterCatalog,
   type OpenRouterModel,
 } from "../src/sources/openrouter.ts";
@@ -653,5 +655,46 @@ describe("vendor route discovery", () => {
     assert.equal(applied.registry.families["gemini-z"]!.contextWindow, 1_048_576);
     const missing = applyGoogle(discovered.registry, [], TODAY);
     assert.equal(missing.registry.offerings.find((o) => o.provider === "google")?.missingSince, TODAY);
+  });
+
+  it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {
+    // Six image routes live only in /images/models; an empty answer read as
+    // data would start the retirement clock on all of them at once.
+    const fetchFn = (async (url: string | URL | Request) => ({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () =>
+        String(url).includes("/images/models")
+          ? { data: [] }
+          : { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }] },
+    })) as unknown as typeof fetch;
+    await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
+      assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
+      assert.ok(error.message.includes("empty catalog"));
+      return true;
+    });
+  });
+
+  it("Google: credits presence under either spelling — the wire name or the family", () => {
+    // gemini-3.1-pro is the case in hand: dispatch needs the -preview wire
+    // name, while which spelling the native catalog lists has been observed to
+    // vary. Only-one-spelling credit starts the clock on a model that answers.
+    const r = fixture();
+    r.families["gemini-w"] = {
+      maker: "google",
+      displayName: "Gemini W",
+      pricing: { inputPer1M: 2, outputPer1M: 12 },
+      capabilities: TEXT,
+      contextWindow: 1_048_576,
+      maxTokens: 65_536,
+    };
+    r.offerings.push({ provider: "google", family: "gemini-w", wireId: "gemini-w-preview" });
+    const byWire = applyGoogle(r, [{ name: "models/gemini-w-preview", supportedGenerationMethods: ["generateContent"] }], TODAY);
+    assert.equal(byWire.registry.offerings.find((o) => o.family === "gemini-w")?.missingSince, undefined);
+    const byFamily = applyGoogle(r, [{ name: "models/gemini-w", supportedGenerationMethods: ["generateContent"] }], TODAY);
+    assert.equal(byFamily.registry.offerings.find((o) => o.family === "gemini-w")?.missingSince, undefined);
+    const byNeither = applyGoogle(r, [{ name: "models/other", supportedGenerationMethods: ["generateContent"] }], TODAY);
+    assert.equal(byNeither.registry.offerings.find((o) => o.family === "gemini-w")?.missingSince, TODAY);
   });
 });

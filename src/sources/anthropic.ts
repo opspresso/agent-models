@@ -10,7 +10,7 @@
  */
 
 import type { Registry } from "../registry.ts";
-import { observePresence } from "./presence.ts";
+import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
@@ -85,7 +85,9 @@ export function applyAnthropic(
     if (family === undefined) {
       continue;
     }
-    const entry = byName.get(offering.wireId ?? offering.family);
+    const entry = offeringNames(offering)
+      .map((name) => byName.get(name))
+      .find((candidate) => candidate !== undefined);
     observePresence(offering, entry !== undefined, "Anthropic", today, changes, notes);
     if (entry === undefined) {
       continue;

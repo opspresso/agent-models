@@ -10,7 +10,7 @@
  */
 
 import type { Registry } from "../registry.ts";
-import { observePresence } from "./presence.ts";
+import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
@@ -80,7 +80,9 @@ export function applyGoogle(
     if (family === undefined) {
       continue;
     }
-    const entry = byId.get(offering.wireId ?? offering.family);
+    const entry = offeringNames(offering)
+      .map((name) => byId.get(name))
+      .find((candidate) => candidate !== undefined);
     observePresence(offering, entry !== undefined, "Google", today, changes, notes);
     if (entry === undefined || family.capabilities.imageGeneration) {
       continue;

@@ -15,7 +15,7 @@
  */
 
 import type { Registry } from "../registry.ts";
-import { observePresence } from "./presence.ts";
+import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, samePricing, type Change, type SourceResult } from "./types.ts";
 
@@ -100,12 +100,13 @@ export function applyXai(
     if (family === undefined) {
       continue;
     }
-    const name = offering.wireId ?? offering.family;
     if (family.capabilities.imageGeneration) {
-      observePresence(offering, drawn.has(name), "xAI", today, changes, notes);
+      observePresence(offering, offeringNames(offering).some((name) => drawn.has(name)), "xAI", today, changes, notes);
       continue;
     }
-    const entry = byName.get(name);
+    const entry = offeringNames(offering)
+      .map((name) => byName.get(name))
+      .find((candidate) => candidate !== undefined);
     observePresence(offering, entry !== undefined, "xAI", today, changes, notes);
     if (entry === undefined) {
       continue;
