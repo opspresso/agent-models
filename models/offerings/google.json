@@ -1,6 +1,8 @@
 [
   {
-    "family": "gemini-3.1-pro"
+    "family": "gemini-3.1-pro",
+    "wireId": "gemini-3.1-pro-preview",
+    "note": "Google's OpenAI-compatible endpoint serves this family only as gemini-3.1-pro-preview — the bare id answers 404 (observed 2026-08-20)."
   },
   {
     "family": "gemini-3.7-flash"
@@ -23,13 +25,19 @@
     "note": "Shut down by Google on 2026-03-09 (the served id was gemini-3-pro-preview; gemini-3.1-pro is the documented successor). Hidden rather than deleted: a past run's usage row is priced by looking it up here."
   },
   {
-    "family": "gemini-3-flash"
+    "family": "gemini-3-flash",
+    "hidden": true,
+    "note": "Google's OpenAI-compatible endpoint never served the bare id (only gemini-3-flash-preview answers, observed 2026-08-20); superseded by gemini-3.5/3.6/3.7-flash. Hidden rather than deleted: a past run's usage row is priced by looking it up here."
   },
   {
-    "family": "gemini-2.5-flash"
+    "family": "gemini-2.5-flash",
+    "hidden": true,
+    "note": "Closed to new API keys by Google — 'no longer available to new users', naming gemini-3.6-flash the successor (observed 2026-08-20). Keys created before the cutoff may still call it. Hidden rather than deleted: a past run's usage row is priced by looking it up here."
   },
   {
-    "family": "gemini-2.5-flash-lite"
+    "family": "gemini-2.5-flash-lite",
+    "hidden": true,
+    "note": "Closed to new API keys by Google — 'no longer available to new users', naming gemini-3.6-flash the successor (observed 2026-08-20). Keys created before the cutoff may still call it. Hidden rather than deleted: a past run's usage row is priced by looking it up here."
   },
   {
     "family": "gemini-3-pro-image"
