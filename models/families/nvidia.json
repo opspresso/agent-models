@@ -12,7 +12,7 @@
       "imageInput": false,
       "reasoning": true
     },
-    "contextWindow": 1000000,
+    "contextWindow": 262144,
     "maxTokens": 131072
   },
   "nemotron-3-super-120b": {

@@ -267,5 +267,13 @@
   {
     "family": "gemini-2.5-flash",
     "wireId": "google/gemini-2.5-flash"
+  },
+  {
+    "family": "hy-mt2-1.8b",
+    "wireId": "tencent/hy-mt2-1.8b"
+  },
+  {
+    "family": "hy-mt2-30b-a3b",
+    "wireId": "tencent/hy-mt2-30b-a3b"
   }
 ]

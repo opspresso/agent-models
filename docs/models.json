@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-20T05:03:39.769Z",
+  "updatedAt": "2026-08-21T01:13:21.799Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1408,10 +1408,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro",
       "pricing": {
-        "inputPer1M": 1.44,
-        "outputPer1M": 2.88,
-        "cachedInputPer1M": 0.1215,
-        "discount": 0.1
+        "inputPer1M": 1.6,
+        "outputPer1M": 3.2,
+        "cachedInputPer1M": 0.135
       },
       "capabilities": {
         "tools": true,
@@ -1430,10 +1429,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0813",
       "pricing": {
-        "inputPer1M": 1.056,
-        "outputPer1M": 3.168,
-        "cachedInputPer1M": 0.0352,
-        "discount": 0.2
+        "inputPer1M": 1.188,
+        "outputPer1M": 3.564,
+        "cachedInputPer1M": 0.0396,
+        "discount": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -1651,7 +1650,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 262144,
       "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
@@ -2215,6 +2214,46 @@
       "contextWindow": 1048576,
       "maxTokens": 65536,
       "wireId": "google/gemini-2.5-flash"
+    },
+    {
+      "id": "openrouter/hy-mt2-1.8b",
+      "provider": "openrouter",
+      "family": "hy-mt2-1.8b",
+      "maker": "tencent",
+      "displayName": "Hy-MT2-1.8B",
+      "pricing": {
+        "inputPer1M": 0.044,
+        "outputPer1M": 0.177
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 8192,
+      "maxTokens": 4096,
+      "wireId": "tencent/hy-mt2-1.8b"
+    },
+    {
+      "id": "openrouter/hy-mt2-30b-a3b",
+      "provider": "openrouter",
+      "family": "hy-mt2-30b-a3b",
+      "maker": "tencent",
+      "displayName": "Hy-MT2-30B-A3B",
+      "pricing": {
+        "inputPer1M": 0.074,
+        "outputPer1M": 0.295
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 8192,
+      "maxTokens": 4096,
+      "wireId": "tencent/hy-mt2-30b-a3b"
     }
   ]
 }
