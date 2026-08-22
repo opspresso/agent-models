@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-21T01:13:21.799Z",
+  "updatedAt": "2026-08-22T01:09:34.033Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1171,9 +1171,9 @@
       "maker": "openai",
       "displayName": "GPT-5.6 Sol",
       "pricing": {
-        "inputPer1M": 2.5,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.25,
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2,
         "discount": 0.5
       },
       "capabilities": {
@@ -1386,10 +1386,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash",
       "pricing": {
-        "inputPer1M": 0.0826,
-        "outputPer1M": 0.1652,
-        "cachedInputPer1M": 0.01652,
-        "discount": 0.41
+        "inputPer1M": 0.07826,
+        "outputPer1M": 0.15652,
+        "cachedInputPer1M": 0.015652,
+        "discount": 0.441
       },
       "capabilities": {
         "tools": true,
@@ -1408,9 +1408,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro",
       "pricing": {
-        "inputPer1M": 1.6,
-        "outputPer1M": 3.2,
-        "cachedInputPer1M": 0.135
+        "inputPer1M": 0.54897,
+        "outputPer1M": 1.09794,
+        "cachedInputPer1M": 0.0457475,
+        "discount": 0.6845
       },
       "capabilities": {
         "tools": true,
@@ -1419,7 +1420,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216,
+      "maxTokens": 384000,
       "wireId": "deepseek/deepseek-v4-pro"
     },
     {
@@ -1609,7 +1610,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 262144,
+      "maxTokens": 131072,
       "wireId": "qwen/qwen3.8-2.4t-a95b"
     },
     {
@@ -2011,9 +2012,10 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.5",
       "pricing": {
-        "inputPer1M": 0.225,
-        "outputPer1M": 0.9,
-        "cachedInputPer1M": 0.06
+        "inputPer1M": 0.27,
+        "outputPer1M": 1.08,
+        "cachedInputPer1M": 0.027,
+        "discount": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -2138,9 +2140,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V3.2",
       "pricing": {
-        "inputPer1M": 0.269,
-        "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.1345
+        "inputPer1M": 0.26,
+        "outputPer1M": 0.38,
+        "cachedInputPer1M": 0.13
       },
       "capabilities": {
         "tools": true,
@@ -2254,6 +2256,27 @@
       "contextWindow": 8192,
       "maxTokens": 4096,
       "wireId": "tencent/hy-mt2-30b-a3b"
+    },
+    {
+      "id": "openrouter/deepseek-v4-flash-vision-exp",
+      "provider": "openrouter",
+      "family": "deepseek-v4-flash-vision-exp",
+      "maker": "deepseek",
+      "displayName": "DeepSeek V4 Flash Vision Exp",
+      "pricing": {
+        "inputPer1M": 0.22,
+        "outputPer1M": 0.66,
+        "cachedInputPer1M": 0.007
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 384000,
+      "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     }
   ]
 }

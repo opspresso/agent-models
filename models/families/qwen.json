@@ -29,7 +29,7 @@
       "reasoning": true
     },
     "contextWindow": 1048576,
-    "maxTokens": 262144
+    "maxTokens": 131072
   },
   "qwen3.8-27b": {
     "displayName": "Qwen3.8 27B",

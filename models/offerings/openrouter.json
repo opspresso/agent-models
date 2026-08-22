@@ -23,9 +23,9 @@
     "family": "gpt-5.6-sol",
     "wireId": "openai/gpt-5.6-sol",
     "pricing": {
-      "inputPer1M": 2.5,
-      "outputPer1M": 15,
-      "cachedInputPer1M": 0.25,
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.2,
       "discount": 0.5
     }
   },
@@ -191,9 +191,10 @@
     "family": "minimax-m2.5",
     "wireId": "minimax/minimax-m2.5",
     "pricing": {
-      "inputPer1M": 0.225,
-      "outputPer1M": 0.9,
-      "cachedInputPer1M": 0.06
+      "inputPer1M": 0.27,
+      "outputPer1M": 1.08,
+      "cachedInputPer1M": 0.027,
+      "discount": 0.1
     }
   },
   {
@@ -246,9 +247,9 @@
     "family": "deepseek-v3.2",
     "wireId": "deepseek/deepseek-v3.2",
     "pricing": {
-      "inputPer1M": 0.269,
-      "outputPer1M": 0.4,
-      "cachedInputPer1M": 0.1345
+      "inputPer1M": 0.26,
+      "outputPer1M": 0.38,
+      "cachedInputPer1M": 0.13
     }
   },
   {
@@ -275,5 +276,9 @@
   {
     "family": "hy-mt2-30b-a3b",
     "wireId": "tencent/hy-mt2-30b-a3b"
+  },
+  {
+    "family": "deepseek-v4-flash-vision-exp",
+    "wireId": "deepseek/deepseek-v4-flash-vision-exp"
   }
 ]

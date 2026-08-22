@@ -2,10 +2,10 @@
   "deepseek-v4-flash": {
     "displayName": "DeepSeek V4 Flash",
     "pricing": {
-      "inputPer1M": 0.0826,
-      "outputPer1M": 0.1652,
-      "cachedInputPer1M": 0.01652,
-      "discount": 0.41
+      "inputPer1M": 0.07826,
+      "outputPer1M": 0.15652,
+      "cachedInputPer1M": 0.015652,
+      "discount": 0.441
     },
     "capabilities": {
       "tools": true,
@@ -19,9 +19,10 @@
   "deepseek-v4-pro": {
     "displayName": "DeepSeek V4 Pro",
     "pricing": {
-      "inputPer1M": 1.6,
-      "outputPer1M": 3.2,
-      "cachedInputPer1M": 0.135
+      "inputPer1M": 0.54897,
+      "outputPer1M": 1.09794,
+      "cachedInputPer1M": 0.0457475,
+      "discount": 0.6845
     },
     "capabilities": {
       "tools": true,
@@ -30,7 +31,7 @@
       "reasoning": true
     },
     "contextWindow": 1048576,
-    "maxTokens": 393216
+    "maxTokens": 384000
   },
   "deepseek-v4-pro-0813": {
     "displayName": "DeepSeek V4 Pro 0813",
@@ -64,5 +65,22 @@
     "contextWindow": 163840,
     "maxTokens": 65536,
     "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "deepseek-v4-flash-vision-exp": {
+    "displayName": "DeepSeek V4 Flash Vision Exp",
+    "pricing": {
+      "inputPer1M": 0.22,
+      "outputPer1M": 0.66,
+      "cachedInputPer1M": 0.007
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 384000,
+    "note": "Added automatically on 2026-08-22 from OpenRouter's catalog (listed 2026-08-21); numbers and flags are OpenRouter's."
   }
 }
