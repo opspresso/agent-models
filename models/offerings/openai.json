@@ -24,5 +24,98 @@
   },
   {
     "family": "gpt-image-2"
+  },
+  {
+    "family": "gpt-5.5-pro"
+  },
+  {
+    "family": "gpt-5.5"
+  },
+  {
+    "family": "gpt-5.4-nano"
+  },
+  {
+    "family": "gpt-5.4-pro"
+  },
+  {
+    "family": "gpt-5.3-codex"
+  },
+  {
+    "family": "gpt-audio"
+  },
+  {
+    "family": "gpt-audio-mini"
+  },
+  {
+    "family": "gpt-5.2-codex"
+  },
+  {
+    "family": "gpt-5.2-pro"
+  },
+  {
+    "family": "gpt-5.2"
+  },
+  {
+    "family": "gpt-5.1-codex-max"
+  },
+  {
+    "family": "gpt-5.1-codex"
+  },
+  {
+    "family": "gpt-5.1-codex-mini"
+  },
+  {
+    "family": "gpt-5-pro"
+  },
+  {
+    "family": "gpt-5"
+  },
+  {
+    "family": "gpt-5-nano"
+  },
+  {
+    "family": "o3-pro"
+  },
+  {
+    "family": "o3"
+  },
+  {
+    "family": "o4-mini"
+  },
+  {
+    "family": "gpt-4.1"
+  },
+  {
+    "family": "gpt-4.1-mini"
+  },
+  {
+    "family": "gpt-4.1-nano"
+  },
+  {
+    "family": "o1-pro"
+  },
+  {
+    "family": "o3-mini"
+  },
+  {
+    "family": "o1"
+  },
+  {
+    "family": "gpt-4o-mini"
+  },
+  {
+    "family": "gpt-4o"
+  },
+  {
+    "family": "gpt-4-turbo"
+  },
+  {
+    "family": "gpt-3.5-turbo-16k"
+  },
+  {
+    "family": "gpt-3.5-turbo"
+  },
+  {
+    "family": "gpt-4"
   }
 ]

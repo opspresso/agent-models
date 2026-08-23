@@ -47,5 +47,26 @@
   },
   {
     "family": "gemini-3.1-flash-image"
+  },
+  {
+    "family": "gemma-4-26b-a4b-it"
+  },
+  {
+    "family": "gemma-4-31b-it"
+  },
+  {
+    "family": "gemini-3.1-flash-lite-preview"
+  },
+  {
+    "family": "gemini-3.1-pro-preview-customtools"
+  },
+  {
+    "family": "gemini-3.1-pro-preview"
+  },
+  {
+    "family": "gemini-3-flash-preview"
+  },
+  {
+    "family": "gemini-2.5-pro"
   }
 ]
