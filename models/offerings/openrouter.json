@@ -487,5 +487,13 @@
   {
     "family": "krea-2-medium-turbo",
     "wireId": "krea/krea-2-medium-turbo"
+  },
+  {
+    "family": "kimi-k3",
+    "wireId": "moonshotai/kimi-k3"
+  },
+  {
+    "family": "nemotron-3-ultra-550b-a55b",
+    "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
   }
 ]

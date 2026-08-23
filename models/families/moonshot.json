@@ -30,5 +30,22 @@
     "contextWindow": 262144,
     "maxTokens": 100352,
     "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "kimi-k3": {
+    "displayName": "Kimi K3",
+    "pricing": {
+      "inputPer1M": 3,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 1048576,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-16); numbers and flags are OpenRouter's."
   }
 }
