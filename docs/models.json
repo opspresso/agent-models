@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-23T14:38:44.770Z",
+  "updatedAt": "2026-08-23T15:22:40.125Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2739,7 +2739,7 @@
         "reasoning": true
       },
       "contextWindow": 204800,
-      "maxTokens": 131072,
+      "maxTokens": 196608,
       "wireId": "minimax/minimax-m2.7"
     },
     {
@@ -4373,6 +4373,48 @@
       "contextWindow": 65536,
       "maxTokens": 65536,
       "wireId": "krea/krea-2-medium-turbo"
+    },
+    {
+      "id": "openrouter/kimi-k3",
+      "provider": "openrouter",
+      "family": "kimi-k3",
+      "maker": "moonshot",
+      "displayName": "Kimi K3",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 1048576,
+      "wireId": "moonshotai/kimi-k3"
+    },
+    {
+      "id": "openrouter/nemotron-3-ultra-550b-a55b",
+      "provider": "openrouter",
+      "family": "nemotron-3-ultra-550b-a55b",
+      "maker": "nvidia",
+      "displayName": "Nemotron 3 Ultra",
+      "pricing": {
+        "inputPer1M": 0.6,
+        "outputPer1M": 3.6,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 512288,
+      "maxTokens": 202800,
+      "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     }
   ]
 }
