@@ -218,7 +218,10 @@ large addition bursts, provider-wide disappearance, order-of-magnitude price cha
 large limit changes. The report is still produced for review, but `models/` remains
 unchanged. Network reads refuse redirects, time out after 30 seconds and cap JSON responses
 at 10 MiB. After reviewing the complete diff, a person may apply that exact anomaly set by
-rerunning with the digest-specific `--approve-anomaly=<digest>` printed in the report.
+rerunning with the digest-specific `--approve-anomaly=<digest>` printed in the report — from
+CI by dispatching **Update models** with the digest in the `approve_anomaly` input. The
+approval is the digest alone, so a set that has since changed is quarantined again with a new
+one rather than waved through.
 
 ### Notifications
 

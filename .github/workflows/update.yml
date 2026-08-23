@@ -20,6 +20,11 @@ on:
   schedule:
     - cron: "0 22 * * *"
   workflow_dispatch:
+    inputs:
+      approve_anomaly:
+        description: "Safety gate digest to apply (the `--approve-anomaly=` value printed by a quarantined run)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -64,6 +69,12 @@ jobs:
       # a source could not be read; the step is allowed to continue so what the
       # other sources found is still built and proposed, and the failure is
       # raised again at the end.
+      #
+      # A quarantined run prints the digest of the exact anomaly set it refused.
+      # Reviewing that report and dispatching the workflow again with the digest
+      # in `approve_anomaly` is the only way to let that one set through — the
+      # gate is otherwise unclearable from here, so a legitimate bulk change
+      # would keep the job red forever.
       - name: Update sources from the providers
         id: update
         continue-on-error: true
@@ -72,7 +83,13 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-        run: pnpm update-models
+          APPROVE_ANOMALY: ${{ inputs.approve_anomaly }}
+        run: |
+          if [ -n "$APPROVE_ANOMALY" ]; then
+            pnpm update-models "--approve-anomaly=$APPROVE_ANOMALY"
+          else
+            pnpm update-models
+          fi
 
       - name: Build the catalog
         run: pnpm build
