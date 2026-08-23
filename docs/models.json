@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-23T05:28:13.663Z",
+  "updatedAt": "2026-08-23T14:38:44.770Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -200,6 +200,614 @@
       "maxTokens": 128000
     },
     {
+      "id": "openai/gpt-5.5-pro",
+      "provider": "openai",
+      "family": "gpt-5.5-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.5 Pro",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 180
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.5",
+      "provider": "openai",
+      "family": "gpt-5.5",
+      "maker": "openai",
+      "displayName": "GPT-5.5",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 30,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.4-nano",
+      "provider": "openai",
+      "family": "gpt-5.4-nano",
+      "maker": "openai",
+      "displayName": "GPT-5.4 Nano",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 1.25,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.4-pro",
+      "provider": "openai",
+      "family": "gpt-5.4-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.4 Pro",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 180
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.3-codex",
+      "provider": "openai",
+      "family": "gpt-5.3-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.3-Codex",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-audio",
+      "provider": "openai",
+      "family": "gpt-audio",
+      "maker": "openai",
+      "displayName": "GPT Audio",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384
+    },
+    {
+      "id": "openai/gpt-audio-mini",
+      "provider": "openai",
+      "family": "gpt-audio-mini",
+      "maker": "openai",
+      "displayName": "GPT Audio Mini",
+      "pricing": {
+        "inputPer1M": 0.6,
+        "outputPer1M": 2.4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384
+    },
+    {
+      "id": "openai/gpt-5.2-codex",
+      "provider": "openai",
+      "family": "gpt-5.2-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.2-Codex",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.2-pro",
+      "provider": "openai",
+      "family": "gpt-5.2-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.2 Pro",
+      "pricing": {
+        "inputPer1M": 21,
+        "outputPer1M": 168
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.2",
+      "provider": "openai",
+      "family": "gpt-5.2",
+      "maker": "openai",
+      "displayName": "GPT-5.2",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.1-codex-max",
+      "provider": "openai",
+      "family": "gpt-5.1-codex-max",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex-Max",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.1-codex",
+      "provider": "openai",
+      "family": "gpt-5.1-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.13
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5.1-codex-mini",
+      "provider": "openai",
+      "family": "gpt-5.1-codex-mini",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex-Mini",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 2,
+        "cachedInputPer1M": 0.03
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5-pro",
+      "provider": "openai",
+      "family": "gpt-5-pro",
+      "maker": "openai",
+      "displayName": "GPT-5 Pro",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 120
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5",
+      "provider": "openai",
+      "family": "gpt-5",
+      "maker": "openai",
+      "displayName": "GPT-5",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-5-nano",
+      "provider": "openai",
+      "family": "gpt-5-nano",
+      "maker": "openai",
+      "displayName": "GPT-5 Nano",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.005
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/o3-pro",
+      "provider": "openai",
+      "family": "o3-pro",
+      "maker": "openai",
+      "displayName": "o3 Pro",
+      "pricing": {
+        "inputPer1M": 20,
+        "outputPer1M": 80
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/o3",
+      "provider": "openai",
+      "family": "o3",
+      "maker": "openai",
+      "displayName": "o3",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/o4-mini",
+      "provider": "openai",
+      "family": "o4-mini",
+      "maker": "openai",
+      "displayName": "o4 Mini",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.275
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/gpt-4.1",
+      "provider": "openai",
+      "family": "gpt-4.1",
+      "maker": "openai",
+      "displayName": "GPT-4.1",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768
+    },
+    {
+      "id": "openai/gpt-4.1-mini",
+      "provider": "openai",
+      "family": "gpt-4.1-mini",
+      "maker": "openai",
+      "displayName": "GPT-4.1 Mini",
+      "pricing": {
+        "inputPer1M": 0.4,
+        "outputPer1M": 1.6,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768
+    },
+    {
+      "id": "openai/gpt-4.1-nano",
+      "provider": "openai",
+      "family": "gpt-4.1-nano",
+      "maker": "openai",
+      "displayName": "GPT-4.1 Nano",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.025
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768
+    },
+    {
+      "id": "openai/o1-pro",
+      "provider": "openai",
+      "family": "o1-pro",
+      "maker": "openai",
+      "displayName": "o1-pro",
+      "pricing": {
+        "inputPer1M": 150,
+        "outputPer1M": 600
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/o3-mini",
+      "provider": "openai",
+      "family": "o3-mini",
+      "maker": "openai",
+      "displayName": "o3 Mini",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.55
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/o1",
+      "provider": "openai",
+      "family": "o1",
+      "maker": "openai",
+      "displayName": "o1",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 60,
+        "cachedInputPer1M": 7.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "provider": "openai",
+      "family": "gpt-4o-mini",
+      "maker": "openai",
+      "displayName": "GPT-4o-mini",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.075
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384
+    },
+    {
+      "id": "openai/gpt-4o",
+      "provider": "openai",
+      "family": "gpt-4o",
+      "maker": "openai",
+      "displayName": "GPT-4o",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 1.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384
+    },
+    {
+      "id": "openai/gpt-4-turbo",
+      "provider": "openai",
+      "family": "gpt-4-turbo",
+      "maker": "openai",
+      "displayName": "GPT-4 Turbo",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 30
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 4096
+    },
+    {
+      "id": "openai/gpt-3.5-turbo-16k",
+      "provider": "openai",
+      "family": "gpt-3.5-turbo-16k",
+      "maker": "openai",
+      "displayName": "GPT-3.5 Turbo 16k",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 16385,
+      "maxTokens": 4096
+    },
+    {
+      "id": "openai/gpt-3.5-turbo",
+      "provider": "openai",
+      "family": "gpt-3.5-turbo",
+      "maker": "openai",
+      "displayName": "GPT-3.5 Turbo",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 1.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 16385,
+      "maxTokens": 4096
+    },
+    {
+      "id": "openai/gpt-4",
+      "provider": "openai",
+      "family": "gpt-4",
+      "maker": "openai",
+      "displayName": "GPT-4",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 60
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 8191,
+      "maxTokens": 4096
+    },
+    {
       "id": "anthropic/claude-fable-5",
       "provider": "anthropic",
       "family": "claude-fable-5",
@@ -343,6 +951,69 @@
       "contextWindow": 200000,
       "maxTokens": 64000,
       "wireId": "claude-haiku-4-5"
+    },
+    {
+      "id": "anthropic/claude-opus-4.6",
+      "provider": "anthropic",
+      "family": "claude-opus-4.6",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.6",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "claude-opus-4-6"
+    },
+    {
+      "id": "anthropic/claude-opus-4.5",
+      "provider": "anthropic",
+      "family": "claude-opus-4.5",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.5",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 64000,
+      "wireId": "claude-opus-4-5"
+    },
+    {
+      "id": "anthropic/claude-sonnet-4.5",
+      "provider": "anthropic",
+      "family": "claude-sonnet-4.5",
+      "maker": "anthropic",
+      "displayName": "Claude Sonnet 4.5",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 64000,
+      "wireId": "claude-sonnet-4-5"
     },
     {
       "id": "google/gemini-3.1-pro",
@@ -614,6 +1285,145 @@
       },
       "contextWindow": 131072,
       "maxTokens": 32768
+    },
+    {
+      "id": "google/gemma-4-26b-a4b-it",
+      "provider": "google",
+      "family": "gemma-4-26b-a4b-it",
+      "maker": "google",
+      "displayName": "Gemma 4 26B A4B",
+      "pricing": {
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.34
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 32768
+    },
+    {
+      "id": "google/gemma-4-31b-it",
+      "provider": "google",
+      "family": "gemma-4-31b-it",
+      "maker": "google",
+      "displayName": "Gemma 4 31B",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.34,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 32768
+    },
+    {
+      "id": "google/gemini-3.1-flash-lite-preview",
+      "provider": "google",
+      "family": "gemini-3.1-flash-lite-preview",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Flash Lite Preview",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 1.5,
+        "cachedInputPer1M": 0.025
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "google/gemini-3.1-pro-preview-customtools",
+      "provider": "google",
+      "family": "gemini-3.1-pro-preview-customtools",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Pro Preview Custom Tools",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "google/gemini-3.1-pro-preview",
+      "provider": "google",
+      "family": "gemini-3.1-pro-preview",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Pro Preview",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "google/gemini-3-flash-preview",
+      "provider": "google",
+      "family": "gemini-3-flash-preview",
+      "maker": "google",
+      "displayName": "Gemini 3 Flash Preview",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 3,
+        "cachedInputPer1M": 0.05
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
+      "id": "google/gemini-2.5-pro",
+      "provider": "google",
+      "family": "gemini-2.5-pro",
+      "maker": "google",
+      "displayName": "Gemini 2.5 Pro",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
     },
     {
       "id": "xai/grok-4.6",
@@ -1791,10 +2601,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.05306,
-        "outputPer1M": 0.10612,
-        "cachedInputPer1M": 0.010612,
-        "discount": 0.621
+        "inputPer1M": 0.04886,
+        "outputPer1M": 0.09772,
+        "cachedInputPer1M": 0.009772,
+        "discount": 0.651
       },
       "capabilities": {
         "tools": true,
@@ -1886,7 +2696,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 16384,
+      "maxTokens": 32768,
       "wireId": "google/gemma-4-26b-a4b-it"
     },
     {
@@ -1907,7 +2717,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 262144,
+      "maxTokens": 32768,
       "wireId": "google/gemma-4-31b-it"
     },
     {
@@ -1917,9 +2727,10 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.06
+        "inputPer1M": 0.24,
+        "outputPer1M": 0.96,
+        "cachedInputPer1M": 0.048,
+        "discount": 0.6
       },
       "capabilities": {
         "tools": true,
