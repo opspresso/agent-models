@@ -14,22 +14,24 @@
  *   - A family the vendor also serves keeps the vendor's numbers; the
  *     OpenRouter offering carries a price override only while the router's
  *     rate differs from the family's, and loses it the day they agree again.
- *   - Image-generation families are left alone: their per-image price lives in
- *     a different endpoint and a different unit. They are still looked up in
- *     the image catalog, so a retirement is noticed.
+ *   - An image family whose only route is OpenRouter follows the image
+ *     endpoint's normalized token price, window and output cap.
  *   - A live route the catalogs no longer list is recorded as missing and
  *     hidden after the grace period (`presence.ts`) — never deleted.
  *
  * And what it may add (`discoverOpenRouter`):
  *
  *   - A route to a family this registry already has, when the catalog lists
- *     the family under its maker's vendor slug — the family is curated, the
- *     router is one API, and "also via openrouter" is cheap to be right about.
+ *     an eligible model under its maker's vendor slug — the family is curated,
+ *     the router is one API, and "also via openrouter" is cheap to be right about.
  *   - A new family, when a known maker's model appeared in the catalog within
- *     `DISCOVERY_WINDOW_DAYS`, is a priced text model, and states its output
- *     cap. Everything else it notices — an unknown maker, an image model, a
- *     listing without an output cap — is reported for a person, because each
- *     needs a judgement or a number this source does not carry.
+ *     `DISCOVERY_WINDOW_DAYS`, is a priced text model, states its output cap,
+ *     and is made by a major API provider or ranks in OpenRouter's weekly top
+ *     20 open- or closed-weight models.
+ *   - An image family and route when the model ranks in the weekly image top
+ *     20 and its endpoint states a price and limits (including explicit zero
+ *     limits for image-only models). Its maker is adopted with it when the
+ *     vendor is new to the registry.
  */
 
 import type { ModelCapabilities, ModelFamily, ModelPricing, PlacedOffering, Registry } from "../registry.ts";
@@ -43,11 +45,12 @@ export const DISCOVERY_WINDOW_DAYS = 30;
 export const EXPIRATION_HORIZON_DAYS = 365;
 
 export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
+export const OPENROUTER_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/models?view=week";
+export const OPENROUTER_IMAGE_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=image&view=week";
 /**
  * The dedicated drawing models live in a second catalog and not in `/models`:
  * `openai/gpt-image-2` and the Grok image models appear only here. Read for
- * existence alone — the per-image price is in yet another endpoint, in a
- * different unit, and stays hand-kept.
+ * discovery and presence. Price and limits come from the model endpoints API.
  */
 export const OPENROUTER_IMAGE_MODELS_URL = "https://openrouter.ai/api/v1/images/models";
 
@@ -57,6 +60,10 @@ export function openRouterEndpointsUrl(id: string): string {
 
 export interface OpenRouterModel {
   id: string;
+  /** Stable identity used by the rankings feed, including its dated suffix. */
+  canonical_slug?: string;
+  /** OpenRouter's own open/closed signal: the rankings page treats a model with weights as open. */
+  hugging_face_id?: string | null;
   name?: string;
   /** Unix seconds the listing was created — when OpenRouter first had it. */
   created?: number;
@@ -65,6 +72,7 @@ export interface OpenRouterModel {
     prompt?: string;
     completion?: string;
     input_cache_read?: string;
+    image_output?: string;
   };
   top_provider?: {
     max_completion_tokens?: number | null;
@@ -81,20 +89,57 @@ export interface OpenRouterModel {
 export interface OpenRouterEndpoint {
   tag?: string;
   provider_name?: string;
+  context_length?: number | null;
+  max_completion_tokens?: number | null;
   pricing?: {
     prompt?: string;
     completion?: string;
+    input_cache_read?: string;
+    image_output?: string;
     /** Promotional discount as a fraction; the endpoint's rates are after it. */
     discount?: number;
   };
+}
+
+export interface OpenRouterRanking {
+  model_permaslug: string;
+  variant_permaslug: string;
+  total_completion_tokens: number;
+  total_prompt_tokens: number;
+}
+
+export interface OpenRouterImageModel {
+  id: string;
+  name?: string;
+  created?: number;
+  architecture?: {
+    input_modalities?: string[];
+    output_modalities?: string[];
+  };
+}
+
+export interface OpenRouterImageRanking {
+  model_permaslug: string;
+  variant_permaslug: string;
+  image_output_requests: number;
 }
 
 export interface OpenRouterCatalog {
   models: OpenRouterModel[];
   /** Ids the image catalog lists. */
   imageIds: string[];
+  imageModels: OpenRouterImageModel[];
   /** Per model id, its endpoints — or null when that one request failed. */
   endpoints: Record<string, OpenRouterEndpoint[] | null>;
+  /** Null when the public rankings feed failed or changed shape. */
+  rankings: OpenRouterRanking[] | null;
+  /** Null when the public image rankings feed failed or changed shape. */
+  imageRankings: OpenRouterImageRanking[] | null;
+}
+
+export interface OpenRouterDiscoveryOptions {
+  /** Ignore the normal recency window while rebuilding OpenRouter from an empty route set. */
+  bootstrap?: boolean;
 }
 
 async function fetchData(url: string, fetchFn: typeof fetch): Promise<unknown[]> {
@@ -111,6 +156,33 @@ function idsOf(entries: unknown[]): string[] {
     .filter((id): id is string => typeof id === "string");
 }
 
+function isRanking(entry: unknown): entry is OpenRouterRanking {
+  if (typeof entry !== "object" || entry === null) {
+    return false;
+  }
+  const row = entry as Partial<OpenRouterRanking>;
+  return typeof row.model_permaslug === "string"
+    && typeof row.variant_permaslug === "string"
+    && typeof row.total_completion_tokens === "number"
+    && Number.isFinite(row.total_completion_tokens)
+    && row.total_completion_tokens >= 0
+    && typeof row.total_prompt_tokens === "number"
+    && Number.isFinite(row.total_prompt_tokens)
+    && row.total_prompt_tokens >= 0;
+}
+
+function isImageRanking(entry: unknown): entry is OpenRouterImageRanking {
+  if (typeof entry !== "object" || entry === null) {
+    return false;
+  }
+  const row = entry as Partial<OpenRouterImageRanking>;
+  return typeof row.model_permaslug === "string"
+    && typeof row.variant_permaslug === "string"
+    && typeof row.image_output_requests === "number"
+    && Number.isFinite(row.image_output_requests)
+    && row.image_output_requests >= 0;
+}
+
 /** How many endpoint requests are in flight at once — polite, and fast enough for ~40 routes. */
 const ENDPOINT_CONCURRENCY = 4;
 
@@ -125,12 +197,25 @@ const ENDPOINT_CONCURRENCY = 4;
  * still good.
  */
 export async function fetchOpenRouterCatalog(
-  selectEndpointIds: (models: OpenRouterModel[]) => readonly string[],
+  selectEndpointIds: (
+    models: OpenRouterModel[],
+    rankings: OpenRouterRanking[] | null,
+  ) => readonly string[],
   fetchFn: typeof fetch = fetch,
 ): Promise<OpenRouterCatalog> {
-  const [models, images] = await Promise.all([
+  const rankingsRequest = fetchData(OPENROUTER_RANKINGS_URL, fetchFn).then(
+    (data) => ({ ok: true as const, data }),
+    () => ({ ok: false as const }),
+  );
+  const imageRankingsRequest = fetchData(OPENROUTER_IMAGE_RANKINGS_URL, fetchFn).then(
+    (data) => ({ ok: true as const, data }),
+    () => ({ ok: false as const }),
+  );
+  const [models, images, rankingsResult, imageRankingsResult] = await Promise.all([
     fetchData(OPENROUTER_MODELS_URL, fetchFn),
     fetchData(OPENROUTER_IMAGE_MODELS_URL, fetchFn),
+    rankingsRequest,
+    imageRankingsRequest,
   ]);
   if (models.length === 0) {
     throw new Error(`GET ${OPENROUTER_MODELS_URL} → empty catalog`);
@@ -150,9 +235,23 @@ export async function fetchOpenRouterCatalog(
   if (idsOf(images).length === 0) {
     throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → no usable entries (shape drift?)`);
   }
-  const listed = new Set(idsOf(models));
+  const rankings = rankingsResult.ok && rankingsResult.data.length > 0 && rankingsResult.data.every(isRanking)
+    ? rankingsResult.data as OpenRouterRanking[]
+    : null;
+  const imageRankings = imageRankingsResult.ok
+      && imageRankingsResult.data.length > 0
+      && imageRankingsResult.data.every(isImageRanking)
+    ? imageRankingsResult.data as OpenRouterImageRanking[]
+    : null;
+  const imageModels = images as OpenRouterImageModel[];
+  const imageLeaderboard = imageLeaderboardIds(imageModels, imageRankings) ?? [];
+  const listed = new Set([...idsOf(models), ...idsOf(images)]);
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
-  const queue = [...new Set(selectEndpointIds(models as OpenRouterModel[]))].filter((id) => listed.has(id));
+  const queue = [...new Set([
+    ...selectEndpointIds(models as OpenRouterModel[], rankings),
+    ...imageLeaderboard,
+  ])].filter((id) =>
+    listed.has(id));
   await Promise.all(
     Array.from({ length: ENDPOINT_CONCURRENCY }, async () => {
       for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
@@ -167,7 +266,14 @@ export async function fetchOpenRouterCatalog(
       }
     }),
   );
-  return { models: models as OpenRouterModel[], imageIds: idsOf(images), endpoints };
+  return {
+    models: models as OpenRouterModel[],
+    imageIds: idsOf(images),
+    imageModels,
+    endpoints,
+    rankings,
+    imageRankings,
+  };
 }
 
 type TokenPricing = Pick<ModelPricing, "inputPer1M" | "outputPer1M" | "cachedInputPer1M" | "discount">;
@@ -185,6 +291,27 @@ function tokenPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | 
     outputPer1M: perMillion(completion),
     ...(cached > 0 ? { cachedInputPer1M: perMillion(cached) } : {}),
   };
+}
+
+function imagePricing(endpoints: OpenRouterEndpoint[] | null | undefined): ModelPricing | null {
+  const endpoint = endpoints?.find((candidate) => Number(candidate.pricing?.image_output) > 0);
+  const imageOutput = Number(endpoint?.pricing?.image_output);
+  if (!(imageOutput > 0)) {
+    return null;
+  }
+  const prompt = Number(endpoint?.pricing?.prompt);
+  const completion = Number(endpoint?.pricing?.completion);
+  const cached = Number(endpoint?.pricing?.input_cache_read);
+  return {
+    inputPer1M: prompt > 0 ? perMillion(prompt) : 0,
+    outputPer1M: completion > 0 ? perMillion(completion) : 0,
+    ...(cached > 0 ? { cachedInputPer1M: perMillion(cached) } : {}),
+    imageOutputPer1M: perMillion(imageOutput),
+  };
+}
+
+function isImageLimit(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
 /**
@@ -237,6 +364,7 @@ export function applyOpenRouter(
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const byId = new Map(catalog.models.map((model) => [model.id, model]));
+  const byImageId = new Map(catalog.imageModels.map((model) => [model.id, model]));
   const drawn = new Set(catalog.imageIds);
   const changes: Change[] = [];
   const notes: string[] = [];
@@ -253,7 +381,37 @@ export function applyOpenRouter(
     const entry = byId.get(offering.wireId);
 
     if (family.capabilities.imageGeneration) {
+      const image = byImageId.get(offering.wireId);
       observePresence(offering, entry !== undefined || drawn.has(offering.wireId), "OpenRouter", today, changes, notes);
+      if (image === undefined) {
+        continue;
+      }
+      const routerOnly = next.offerings
+        .filter((other) => other.family === offering.family)
+        .every((other) => other.provider === "openrouter");
+      if (!routerOnly) {
+        continue;
+      }
+      const endpoint = catalog.endpoints[offering.wireId]?.find(
+        (candidate) => Number(candidate.pricing?.image_output) > 0,
+      );
+      const price = imagePricing(catalog.endpoints[offering.wireId]);
+      if (price !== null && !samePricing({ ...family.pricing }, { ...price })) {
+        changes.push({ target: `family ${offering.family}`, field: "pricing", from: family.pricing, to: price });
+        family.pricing = price;
+      }
+      const window = endpoint?.context_length;
+      if (isPositiveInt(window) && window !== family.contextWindow) {
+        changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
+        family.contextWindow = window;
+      }
+      const maxOut = isPositiveInt(endpoint?.max_completion_tokens)
+        ? endpoint.max_completion_tokens
+        : window;
+      if (isPositiveInt(maxOut) && maxOut <= family.contextWindow && maxOut !== family.maxTokens) {
+        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
+        family.maxTokens = maxOut;
+      }
       continue;
     }
     observePresence(offering, entry !== undefined, "OpenRouter", today, changes, notes);
@@ -348,6 +506,96 @@ function isVariant(slug: string): boolean {
   return slug.includes(":");
 }
 
+const MAJOR_MODEL_MAKERS = new Set(["openai", "anthropic", "google", "xai"]);
+const LEADERBOARD_LIMIT = 20;
+
+function standardPermaslug(permaslug: string): string {
+  const colon = permaslug.indexOf(":");
+  return colon === -1 ? permaslug : permaslug.slice(0, colon);
+}
+
+/** The image leaderboard's weekly top 20, ordered by image-producing requests. */
+function imageLeaderboardIds(
+  models: OpenRouterImageModel[],
+  rankings: OpenRouterImageRanking[] | null,
+): string[] | null {
+  if (rankings === null) {
+    return null;
+  }
+  const totals = new Map<string, number>();
+  for (const row of rankings) {
+    totals.set(
+      row.variant_permaslug,
+      (totals.get(row.variant_permaslug) ?? 0) + row.image_output_requests,
+    );
+  }
+  const top = [...totals]
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, LEADERBOARD_LIMIT)
+    .map(([permaslug]) => standardPermaslug(permaslug));
+  return top.flatMap((permaslug) => {
+    const model = models.find(({ id }) => {
+      const suffix = permaslug.slice(id.length);
+      return permaslug === id || permaslug.startsWith(id) && /^-\d{8}$/.test(suffix);
+    });
+    return model === undefined ? [] : [model.id];
+  });
+}
+
+/** The same weekly open/closed top-20 gate shown by OpenRouter's rankings table. */
+function leaderboardPermaslugs(
+  models: OpenRouterModel[],
+  rankings: OpenRouterRanking[] | null,
+): Set<string> | null {
+  if (rankings === null) {
+    return null;
+  }
+  const byCanonical = new Map<string, OpenRouterModel>();
+  for (const model of models) {
+    if (typeof model.canonical_slug !== "string" || model.canonical_slug === "") {
+      continue;
+    }
+    const current = byCanonical.get(model.canonical_slug);
+    const parts = splitId(model.id);
+    const currentParts = current === undefined ? null : splitId(current.id);
+    if (current === undefined || currentParts !== null && isVariant(currentParts.slug) && parts !== null && !isVariant(parts.slug)) {
+      byCanonical.set(model.canonical_slug, model);
+    }
+  }
+
+  const totals = new Map<string, number>();
+  for (const row of rankings) {
+    totals.set(
+      row.variant_permaslug,
+      (totals.get(row.variant_permaslug) ?? 0) + row.total_prompt_tokens + row.total_completion_tokens,
+    );
+  }
+  const rows = [...totals].sort((left, right) => right[1] - left[1]);
+  const eligible = new Set<string>();
+  let open = 0;
+  let closed = 0;
+  for (const [variantPermaslug] of rows) {
+    const permaslug = standardPermaslug(variantPermaslug);
+    const model = byCanonical.get(permaslug);
+    const parts = model === undefined ? null : splitId(model.id);
+    if (model === undefined || parts === null || parts.vendor === "stealth") {
+      continue;
+    }
+    const isOpen = typeof model.hugging_face_id === "string" && model.hugging_face_id !== "";
+    if (isOpen && open < LEADERBOARD_LIMIT) {
+      open += 1;
+      eligible.add(permaslug);
+    } else if (!isOpen && closed < LEADERBOARD_LIMIT) {
+      closed += 1;
+      eligible.add(permaslug);
+    }
+    if (open === LEADERBOARD_LIMIT && closed === LEADERBOARD_LIMIT) {
+      break;
+    }
+  }
+  return eligible;
+}
+
 /**
  * `-20250929`, `-0813`, `-2025`, `-2025-09-29`: a dated snapshot; the undated
  * alias is what a registry names. One judgment on purpose — discovery's
@@ -370,6 +618,11 @@ function displayNameOf(model: OpenRouterModel, slug: string): string {
   return name === "" ? slug : name;
 }
 
+function makerDisplayNameOf(model: OpenRouterImageModel, vendor: string): string {
+  const raw = (model.name ?? "").trim();
+  return raw.includes(": ") ? raw.slice(0, raw.indexOf(": ")).trim() : vendor;
+}
+
 function capabilitiesOf(model: OpenRouterModel): ModelCapabilities {
   const params = new Set(model.supported_parameters ?? []);
   const inputs = new Set(model.architecture?.input_modalities ?? ["text"]);
@@ -389,18 +642,163 @@ function isRecent(model: OpenRouterModel, today: string): boolean {
   return daysBetween(utcDate(new Date(model.created * 1000)), today) <= DISCOVERY_WINDOW_DAYS;
 }
 
+function isEligibleModel(
+  maker: string,
+  model: OpenRouterModel,
+  rankedPermaslugs: Set<string> | null,
+): boolean {
+  return MAJOR_MODEL_MAKERS.has(maker)
+    || typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
+}
+
+function imageCapabilitiesOf(model: OpenRouterImageModel): ModelCapabilities {
+  return {
+    tools: false,
+    structuredOutput: false,
+    imageInput: (model.architecture?.input_modalities ?? []).includes("image"),
+    reasoning: false,
+    imageGeneration: true,
+  };
+}
+
+function discoverRankedImages(
+  registry: Registry,
+  catalog: OpenRouterCatalog,
+  today: string,
+  changes: Change[],
+  notes: string[],
+  makerOfVendor: Map<string, string>,
+  routed: Set<string | undefined>,
+): void {
+  const rankedIds = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
+  if (rankedIds === null) {
+    notes.push("openrouter: weekly image rankings could not be read; image models and routes were not added");
+    return;
+  }
+  const byId = new Map(catalog.imageModels.map((model) => [model.id, model]));
+  for (const id of rankedIds) {
+    if (routed.has(id)) {
+      continue;
+    }
+    const model = byId.get(id);
+    const parts = splitId(id);
+    if (model === undefined || parts === null) {
+      continue;
+    }
+    const { vendor, slug } = parts;
+    let maker = makerOfVendor.get(vendor);
+    const family = registry.families[slug];
+    if (family !== undefined) {
+      if (maker === undefined || family.maker !== maker) {
+        notes.push(`openrouter: ranked image ${id} names family "${slug}" under another maker; left alone`);
+        continue;
+      }
+      if (!family.capabilities.imageGeneration || !familyIsLive(registry, slug)) {
+        continue;
+      }
+      if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
+        routed.add(id);
+      }
+      continue;
+    }
+
+    const endpoints = catalog.endpoints[id];
+    const endpoint = endpoints?.find((candidate) => Number(candidate.pricing?.image_output) > 0);
+    const price = imagePricing(endpoints);
+    const window = endpoint?.context_length;
+    if (price === null || !isImageLimit(window)) {
+      notes.push(`openrouter: ranked image ${id} has no usable endpoint price or context window; left alone`);
+      continue;
+    }
+    const endpointMax = endpoint?.max_completion_tokens;
+    const maxOut = isImageLimit(endpointMax)
+      ? endpointMax
+      : window;
+    if (maxOut > window) {
+      notes.push(`openrouter: ranked image ${id} states max output ${maxOut} above its ${window} window; left alone`);
+      continue;
+    }
+    if (maker === undefined) {
+      maker = vendor;
+      registry.makers[maker] = {
+        displayName: makerDisplayNameOf(model, vendor),
+        openrouterVendor: vendor,
+      };
+      makerOfVendor.set(vendor, maker);
+      changes.push({
+        target: `maker ${maker}`,
+        field: "added",
+        from: undefined,
+        to: registry.makers[maker]!.displayName,
+      });
+    }
+    const created: ModelFamily & { maker: string } = {
+      maker,
+      displayName: displayNameOf(model, slug),
+      pricing: price,
+      capabilities: imageCapabilitiesOf(model),
+      contextWindow: window,
+      maxTokens: maxOut,
+      note: `Added automatically on ${today} from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's.`,
+    };
+    registry.families[slug] = created;
+    registry.offerings.push({ provider: "openrouter", family: slug, wireId: id });
+    routed.add(id);
+    changes.push({
+      target: `family ${slug}`,
+      field: "added",
+      from: undefined,
+      to: `${created.displayName} via openrouter (${id})`,
+    });
+  }
+}
+
+/** Drop every OpenRouter route and any family that no remaining provider serves. */
+export function resetOpenRouterRegistry(registry: Registry): {
+  registry: Registry;
+  removedFamilies: number;
+  removedOfferings: number;
+} {
+  const next = structuredClone(registry);
+  const beforeOfferings = next.offerings.length;
+  next.offerings = next.offerings.filter((offering) => offering.provider !== "openrouter");
+  const served = new Set(next.offerings.map((offering) => offering.family));
+  const beforeFamilies = Object.keys(next.families).length;
+  for (const family of Object.keys(next.families)) {
+    if (!served.has(family)) {
+      delete next.families[family];
+    }
+  }
+  return {
+    registry: next,
+    removedFamilies: beforeFamilies - Object.keys(next.families).length,
+    removedOfferings: beforeOfferings - next.offerings.length,
+  };
+}
+
 /**
  * The ids whose endpoints discovery will want read — the known makers' recent
  * listings (a new family) and their listings named after a family this
  * registry has (a new route) — so either carries its discount from the first
  * day rather than the second.
  */
-export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel[], today: string): string[] {
-  const known = new Set(Object.values(registry.openrouterVendors));
+export function discoveryEndpointIds(
+  registry: Registry,
+  models: OpenRouterModel[],
+  today: string,
+  rankings: OpenRouterRanking[] | null = null,
+  options: OpenRouterDiscoveryOptions = {},
+): string[] {
+  const makerOfVendor = new Map(
+    Object.entries(registry.makers).flatMap(([maker, definition]) =>
+      definition.openrouterVendor === undefined ? [] : [[definition.openrouterVendor, maker]]),
+  );
+  const rankedPermaslugs = leaderboardPermaslugs(models, rankings);
   return models
     .filter((model) => {
       const parts = splitId(model.id);
-      if (parts === null || !known.has(parts.vendor) || isVariant(parts.slug)) {
+      const maker = parts === null ? undefined : makerOfVendor.get(parts.vendor);
+      if (parts === null || maker === undefined || isVariant(parts.slug)) {
         return false;
       }
       // A dated snapshot is skipped by discovery either way — reading its
@@ -408,7 +806,10 @@ export function discoveryEndpointIds(registry: Registry, models: OpenRouterModel
       if (isDated(parts.slug)) {
         return false;
       }
-      return isRecent(model, today) || registry.families[parts.slug] !== undefined;
+      if (!isEligibleModel(maker, model, rankedPermaslugs)) {
+        return false;
+      }
+      return options.bootstrap === true || isRecent(model, today) || registry.families[parts.slug] !== undefined;
     })
     .map((model) => model.id);
 }
@@ -417,28 +818,42 @@ export function discoverOpenRouter(
   registry: Registry,
   catalog: OpenRouterCatalog,
   today: string,
+  options: OpenRouterDiscoveryOptions = {},
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
   const notes: string[] = [];
-  const makerOfVendor = new Map(Object.entries(next.openrouterVendors).map(([maker, vendor]) => [vendor, maker]));
+  const makerOfVendor = new Map(
+    Object.entries(next.makers).flatMap(([maker, definition]) =>
+      definition.openrouterVendor === undefined ? [] : [[definition.openrouterVendor, maker]]),
+  );
   const unknownVendors = new Map<string, string[]>();
+  const rankedPermaslugs = leaderboardPermaslugs(catalog.models, catalog.rankings);
+  if (rankedPermaslugs === null) {
+    notes.push("openrouter: weekly rankings could not be read; non-major models and routes were not added");
+  }
   // Ids this registry already routes to, whatever family name it files them
   // under — `upstage/solar-pro4` is `solar-pro-4` here, not a second family.
   const routed = new Set(next.offerings.filter((o) => o.provider === "openrouter").map((o) => o.wireId));
+  discoverRankedImages(next, catalog, today, changes, notes, makerOfVendor, routed);
 
   for (const model of catalog.models) {
     const parts = splitId(model.id);
-    if (parts === null || isVariant(parts.slug) || routed.has(model.id) || !outputs(model, "text") && !outputs(model, "image")) {
+    if (parts === null || isVariant(parts.slug) || routed.has(model.id) || outputs(model, "image") || !outputs(model, "text")) {
       continue;
     }
     const { vendor, slug } = parts;
     const maker = makerOfVendor.get(vendor);
+    const leaderboardEligible = typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
+    const withinDiscoveryWindow = options.bootstrap === true || isRecent(model, today);
 
     if (maker === undefined) {
-      if (isRecent(model, today) && !isDated(slug) && tokenPricing(model) !== null) {
+      if (leaderboardEligible && withinDiscoveryWindow && !isDated(slug) && tokenPricing(model) !== null) {
         unknownVendors.set(vendor, [...(unknownVendors.get(vendor) ?? []), slug]);
       }
+      continue;
+    }
+    if (!isEligibleModel(maker, model, rankedPermaslugs)) {
       continue;
     }
 
@@ -446,10 +861,6 @@ export function discoverOpenRouter(
     if (family !== undefined) {
       if (family.maker !== maker) {
         notes.push(`openrouter: ${model.id} names family "${slug}", which this registry files under ${family.maker}; left alone`);
-        continue;
-      }
-      if (family.capabilities.imageGeneration) {
-        // An image route is verified by drawing with it, which this source cannot do.
         continue;
       }
       if (!familyIsLive(next, slug) || next.offerings.some((o) => o.provider === "openrouter" && o.family === slug)) {
@@ -476,15 +887,11 @@ export function discoverOpenRouter(
     }
 
     // A family this registry does not have.
-    if (!isRecent(model, today) || isDated(slug)) {
+    if (!withinDiscoveryWindow || isDated(slug)) {
       continue;
     }
     const price = tokenPricing(model);
     if (price === null) {
-      continue;
-    }
-    if (outputs(model, "image")) {
-      notes.push(`openrouter: new image model ${model.id} — per-image pricing is read from another endpoint; add it by hand`);
       continue;
     }
     const maxOut = model.top_provider?.max_completion_tokens;
@@ -498,6 +905,9 @@ export function discoverOpenRouter(
       continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[model.id]);
+    const listed = typeof model.created === "number" && Number.isFinite(model.created)
+      ? ` (listed ${utcDate(new Date(model.created * 1000))})`
+      : "";
     const created: ModelFamily & { maker: string } = {
       maker,
       displayName: displayNameOf(model, slug),
@@ -505,7 +915,7 @@ export function discoverOpenRouter(
       capabilities: capabilitiesOf(model),
       contextWindow: window,
       maxTokens: maxOut,
-      note: `Added automatically on ${today} from OpenRouter's catalog (listed ${utcDate(new Date((model.created as number) * 1000))}); numbers and flags are OpenRouter's.`,
+      note: `Added automatically on ${today} from OpenRouter's catalog${listed}; numbers and flags are OpenRouter's.`,
     };
     next.families[slug] = created;
     next.offerings.push({ provider: "openrouter", family: slug, wireId: model.id });
@@ -514,7 +924,7 @@ export function discoverOpenRouter(
 
   for (const [vendor, slugs] of [...unknownVendors].sort()) {
     notes.push(
-      `openrouter: ${slugs.length} recent model${slugs.length === 1 ? "" : "s"} from "${vendor}", not a known maker (${slugs.slice(0, 6).join(", ")}${slugs.length > 6 ? ", …" : ""}) — add the maker to makers.json and openrouter-vendors.json to adopt them`,
+      `openrouter: ${slugs.length} eligible model${slugs.length === 1 ? "" : "s"} from "${vendor}", not a known maker (${slugs.slice(0, 6).join(", ")}${slugs.length > 6 ? ", …" : ""}) — add the maker and its OpenRouter vendor to makers.json to adopt them`,
     );
   }
 

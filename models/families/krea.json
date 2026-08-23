@@ -1,0 +1,38 @@
+{
+  "krea-2-medium": {
+    "displayName": "Krea 2 Medium",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 7.18562874
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "krea-2-medium-turbo": {
+    "displayName": "Krea 2 Medium Turbo",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 3.59281437
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  }
+}

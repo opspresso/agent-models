@@ -4,6 +4,7 @@
  *
  *   node scripts/update.ts            # apply, write models/**, print the report
  *   node scripts/update.ts --dry-run  # report only
+ *   node scripts/update.ts --reset-openrouter # rebuild OpenRouter from the full eligible catalog
  *
  * Three phases, so every source sees the same registry:
  *
@@ -39,6 +40,7 @@ import {
   discoverOpenRouter,
   discoveryEndpointIds,
   fetchOpenRouterCatalog,
+  resetOpenRouterRegistry,
 } from "../src/sources/openrouter.ts";
 import { utcDate } from "../src/sources/presence.ts";
 import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
@@ -46,6 +48,7 @@ import type { SourceResult } from "../src/sources/types.ts";
 import { REPORT_PATH, ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");
+const resetOpenRouter = process.argv.includes("--reset-openrouter");
 /** The job's clock: one UTC date for the whole run, so every source agrees on what "today" is. */
 const today = utcDate(new Date());
 
@@ -71,12 +74,15 @@ const SOURCES: Source[] = [
       const routes = registry.offerings
         .filter((o) => o.provider === "openrouter" && !o.hidden && o.wireId !== undefined)
         .map((o) => o.wireId as string);
-      const catalog = await fetchOpenRouterCatalog((models) => [
+      const catalog = await fetchOpenRouterCatalog((models, rankings) => [
         ...routes,
-        ...discoveryEndpointIds(registry, models, today),
+        ...discoveryEndpointIds(registry, models, today, rankings, { bootstrap: resetOpenRouter }),
       ]);
+      if (resetOpenRouter && (catalog.rankings === null || catalog.imageRankings === null)) {
+        throw new Error("weekly text and image rankings are required for an OpenRouter reset");
+      }
       return {
-        discover: (r) => discoverOpenRouter(r, catalog, today),
+        discover: (r) => discoverOpenRouter(r, catalog, today, { bootstrap: resetOpenRouter }),
         apply: (r) => applyOpenRouter(r, catalog, today),
       };
     },
@@ -121,6 +127,13 @@ if (before.length > 0) {
   console.error(`registry is invalid before the update:\n  - ${before.join("\n  - ")}`);
   process.exit(1);
 }
+if (resetOpenRouter) {
+  const reset = resetOpenRouterRegistry(registry);
+  registry = reset.registry;
+  console.log(
+    `reset OpenRouter in memory: removed ${reset.removedOfferings} offerings and ${reset.removedFamilies} orphaned families`,
+  );
+}
 
 // Phase 1 — fetch.
 const outcomes: SourceOutcome[] = [];
@@ -142,6 +155,10 @@ for (const source of SOURCES) {
       error: error instanceof Error ? error.message : String(error),
     });
   }
+}
+if (resetOpenRouter && !ready.some(({ source }) => source.name === "OpenRouter")) {
+  console.error("\nOpenRouter reset aborted; the existing registry was not changed");
+  process.exit(1);
 }
 
 // Phase 2 — discover, phase 3 — apply; one merged result per source.

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-23T01:14:54.931Z",
+  "updatedAt": "2026-08-23T05:28:13.663Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -24,7 +24,11 @@
     "xiaomimimo": "Xiaomi",
     "tencent": "Tencent",
     "stepfun": "StepFun",
-    "upstage": "Upstage"
+    "upstage": "Upstage",
+    "bytedance-seed": "ByteDance Seed",
+    "black-forest-labs": "Black Forest Labs",
+    "microsoft": "Microsoft",
+    "krea": "Krea"
   },
   "models": [
     {
@@ -1060,239 +1064,25 @@
       "wireId": "moonshotai.kimi-k2-thinking"
     },
     {
-      "id": "openrouter/claude-fable-5",
+      "id": "openrouter/glm-5.3",
       "provider": "openrouter",
-      "family": "claude-fable-5",
-      "maker": "anthropic",
-      "displayName": "Fable 5",
+      "family": "glm-5.3",
+      "maker": "zhipu",
+      "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 50,
-        "cachedInputPer1M": 1
+        "inputPer1M": 1.4,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.26
       },
       "capabilities": {
         "tools": true,
         "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-fable-5"
-    },
-    {
-      "id": "openrouter/claude-opus-5",
-      "provider": "openrouter",
-      "family": "claude-opus-5",
-      "maker": "anthropic",
-      "displayName": "Opus 5",
-      "pricing": {
-        "inputPer1M": 5,
-        "outputPer1M": 25,
-        "cachedInputPer1M": 0.5
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-5"
-    },
-    {
-      "id": "openrouter/claude-sonnet-5",
-      "provider": "openrouter",
-      "family": "claude-sonnet-5",
-      "maker": "anthropic",
-      "displayName": "Sonnet 5",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.2
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-sonnet-5"
-    },
-    {
-      "id": "openrouter/claude-opus-4.8",
-      "provider": "openrouter",
-      "family": "claude-opus-4.8",
-      "maker": "anthropic",
-      "displayName": "Opus 4.8",
-      "pricing": {
-        "inputPer1M": 5,
-        "outputPer1M": 25,
-        "cachedInputPer1M": 0.5
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.8"
-    },
-    {
-      "id": "openrouter/claude-haiku-4.5",
-      "provider": "openrouter",
-      "family": "claude-haiku-4.5",
-      "maker": "anthropic",
-      "displayName": "Haiku 4.5",
-      "pricing": {
-        "inputPer1M": 1,
-        "outputPer1M": 5,
-        "cachedInputPer1M": 0.1
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 200000,
-      "maxTokens": 64000,
-      "wireId": "anthropic/claude-haiku-4.5"
-    },
-    {
-      "id": "openrouter/gpt-5.6-sol",
-      "provider": "openrouter",
-      "family": "gpt-5.6-sol",
-      "maker": "openai",
-      "displayName": "GPT-5.6 Sol",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.2,
-        "discount": 0.5
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true,
-        "reasoningWithTools": false
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-5.6-sol"
-    },
-    {
-      "id": "openrouter/gpt-5.6-terra",
-      "provider": "openrouter",
-      "family": "gpt-5.6-terra",
-      "maker": "openai",
-      "displayName": "GPT-5.6 Terra",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 12,
-        "cachedInputPer1M": 0.2
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true,
-        "reasoningWithTools": false
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-5.6-terra"
-    },
-    {
-      "id": "openrouter/gpt-5.6-luna",
-      "provider": "openrouter",
-      "family": "gpt-5.6-luna",
-      "maker": "openai",
-      "displayName": "GPT-5.6 Luna",
-      "pricing": {
-        "inputPer1M": 0.2,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.02
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true,
-        "reasoningWithTools": false
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-5.6-luna"
-    },
-    {
-      "id": "openrouter/gpt-5.4",
-      "provider": "openrouter",
-      "family": "gpt-5.4",
-      "maker": "openai",
-      "displayName": "GPT-5.4",
-      "pricing": {
-        "inputPer1M": 2.5,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.25
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-5.4"
-    },
-    {
-      "id": "openrouter/gpt-5.4-mini",
-      "provider": "openrouter",
-      "family": "gpt-5.4-mini",
-      "maker": "openai",
-      "displayName": "GPT 5.4 Mini",
-      "pricing": {
-        "inputPer1M": 0.75,
-        "outputPer1M": 4.5,
-        "cachedInputPer1M": 0.075
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 400000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-5.4-mini"
-    },
-    {
-      "id": "openrouter/gemini-3.6-flash",
-      "provider": "openrouter",
-      "family": "gemini-3.6-flash",
-      "maker": "google",
-      "displayName": "Gemini 3.6 Flash",
-      "pricing": {
-        "inputPer1M": 0.75,
-        "outputPer1M": 3.75,
-        "cachedInputPer1M": 0.075
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
+        "imageInput": false,
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 65536,
-      "wireId": "google/gemini-3.6-flash"
+      "maxTokens": 131072,
+      "wireId": "z-ai/glm-5.3"
     },
     {
       "id": "openrouter/gemini-3.7-flash",
@@ -1338,6 +1128,285 @@
       "wireId": "x-ai/grok-4.6"
     },
     {
+      "id": "openrouter/nemotron-3.5-lightning",
+      "provider": "openrouter",
+      "family": "nemotron-3.5-lightning",
+      "maker": "nvidia",
+      "displayName": "Nemotron 3.5 Lightning",
+      "pricing": {
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.2,
+        "cachedInputPer1M": 0.04
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 131072,
+      "wireId": "nvidia/nemotron-3.5-lightning"
+    },
+    {
+      "id": "openrouter/solar-pro4",
+      "provider": "openrouter",
+      "family": "solar-pro4",
+      "maker": "upstage",
+      "displayName": "Solar Pro 4",
+      "pricing": {
+        "inputPer1M": 0.03,
+        "outputPer1M": 0.12,
+        "cachedInputPer1M": 0.006,
+        "discount": 0.9
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 524288,
+      "maxTokens": 131072,
+      "wireId": "upstage/solar-pro4"
+    },
+    {
+      "id": "openrouter/qwen3.8-max",
+      "provider": "openrouter",
+      "family": "qwen3.8-max",
+      "maker": "qwen",
+      "displayName": "Qwen3.8 Max",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 6,
+        "cachedInputPer1M": 0.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072,
+      "wireId": "qwen/qwen3.8-max"
+    },
+    {
+      "id": "openrouter/claude-opus-5-fast",
+      "provider": "openrouter",
+      "family": "claude-opus-5-fast",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 5 (Fast)",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-5-fast"
+    },
+    {
+      "id": "openrouter/claude-opus-5",
+      "provider": "openrouter",
+      "family": "claude-opus-5",
+      "maker": "anthropic",
+      "displayName": "Opus 5",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-5"
+    },
+    {
+      "id": "openrouter/gemini-3.6-flash",
+      "provider": "openrouter",
+      "family": "gemini-3.6-flash",
+      "maker": "google",
+      "displayName": "Gemini 3.6 Flash",
+      "pricing": {
+        "inputPer1M": 0.75,
+        "outputPer1M": 3.75,
+        "cachedInputPer1M": 0.075
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.6-flash"
+    },
+    {
+      "id": "openrouter/gemini-3.5-flash-lite",
+      "provider": "openrouter",
+      "family": "gemini-3.5-flash-lite",
+      "maker": "google",
+      "displayName": "Gemini 3.5 Flash Lite",
+      "pricing": {
+        "inputPer1M": 0.3,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.03
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.5-flash-lite"
+    },
+    {
+      "id": "openrouter/gpt-5.6-luna-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.6-luna-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Luna Pro",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-luna-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.6-luna",
+      "provider": "openrouter",
+      "family": "gpt-5.6-luna",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Luna",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true,
+        "reasoningWithTools": false
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-luna"
+    },
+    {
+      "id": "openrouter/gpt-5.6-terra-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.6-terra-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Terra Pro",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-terra-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.6-terra",
+      "provider": "openrouter",
+      "family": "gpt-5.6-terra",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Terra",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true,
+        "reasoningWithTools": false
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-terra"
+    },
+    {
+      "id": "openrouter/gpt-5.6-sol-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.6-sol-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Sol Pro",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-sol-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.6-sol",
+      "provider": "openrouter",
+      "family": "gpt-5.6-sol",
+      "maker": "openai",
+      "displayName": "GPT-5.6 Sol",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true,
+        "reasoningWithTools": false
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.6-sol"
+    },
+    {
       "id": "openrouter/grok-4.5",
       "provider": "openrouter",
       "family": "grok-4.5",
@@ -1359,118 +1428,11 @@
       "wireId": "x-ai/grok-4.5"
     },
     {
-      "id": "openrouter/grok-4.3",
-      "provider": "openrouter",
-      "family": "grok-4.3",
-      "maker": "xai",
-      "displayName": "Grok 4.3",
-      "pricing": {
-        "inputPer1M": 1.25,
-        "outputPer1M": 2.5,
-        "cachedInputPer1M": 0.2
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 64000,
-      "wireId": "x-ai/grok-4.3"
-    },
-    {
-      "id": "openrouter/deepseek-v4-flash",
-      "provider": "openrouter",
-      "family": "deepseek-v4-flash",
-      "maker": "deepseek",
-      "displayName": "DeepSeek V4 Flash",
-      "pricing": {
-        "inputPer1M": 0.05446,
-        "outputPer1M": 0.10892,
-        "cachedInputPer1M": 0.010892
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 384000,
-      "wireId": "deepseek/deepseek-v4-flash"
-    },
-    {
-      "id": "openrouter/deepseek-v4-pro",
-      "provider": "openrouter",
-      "family": "deepseek-v4-pro",
-      "maker": "deepseek",
-      "displayName": "DeepSeek V4 Pro",
-      "pricing": {
-        "inputPer1M": 0.413772,
-        "outputPer1M": 0.827544,
-        "cachedInputPer1M": 0.034481,
-        "discount": 0.7622
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 384000,
-      "wireId": "deepseek/deepseek-v4-pro"
-    },
-    {
-      "id": "openrouter/deepseek-v4-pro-0813",
-      "provider": "openrouter",
-      "family": "deepseek-v4-pro-0813",
-      "maker": "deepseek",
-      "displayName": "DeepSeek V4 Pro 0813",
-      "pricing": {
-        "inputPer1M": 1.122,
-        "outputPer1M": 3.366,
-        "cachedInputPer1M": 0.0374,
-        "discount": 0.15
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 384000,
-      "wireId": "deepseek/deepseek-v4-pro-0813"
-    },
-    {
-      "id": "openrouter/mimo-v2.5",
-      "provider": "openrouter",
-      "family": "mimo-v2.5",
-      "maker": "xiaomimimo",
-      "displayName": "MiMo V2.5",
-      "pricing": {
-        "inputPer1M": 0.14,
-        "outputPer1M": 0.28,
-        "cachedInputPer1M": 0.0028
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1050000,
-      "maxTokens": 131072,
-      "wireId": "xiaomi/mimo-v2.5"
-    },
-    {
       "id": "openrouter/hy3",
       "provider": "openrouter",
       "family": "hy3",
       "maker": "tencent",
-      "displayName": "Tencent Hy3",
+      "displayName": "Hy3",
       "pricing": {
         "inputPer1M": 0.132,
         "outputPer1M": 0.528,
@@ -1485,6 +1447,27 @@
       "contextWindow": 262144,
       "maxTokens": 128000,
       "wireId": "tencent/hy3"
+    },
+    {
+      "id": "openrouter/claude-sonnet-5",
+      "provider": "openrouter",
+      "family": "claude-sonnet-5",
+      "maker": "anthropic",
+      "displayName": "Sonnet 5",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-sonnet-5"
     },
     {
       "id": "openrouter/glm-5.2",
@@ -1506,6 +1489,27 @@
       "contextWindow": 1048576,
       "maxTokens": 131072,
       "wireId": "z-ai/glm-5.2"
+    },
+    {
+      "id": "openrouter/claude-fable-5",
+      "provider": "openrouter",
+      "family": "claude-fable-5",
+      "maker": "anthropic",
+      "displayName": "Fable 5",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-fable-5"
     },
     {
       "id": "openrouter/minimax-m3",
@@ -1550,340 +1554,11 @@
       "wireId": "stepfun/step-3.7-flash"
     },
     {
-      "id": "openrouter/kimi-k3",
+      "id": "openrouter/claude-opus-4.8-fast",
       "provider": "openrouter",
-      "family": "kimi-k3",
-      "maker": "moonshot",
-      "displayName": "Kimi K3",
-      "pricing": {
-        "inputPer1M": 3,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.3
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 262144,
-      "wireId": "moonshotai/kimi-k3"
-    },
-    {
-      "id": "openrouter/qwen3.8-max",
-      "provider": "openrouter",
-      "family": "qwen3.8-max",
-      "maker": "qwen",
-      "displayName": "Qwen3.8 Max",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 6,
-        "cachedInputPer1M": 0.25
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 131072,
-      "wireId": "qwen/qwen3.8-max"
-    },
-    {
-      "id": "openrouter/qwen3.8-2.4t-a95b",
-      "provider": "openrouter",
-      "family": "qwen3.8-2.4t-a95b",
-      "maker": "qwen",
-      "displayName": "Qwen3.8 2.4T A95B",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 6,
-        "cachedInputPer1M": 0.25
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 131072,
-      "wireId": "qwen/qwen3.8-2.4t-a95b"
-    },
-    {
-      "id": "openrouter/qwen3.8-27b",
-      "provider": "openrouter",
-      "family": "qwen3.8-27b",
-      "maker": "qwen",
-      "displayName": "Qwen3.8 27B",
-      "pricing": {
-        "inputPer1M": 0.4,
-        "outputPer1M": 3,
-        "cachedInputPer1M": 0.05
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 131072,
-      "wireId": "qwen/qwen3.8-27b"
-    },
-    {
-      "id": "openrouter/nemotron-3.5-lightning",
-      "provider": "openrouter",
-      "family": "nemotron-3.5-lightning",
-      "maker": "nvidia",
-      "displayName": "Nemotron 3.5 Lightning",
-      "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.2,
-        "cachedInputPer1M": 0.04
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 262144,
-      "maxTokens": 131072,
-      "wireId": "nvidia/nemotron-3.5-lightning"
-    },
-    {
-      "id": "openrouter/solar-pro-4",
-      "provider": "openrouter",
-      "family": "solar-pro-4",
-      "maker": "upstage",
-      "displayName": "Solar Pro 4",
-      "pricing": {
-        "inputPer1M": 0.03,
-        "outputPer1M": 0.12,
-        "cachedInputPer1M": 0.006,
-        "discount": 0.9
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 524288,
-      "maxTokens": 131072,
-      "wireId": "upstage/solar-pro4"
-    },
-    {
-      "id": "openrouter/solar-pro-3",
-      "provider": "openrouter",
-      "family": "solar-pro-3",
-      "maker": "upstage",
-      "displayName": "Solar Pro 3",
-      "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.015
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 131072,
-      "maxTokens": 131072,
-      "wireId": "upstage/solar-pro-3"
-    },
-    {
-      "id": "openrouter/gpt-image-2",
-      "provider": "openrouter",
-      "family": "gpt-image-2",
-      "maker": "openai",
-      "displayName": "GPT Image 2",
-      "pricing": {
-        "inputPer1M": 5,
-        "outputPer1M": 0,
-        "cachedInputPer1M": 1.25,
-        "imageInputPer1M": 8,
-        "imageOutputPer1M": 30
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": false,
-        "imageGeneration": true
-      },
-      "contextWindow": 400000,
-      "maxTokens": 128000,
-      "wireId": "openai/gpt-image-2"
-    },
-    {
-      "id": "openrouter/gemini-3-pro-image",
-      "provider": "openrouter",
-      "family": "gemini-3-pro-image",
-      "maker": "google",
-      "displayName": "Nano Banana Pro (Gemini 3 Pro Image)",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 12,
-        "imageOutputPer1M": 120,
-        "perImage": 0.134
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": true,
-        "imageGeneration": true
-      },
-      "contextWindow": 65536,
-      "maxTokens": 32768,
-      "wireId": "google/gemini-3-pro-image"
-    },
-    {
-      "id": "openrouter/gemini-3.1-flash-image",
-      "provider": "openrouter",
-      "family": "gemini-3.1-flash-image",
-      "maker": "google",
-      "displayName": "Nano Banana 2 (Gemini 3.1 Flash Image)",
-      "pricing": {
-        "inputPer1M": 0.5,
-        "outputPer1M": 3,
-        "imageOutputPer1M": 60,
-        "perImage": 0.067
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": false,
-        "imageGeneration": true
-      },
-      "contextWindow": 131072,
-      "maxTokens": 32768,
-      "wireId": "google/gemini-3.1-flash-image"
-    },
-    {
-      "id": "openrouter/gemini-3.1-flash-lite-image",
-      "provider": "openrouter",
-      "family": "gemini-3.1-flash-lite-image",
-      "maker": "google",
-      "displayName": "Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
-      "pricing": {
-        "inputPer1M": 0.25,
-        "outputPer1M": 1.5,
-        "imageOutputPer1M": 30,
-        "perImage": 0.034
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": false,
-        "reasoning": false,
-        "imageGeneration": true
-      },
-      "contextWindow": 65536,
-      "maxTokens": 65536,
-      "wireId": "google/gemini-3.1-flash-lite-image"
-    },
-    {
-      "id": "openrouter/grok-imagine-image-quality",
-      "provider": "openrouter",
-      "family": "grok-imagine-image-quality",
-      "maker": "xai",
-      "displayName": "Grok Imagine Quality",
-      "pricing": {
-        "inputPer1M": 0,
-        "outputPer1M": 0,
-        "perImage": 0.05,
-        "perInputImage": 0.01
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": false,
-        "imageGeneration": true
-      },
-      "contextWindow": 32768,
-      "maxTokens": 4096,
-      "wireId": "x-ai/grok-imagine-image-quality"
-    },
-    {
-      "id": "openrouter/grok-imagine-image-2.0",
-      "provider": "openrouter",
-      "family": "grok-imagine-image-2.0",
-      "maker": "xai",
-      "displayName": "Grok Imagine Image 2.0",
-      "pricing": {
-        "inputPer1M": 0,
-        "outputPer1M": 0,
-        "perImage": 0.06,
-        "perInputImage": 0.01
-      },
-      "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": false,
-        "imageGeneration": true
-      },
-      "contextWindow": 32768,
-      "maxTokens": 4096,
-      "wireId": "x-ai/grok-imagine-image-2.0"
-    },
-    {
-      "id": "openrouter/glm-5.3",
-      "provider": "openrouter",
-      "family": "glm-5.3",
-      "maker": "zhipu",
-      "displayName": "GLM 5.3",
-      "pricing": {
-        "inputPer1M": 1.4,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": false,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 131072,
-      "wireId": "z-ai/glm-5.3"
-    },
-    {
-      "id": "openrouter/qwen3.7-flash",
-      "provider": "openrouter",
-      "family": "qwen3.7-flash",
-      "maker": "qwen",
-      "displayName": "Qwen3.7 Flash",
-      "pricing": {
-        "inputPer1M": 0.03,
-        "outputPer1M": 0.13,
-        "cachedInputPer1M": 0.006
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": false,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 65536,
-      "wireId": "qwen/qwen3.7-flash"
-    },
-    {
-      "id": "openrouter/claude-opus-5-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-5-fast",
+      "family": "claude-opus-4.8-fast",
       "maker": "anthropic",
-      "displayName": "Claude Opus 5 (Fast)",
+      "displayName": "Claude Opus 4.8 (Fast)",
       "pricing": {
         "inputPer1M": 10,
         "outputPer1M": 50,
@@ -1897,28 +1572,28 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-5-fast"
+      "wireId": "anthropic/claude-opus-4.8-fast"
     },
     {
-      "id": "openrouter/gemini-3.5-flash-lite",
+      "id": "openrouter/claude-opus-4.8",
       "provider": "openrouter",
-      "family": "gemini-3.5-flash-lite",
-      "maker": "google",
-      "displayName": "Gemini 3.5 Flash Lite",
+      "family": "claude-opus-4.8",
+      "maker": "anthropic",
+      "displayName": "Opus 4.8",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 2.5,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
       },
       "capabilities": {
         "tools": true,
-        "structuredOutput": true,
+        "structuredOutput": false,
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65536,
-      "wireId": "google/gemini-3.5-flash-lite"
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-4.8"
     },
     {
       "id": "openrouter/grok-build-0.1",
@@ -1963,6 +1638,27 @@
       "wireId": "google/gemini-3.5-flash"
     },
     {
+      "id": "openrouter/claude-opus-4.7-fast",
+      "provider": "openrouter",
+      "family": "claude-opus-4.7-fast",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.7 (Fast)",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 150,
+        "cachedInputPer1M": 3
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-4.7-fast"
+    },
+    {
       "id": "openrouter/gemini-3.1-flash-lite",
       "provider": "openrouter",
       "family": "gemini-3.1-flash-lite",
@@ -1982,6 +1678,175 @@
       "contextWindow": 1048576,
       "maxTokens": 65536,
       "wireId": "google/gemini-3.1-flash-lite"
+    },
+    {
+      "id": "openrouter/gpt-chat-latest",
+      "provider": "openrouter",
+      "family": "gpt-chat-latest",
+      "maker": "openai",
+      "displayName": "GPT Chat Latest",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 30,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-chat-latest"
+    },
+    {
+      "id": "openrouter/grok-4.3",
+      "provider": "openrouter",
+      "family": "grok-4.3",
+      "maker": "xai",
+      "displayName": "Grok 4.3",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 64000,
+      "wireId": "x-ai/grok-4.3"
+    },
+    {
+      "id": "openrouter/gpt-5.5-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.5-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.5 Pro",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 180
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.5-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.5",
+      "provider": "openrouter",
+      "family": "gpt-5.5",
+      "maker": "openai",
+      "displayName": "GPT-5.5",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 30,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.5"
+    },
+    {
+      "id": "openrouter/deepseek-v4-pro",
+      "provider": "openrouter",
+      "family": "deepseek-v4-pro",
+      "maker": "deepseek",
+      "displayName": "DeepSeek V4 Pro 0423",
+      "pricing": {
+        "inputPer1M": 0.396894,
+        "outputPer1M": 0.793788,
+        "cachedInputPer1M": 0.0330745,
+        "discount": 0.7719
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 384000,
+      "wireId": "deepseek/deepseek-v4-pro"
+    },
+    {
+      "id": "openrouter/deepseek-v4-flash",
+      "provider": "openrouter",
+      "family": "deepseek-v4-flash",
+      "maker": "deepseek",
+      "displayName": "DeepSeek V4 Flash 0423",
+      "pricing": {
+        "inputPer1M": 0.05306,
+        "outputPer1M": 0.10612,
+        "cachedInputPer1M": 0.010612,
+        "discount": 0.621
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 384000,
+      "wireId": "deepseek/deepseek-v4-flash"
+    },
+    {
+      "id": "openrouter/mimo-v2.5-pro",
+      "provider": "openrouter",
+      "family": "mimo-v2.5-pro",
+      "maker": "xiaomimimo",
+      "displayName": "MiMo-V2.5-Pro",
+      "pricing": {
+        "inputPer1M": 0.435,
+        "outputPer1M": 0.87,
+        "cachedInputPer1M": 0.0036
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 131072,
+      "wireId": "xiaomi/mimo-v2.5-pro"
+    },
+    {
+      "id": "openrouter/mimo-v2.5",
+      "provider": "openrouter",
+      "family": "mimo-v2.5",
+      "maker": "xiaomimimo",
+      "displayName": "MiMo-V2.5",
+      "pricing": {
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.28,
+        "cachedInputPer1M": 0.0028
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 131072,
+      "wireId": "xiaomi/mimo-v2.5"
     },
     {
       "id": "openrouter/claude-opus-4.7",
@@ -2005,80 +1870,35 @@
       "wireId": "anthropic/claude-opus-4.7"
     },
     {
-      "id": "openrouter/minimax-m2.5",
+      "id": "openrouter/gemma-4-26b-a4b-it",
       "provider": "openrouter",
-      "family": "minimax-m2.5",
-      "maker": "minimax",
-      "displayName": "MiniMax M2.5",
+      "family": "gemma-4-26b-a4b-it",
+      "maker": "google",
+      "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.27,
-        "outputPer1M": 1.08,
-        "cachedInputPer1M": 0.027,
-        "discount": 0.1
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.34
       },
       "capabilities": {
         "tools": true,
         "structuredOutput": true,
-        "imageInput": false,
+        "imageInput": true,
         "reasoning": true
-      },
-      "contextWindow": 204800,
-      "maxTokens": 196608,
-      "wireId": "minimax/minimax-m2.5"
-    },
-    {
-      "id": "openrouter/glm-5",
-      "provider": "openrouter",
-      "family": "glm-5",
-      "maker": "zhipu",
-      "displayName": "GLM 5",
-      "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 1.92,
-        "cachedInputPer1M": 0.12,
-        "discount": 0.4
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 204800,
-      "maxTokens": 131072,
-      "wireId": "z-ai/glm-5"
-    },
-    {
-      "id": "openrouter/qwen3-coder-next",
-      "provider": "openrouter",
-      "family": "qwen3-coder-next",
-      "maker": "qwen",
-      "displayName": "Qwen3 Coder Next",
-      "pricing": {
-        "inputPer1M": 0.12,
-        "outputPer1M": 0.8,
-        "cachedInputPer1M": 0.07
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": false
       },
       "contextWindow": 262144,
-      "maxTokens": 262144,
-      "wireId": "qwen/qwen3-coder-next"
+      "maxTokens": 16384,
+      "wireId": "google/gemma-4-26b-a4b-it"
     },
     {
-      "id": "openrouter/kimi-k2.5",
+      "id": "openrouter/gemma-4-31b-it",
       "provider": "openrouter",
-      "family": "kimi-k2.5",
-      "maker": "moonshot",
-      "displayName": "Kimi K2.5",
+      "family": "gemma-4-31b-it",
+      "maker": "google",
+      "displayName": "Gemma 4 31B",
       "pricing": {
-        "inputPer1M": 0.45,
-        "outputPer1M": 2.25,
-        "cachedInputPer1M": 0.07
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.34,
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -2088,39 +1908,18 @@
       },
       "contextWindow": 262144,
       "maxTokens": 262144,
-      "wireId": "moonshotai/kimi-k2.5"
+      "wireId": "google/gemma-4-31b-it"
     },
     {
-      "id": "openrouter/glm-4.7-flash",
+      "id": "openrouter/minimax-m2.7",
       "provider": "openrouter",
-      "family": "glm-4.7-flash",
-      "maker": "zhipu",
-      "displayName": "GLM 4.7 Flash",
+      "family": "minimax-m2.7",
+      "maker": "minimax",
+      "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.01
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 202752,
-      "maxTokens": 16384,
-      "wireId": "z-ai/glm-4.7-flash"
-    },
-    {
-      "id": "openrouter/glm-4.7",
-      "provider": "openrouter",
-      "family": "glm-4.7",
-      "maker": "zhipu",
-      "displayName": "GLM 4.7",
-      "pricing": {
-        "inputPer1M": 0.4,
-        "outputPer1M": 1.75,
-        "cachedInputPer1M": 0.08
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,
@@ -2130,7 +1929,380 @@
       },
       "contextWindow": 204800,
       "maxTokens": 131072,
-      "wireId": "z-ai/glm-4.7"
+      "wireId": "minimax/minimax-m2.7"
+    },
+    {
+      "id": "openrouter/gpt-5.4-nano",
+      "provider": "openrouter",
+      "family": "gpt-5.4-nano",
+      "maker": "openai",
+      "displayName": "GPT-5.4 Nano",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 1.25,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.4-nano"
+    },
+    {
+      "id": "openrouter/gpt-5.4-mini",
+      "provider": "openrouter",
+      "family": "gpt-5.4-mini",
+      "maker": "openai",
+      "displayName": "GPT 5.4 Mini",
+      "pricing": {
+        "inputPer1M": 0.75,
+        "outputPer1M": 4.5,
+        "cachedInputPer1M": 0.075
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.4-mini"
+    },
+    {
+      "id": "openrouter/nemotron-3-super-120b-a12b",
+      "provider": "openrouter",
+      "family": "nemotron-3-super-120b-a12b",
+      "maker": "nvidia",
+      "displayName": "Nemotron 3 Super",
+      "pricing": {
+        "inputPer1M": 0.085,
+        "outputPer1M": 0.4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 16384,
+      "wireId": "nvidia/nemotron-3-super-120b-a12b"
+    },
+    {
+      "id": "openrouter/gpt-5.4-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.4-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.4 Pro",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 180
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.4-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.4",
+      "provider": "openrouter",
+      "family": "gpt-5.4",
+      "maker": "openai",
+      "displayName": "GPT-5.4",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.4"
+    },
+    {
+      "id": "openrouter/gemini-3.1-flash-lite-preview",
+      "provider": "openrouter",
+      "family": "gemini-3.1-flash-lite-preview",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Flash Lite Preview",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 1.5,
+        "cachedInputPer1M": 0.025
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.1-flash-lite-preview"
+    },
+    {
+      "id": "openrouter/gemini-3.1-pro-preview-customtools",
+      "provider": "openrouter",
+      "family": "gemini-3.1-pro-preview-customtools",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Pro Preview Custom Tools",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.1-pro-preview-customtools"
+    },
+    {
+      "id": "openrouter/gpt-5.3-codex",
+      "provider": "openrouter",
+      "family": "gpt-5.3-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.3-Codex",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.3-codex"
+    },
+    {
+      "id": "openrouter/gemini-3.1-pro-preview",
+      "provider": "openrouter",
+      "family": "gemini-3.1-pro-preview",
+      "maker": "google",
+      "displayName": "Gemini 3.1 Pro Preview",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.1-pro-preview"
+    },
+    {
+      "id": "openrouter/claude-opus-4.6",
+      "provider": "openrouter",
+      "family": "claude-opus-4.6",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.6",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-4.6"
+    },
+    {
+      "id": "openrouter/gpt-audio",
+      "provider": "openrouter",
+      "family": "gpt-audio",
+      "maker": "openai",
+      "displayName": "GPT Audio",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384,
+      "wireId": "openai/gpt-audio"
+    },
+    {
+      "id": "openrouter/gpt-audio-mini",
+      "provider": "openrouter",
+      "family": "gpt-audio-mini",
+      "maker": "openai",
+      "displayName": "GPT Audio Mini",
+      "pricing": {
+        "inputPer1M": 0.6,
+        "outputPer1M": 2.4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384,
+      "wireId": "openai/gpt-audio-mini"
+    },
+    {
+      "id": "openrouter/gpt-5.2-codex",
+      "provider": "openrouter",
+      "family": "gpt-5.2-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.2-Codex",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.2-codex"
+    },
+    {
+      "id": "openrouter/gemini-3-flash-preview",
+      "provider": "openrouter",
+      "family": "gemini-3-flash-preview",
+      "maker": "google",
+      "displayName": "Gemini 3 Flash Preview",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 3,
+        "cachedInputPer1M": 0.05
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3-flash-preview"
+    },
+    {
+      "id": "openrouter/gpt-5.2-chat",
+      "provider": "openrouter",
+      "family": "gpt-5.2-chat",
+      "maker": "openai",
+      "displayName": "GPT-5.2 Chat",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 32000,
+      "wireId": "openai/gpt-5.2-chat"
+    },
+    {
+      "id": "openrouter/gpt-5.2-pro",
+      "provider": "openrouter",
+      "family": "gpt-5.2-pro",
+      "maker": "openai",
+      "displayName": "GPT-5.2 Pro",
+      "pricing": {
+        "inputPer1M": 21,
+        "outputPer1M": 168
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.2-pro"
+    },
+    {
+      "id": "openrouter/gpt-5.2",
+      "provider": "openrouter",
+      "family": "gpt-5.2",
+      "maker": "openai",
+      "displayName": "GPT-5.2",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.175
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.2"
+    },
+    {
+      "id": "openrouter/gpt-5.1-codex-max",
+      "provider": "openrouter",
+      "family": "gpt-5.1-codex-max",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex-Max",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.1-codex-max"
     },
     {
       "id": "openrouter/deepseek-v3.2",
@@ -2154,36 +2326,15 @@
       "wireId": "deepseek/deepseek-v3.2"
     },
     {
-      "id": "openrouter/kimi-k2-thinking",
+      "id": "openrouter/claude-opus-4.5",
       "provider": "openrouter",
-      "family": "kimi-k2-thinking",
-      "maker": "moonshot",
-      "displayName": "Kimi K2 Thinking",
+      "family": "claude-opus-4.5",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.5",
       "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 2.5,
-        "cachedInputPer1M": 0.15
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": true
-      },
-      "contextWindow": 262144,
-      "maxTokens": 100352,
-      "wireId": "moonshotai/kimi-k2-thinking"
-    },
-    {
-      "id": "openrouter/gemini-2.5-flash-lite",
-      "provider": "openrouter",
-      "family": "gemini-2.5-flash-lite",
-      "maker": "google",
-      "displayName": "Gemini 2.5 Flash Lite",
-      "pricing": {
-        "inputPer1M": 0.1,
-        "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 5,
+        "outputPer1M": 25,
+        "cachedInputPer1M": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2191,19 +2342,40 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65536,
-      "wireId": "google/gemini-2.5-flash-lite"
+      "contextWindow": 200000,
+      "maxTokens": 64000,
+      "wireId": "anthropic/claude-opus-4.5"
     },
     {
-      "id": "openrouter/gemini-2.5-flash",
+      "id": "openrouter/gpt-5.1-codex",
       "provider": "openrouter",
-      "family": "gemini-2.5-flash",
-      "maker": "google",
-      "displayName": "Gemini 2.5 Flash",
+      "family": "gpt-5.1-codex",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 2.5,
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.13
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.1-codex"
+    },
+    {
+      "id": "openrouter/gpt-5.1-codex-mini",
+      "provider": "openrouter",
+      "family": "gpt-5.1-codex-mini",
+      "maker": "openai",
+      "displayName": "GPT-5.1-Codex-Mini",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 2,
         "cachedInputPer1M": 0.03
       },
       "capabilities": {
@@ -2212,60 +2384,145 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
-      "maxTokens": 65536,
-      "wireId": "google/gemini-2.5-flash"
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.1-codex-mini"
     },
     {
-      "id": "openrouter/hy-mt2-1.8b",
+      "id": "openrouter/gpt-oss-safeguard-20b",
       "provider": "openrouter",
-      "family": "hy-mt2-1.8b",
-      "maker": "tencent",
-      "displayName": "Hy-MT2-1.8B",
+      "family": "gpt-oss-safeguard-20b",
+      "maker": "openai",
+      "displayName": "gpt-oss-safeguard-20b",
       "pricing": {
-        "inputPer1M": 0.044,
-        "outputPer1M": 0.177
+        "inputPer1M": 0.075,
+        "outputPer1M": 0.3,
+        "cachedInputPer1M": 0.0375
       },
       "capabilities": {
-        "tools": false,
-        "structuredOutput": false,
-        "imageInput": false,
-        "reasoning": false
-      },
-      "contextWindow": 8192,
-      "maxTokens": 4096,
-      "wireId": "tencent/hy-mt2-1.8b"
-    },
-    {
-      "id": "openrouter/hy-mt2-30b-a3b",
-      "provider": "openrouter",
-      "family": "hy-mt2-30b-a3b",
-      "maker": "tencent",
-      "displayName": "Hy-MT2-30B-A3B",
-      "pricing": {
-        "inputPer1M": 0.074,
-        "outputPer1M": 0.295
-      },
-      "capabilities": {
-        "tools": false,
+        "tools": true,
         "structuredOutput": true,
         "imageInput": false,
-        "reasoning": false
+        "reasoning": true
       },
-      "contextWindow": 8192,
-      "maxTokens": 4096,
-      "wireId": "tencent/hy-mt2-30b-a3b"
+      "contextWindow": 131072,
+      "maxTokens": 65536,
+      "wireId": "openai/gpt-oss-safeguard-20b"
     },
     {
-      "id": "openrouter/deepseek-v4-flash-vision-exp",
+      "id": "openrouter/claude-haiku-4.5",
       "provider": "openrouter",
-      "family": "deepseek-v4-flash-vision-exp",
-      "maker": "deepseek",
-      "displayName": "DeepSeek V4 Flash Vision Exp",
+      "family": "claude-haiku-4.5",
+      "maker": "anthropic",
+      "displayName": "Haiku 4.5",
       "pricing": {
-        "inputPer1M": 0.22,
-        "outputPer1M": 0.66,
-        "cachedInputPer1M": 0.007
+        "inputPer1M": 1,
+        "outputPer1M": 5,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 64000,
+      "wireId": "anthropic/claude-haiku-4.5"
+    },
+    {
+      "id": "openrouter/gpt-5-pro",
+      "provider": "openrouter",
+      "family": "gpt-5-pro",
+      "maker": "openai",
+      "displayName": "GPT-5 Pro",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 120
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5-pro"
+    },
+    {
+      "id": "openrouter/claude-sonnet-4.5",
+      "provider": "openrouter",
+      "family": "claude-sonnet-4.5",
+      "maker": "anthropic",
+      "displayName": "Claude Sonnet 4.5",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 64000,
+      "wireId": "anthropic/claude-sonnet-4.5"
+    },
+    {
+      "id": "openrouter/gpt-5",
+      "provider": "openrouter",
+      "family": "gpt-5",
+      "maker": "openai",
+      "displayName": "GPT-5",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5"
+    },
+    {
+      "id": "openrouter/gpt-5-nano",
+      "provider": "openrouter",
+      "family": "gpt-5-nano",
+      "maker": "openai",
+      "displayName": "GPT-5 Nano",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.005
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5-nano"
+    },
+    {
+      "id": "openrouter/claude-opus-4.1",
+      "provider": "openrouter",
+      "family": "claude-opus-4.1",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4.1",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 75,
+        "cachedInputPer1M": 1.5
       },
       "capabilities": {
         "tools": true,
@@ -2273,19 +2530,435 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
-      "maxTokens": 384000,
-      "wireId": "deepseek/deepseek-v4-flash-vision-exp"
+      "contextWindow": 200000,
+      "maxTokens": 32000,
+      "wireId": "anthropic/claude-opus-4.1"
     },
     {
-      "id": "openrouter/hy-mt2-7b",
+      "id": "openrouter/gemini-2.5-pro",
       "provider": "openrouter",
-      "family": "hy-mt2-7b",
-      "maker": "tencent",
-      "displayName": "Hy-MT2-7B",
+      "family": "gemini-2.5-pro",
+      "maker": "google",
+      "displayName": "Gemini 2.5 Pro",
       "pricing": {
-        "inputPer1M": 0.074,
-        "outputPer1M": 0.295
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-2.5-pro"
+    },
+    {
+      "id": "openrouter/o3-pro",
+      "provider": "openrouter",
+      "family": "o3-pro",
+      "maker": "openai",
+      "displayName": "o3 Pro",
+      "pricing": {
+        "inputPer1M": 20,
+        "outputPer1M": 80
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o3-pro"
+    },
+    {
+      "id": "openrouter/gemini-2.5-pro-preview",
+      "provider": "openrouter",
+      "family": "gemini-2.5-pro-preview",
+      "maker": "google",
+      "displayName": "Gemini 2.5 Pro Preview 06-05",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-2.5-pro-preview"
+    },
+    {
+      "id": "openrouter/claude-opus-4",
+      "provider": "openrouter",
+      "family": "claude-opus-4",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 4",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 75,
+        "cachedInputPer1M": 1.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 32000,
+      "wireId": "anthropic/claude-opus-4"
+    },
+    {
+      "id": "openrouter/claude-sonnet-4",
+      "provider": "openrouter",
+      "family": "claude-sonnet-4",
+      "maker": "anthropic",
+      "displayName": "Claude Sonnet 4",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 64000,
+      "wireId": "anthropic/claude-sonnet-4"
+    },
+    {
+      "id": "openrouter/gemini-2.5-pro-preview-05-06",
+      "provider": "openrouter",
+      "family": "gemini-2.5-pro-preview-05-06",
+      "maker": "google",
+      "displayName": "Gemini 2.5 Pro Preview 05-06",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.125
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65535,
+      "wireId": "google/gemini-2.5-pro-preview-05-06"
+    },
+    {
+      "id": "openrouter/o4-mini-high",
+      "provider": "openrouter",
+      "family": "o4-mini-high",
+      "maker": "openai",
+      "displayName": "o4 Mini High",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.275
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o4-mini-high"
+    },
+    {
+      "id": "openrouter/o3",
+      "provider": "openrouter",
+      "family": "o3",
+      "maker": "openai",
+      "displayName": "o3",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o3"
+    },
+    {
+      "id": "openrouter/o4-mini",
+      "provider": "openrouter",
+      "family": "o4-mini",
+      "maker": "openai",
+      "displayName": "o4 Mini",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.275
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o4-mini"
+    },
+    {
+      "id": "openrouter/gpt-4.1",
+      "provider": "openrouter",
+      "family": "gpt-4.1",
+      "maker": "openai",
+      "displayName": "GPT-4.1",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768,
+      "wireId": "openai/gpt-4.1"
+    },
+    {
+      "id": "openrouter/gpt-4.1-mini",
+      "provider": "openrouter",
+      "family": "gpt-4.1-mini",
+      "maker": "openai",
+      "displayName": "GPT-4.1 Mini",
+      "pricing": {
+        "inputPer1M": 0.4,
+        "outputPer1M": 1.6,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768,
+      "wireId": "openai/gpt-4.1-mini"
+    },
+    {
+      "id": "openrouter/gpt-4.1-nano",
+      "provider": "openrouter",
+      "family": "gpt-4.1-nano",
+      "maker": "openai",
+      "displayName": "GPT-4.1 Nano",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.025
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 1047576,
+      "maxTokens": 32768,
+      "wireId": "openai/gpt-4.1-nano"
+    },
+    {
+      "id": "openrouter/o1-pro",
+      "provider": "openrouter",
+      "family": "o1-pro",
+      "maker": "openai",
+      "displayName": "o1-pro",
+      "pricing": {
+        "inputPer1M": 150,
+        "outputPer1M": 600
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o1-pro"
+    },
+    {
+      "id": "openrouter/gemma-3-4b-it",
+      "provider": "openrouter",
+      "family": "gemma-3-4b-it",
+      "maker": "google",
+      "displayName": "Gemma 3 4B",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 131072,
+      "maxTokens": 16384,
+      "wireId": "google/gemma-3-4b-it"
+    },
+    {
+      "id": "openrouter/gemma-3-12b-it",
+      "provider": "openrouter",
+      "family": "gemma-3-12b-it",
+      "maker": "google",
+      "displayName": "Gemma 3 12B",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.15
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 131072,
+      "maxTokens": 16384,
+      "wireId": "google/gemma-3-12b-it"
+    },
+    {
+      "id": "openrouter/gemma-3-27b-it",
+      "provider": "openrouter",
+      "family": "gemma-3-27b-it",
+      "maker": "google",
+      "displayName": "Gemma 3 27B",
+      "pricing": {
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.45,
+        "cachedInputPer1M": 0.04
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 262144,
+      "maxTokens": 131072,
+      "wireId": "google/gemma-3-27b-it"
+    },
+    {
+      "id": "openrouter/o3-mini-high",
+      "provider": "openrouter",
+      "family": "o3-mini-high",
+      "maker": "openai",
+      "displayName": "o3 Mini High",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.55
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o3-mini-high"
+    },
+    {
+      "id": "openrouter/o3-mini",
+      "provider": "openrouter",
+      "family": "o3-mini",
+      "maker": "openai",
+      "displayName": "o3 Mini",
+      "pricing": {
+        "inputPer1M": 1.1,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.55
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o3-mini"
+    },
+    {
+      "id": "openrouter/o1",
+      "provider": "openrouter",
+      "family": "o1",
+      "maker": "openai",
+      "displayName": "o1",
+      "pricing": {
+        "inputPer1M": 15,
+        "outputPer1M": 60,
+        "cachedInputPer1M": 7.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 200000,
+      "maxTokens": 100000,
+      "wireId": "openai/o1"
+    },
+    {
+      "id": "openrouter/gpt-4o-mini",
+      "provider": "openrouter",
+      "family": "gpt-4o-mini",
+      "maker": "openai",
+      "displayName": "GPT-4o-mini",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.075
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384,
+      "wireId": "openai/gpt-4o-mini"
+    },
+    {
+      "id": "openrouter/gemma-2-27b-it",
+      "provider": "openrouter",
+      "family": "gemma-2-27b-it",
+      "maker": "google",
+      "displayName": "Gemma 2 27B",
+      "pricing": {
+        "inputPer1M": 0.65,
+        "outputPer1M": 0.65
       },
       "capabilities": {
         "tools": false,
@@ -2294,8 +2967,601 @@
         "reasoning": false
       },
       "contextWindow": 8192,
+      "maxTokens": 2048,
+      "wireId": "google/gemma-2-27b-it"
+    },
+    {
+      "id": "openrouter/gpt-4o",
+      "provider": "openrouter",
+      "family": "gpt-4o",
+      "maker": "openai",
+      "displayName": "GPT-4o",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 1.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 16384,
+      "wireId": "openai/gpt-4o"
+    },
+    {
+      "id": "openrouter/gpt-4-turbo",
+      "provider": "openrouter",
+      "family": "gpt-4-turbo",
+      "maker": "openai",
+      "displayName": "GPT-4 Turbo",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 30
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
       "maxTokens": 4096,
-      "wireId": "tencent/hy-mt2-7b"
+      "wireId": "openai/gpt-4-turbo"
+    },
+    {
+      "id": "openrouter/claude-3-haiku",
+      "provider": "openrouter",
+      "family": "claude-3-haiku",
+      "maker": "anthropic",
+      "displayName": "Claude 3 Haiku",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 1.25,
+        "cachedInputPer1M": 0.03
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false
+      },
+      "contextWindow": 200000,
+      "maxTokens": 4096,
+      "wireId": "anthropic/claude-3-haiku"
+    },
+    {
+      "id": "openrouter/gpt-4-turbo-preview",
+      "provider": "openrouter",
+      "family": "gpt-4-turbo-preview",
+      "maker": "openai",
+      "displayName": "GPT-4 Turbo Preview",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 30
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 128000,
+      "maxTokens": 4096,
+      "wireId": "openai/gpt-4-turbo-preview"
+    },
+    {
+      "id": "openrouter/gpt-3.5-turbo-16k",
+      "provider": "openrouter",
+      "family": "gpt-3.5-turbo-16k",
+      "maker": "openai",
+      "displayName": "GPT-3.5 Turbo 16k",
+      "pricing": {
+        "inputPer1M": 3,
+        "outputPer1M": 4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 16385,
+      "maxTokens": 4096,
+      "wireId": "openai/gpt-3.5-turbo-16k"
+    },
+    {
+      "id": "openrouter/gpt-3.5-turbo",
+      "provider": "openrouter",
+      "family": "gpt-3.5-turbo",
+      "maker": "openai",
+      "displayName": "GPT-3.5 Turbo",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 1.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 16385,
+      "maxTokens": 4096,
+      "wireId": "openai/gpt-3.5-turbo"
+    },
+    {
+      "id": "openrouter/gpt-4",
+      "provider": "openrouter",
+      "family": "gpt-4",
+      "maker": "openai",
+      "displayName": "GPT-4",
+      "pricing": {
+        "inputPer1M": 30,
+        "outputPer1M": 60
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": false
+      },
+      "contextWindow": 8191,
+      "maxTokens": 4096,
+      "wireId": "openai/gpt-4"
+    },
+    {
+      "id": "openrouter/gemini-3.1-flash-image",
+      "provider": "openrouter",
+      "family": "gemini-3.1-flash-image",
+      "maker": "google",
+      "displayName": "Nano Banana 2 (Gemini 3.1 Flash Image)",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 3,
+        "imageOutputPer1M": 60,
+        "perImage": 0.067
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 131072,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-3.1-flash-image"
+    },
+    {
+      "id": "openrouter/gemini-2.5-flash-image",
+      "provider": "openrouter",
+      "family": "gemini-2.5-flash-image",
+      "maker": "google",
+      "displayName": "Nano Banana (Gemini 2.5 Flash Image)",
+      "pricing": {
+        "inputPer1M": 0.3,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.03,
+        "imageOutputPer1M": 30
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-2.5-flash-image"
+    },
+    {
+      "id": "openrouter/gemini-3.1-flash-lite-image",
+      "provider": "openrouter",
+      "family": "gemini-3.1-flash-lite-image",
+      "maker": "google",
+      "displayName": "Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
+      "pricing": {
+        "inputPer1M": 0.25,
+        "outputPer1M": 1.5,
+        "imageOutputPer1M": 30,
+        "perImage": 0.034
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.1-flash-lite-image"
+    },
+    {
+      "id": "openrouter/gemini-3.1-flash-image-preview",
+      "provider": "openrouter",
+      "family": "gemini-3.1-flash-image-preview",
+      "maker": "google",
+      "displayName": "Nano Banana 2 (Gemini 3.1 Flash Image Preview)",
+      "pricing": {
+        "inputPer1M": 0.5,
+        "outputPer1M": 3,
+        "imageOutputPer1M": 60
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.1-flash-image-preview"
+    },
+    {
+      "id": "openrouter/gpt-image-2",
+      "provider": "openrouter",
+      "family": "gpt-image-2",
+      "maker": "openai",
+      "displayName": "GPT Image 2",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 0,
+        "cachedInputPer1M": 1.25,
+        "imageInputPer1M": 8,
+        "imageOutputPer1M": 30
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-image-2"
+    },
+    {
+      "id": "openrouter/gemini-3-pro-image-preview",
+      "provider": "openrouter",
+      "family": "gemini-3-pro-image-preview",
+      "maker": "google",
+      "displayName": "Nano Banana Pro (Gemini 3 Pro Image Preview)",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.2,
+        "imageOutputPer1M": 120
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-3-pro-image-preview"
+    },
+    {
+      "id": "openrouter/gemini-3-pro-image",
+      "provider": "openrouter",
+      "family": "gemini-3-pro-image",
+      "maker": "google",
+      "displayName": "Nano Banana Pro (Gemini 3 Pro Image)",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12,
+        "imageOutputPer1M": 120,
+        "perImage": 0.134
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-3-pro-image"
+    },
+    {
+      "id": "openrouter/gpt-5.4-image-2",
+      "provider": "openrouter",
+      "family": "gpt-5.4-image-2",
+      "maker": "openai",
+      "displayName": "GPT-5.4 Image 2",
+      "pricing": {
+        "inputPer1M": 8,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 2,
+        "imageOutputPer1M": 30
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 272000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5.4-image-2"
+    },
+    {
+      "id": "openrouter/seedream-4.5",
+      "provider": "openrouter",
+      "family": "seedream-4.5",
+      "maker": "bytedance-seed",
+      "displayName": "Seedream 4.5",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 9.58083832
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 4096,
+      "maxTokens": 4096,
+      "wireId": "bytedance-seed/seedream-4.5"
+    },
+    {
+      "id": "openrouter/grok-imagine-image-quality",
+      "provider": "openrouter",
+      "family": "grok-imagine-image-quality",
+      "maker": "xai",
+      "displayName": "Grok Imagine Quality",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perImage": 0.05,
+        "perInputImage": 0.01
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 4096,
+      "wireId": "x-ai/grok-imagine-image-quality"
+    },
+    {
+      "id": "openrouter/flux.2-pro",
+      "provider": "openrouter",
+      "family": "flux.2-pro",
+      "maker": "black-forest-labs",
+      "displayName": "FLUX.2 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 7.32421875
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 46864,
+      "maxTokens": 46864,
+      "wireId": "black-forest-labs/flux.2-pro"
+    },
+    {
+      "id": "openrouter/grok-imagine-image-2.0",
+      "provider": "openrouter",
+      "family": "grok-imagine-image-2.0",
+      "maker": "xai",
+      "displayName": "Grok Imagine Image 2.0",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perImage": 0.06,
+        "perInputImage": 0.01
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 4096,
+      "wireId": "x-ai/grok-imagine-image-2.0"
+    },
+    {
+      "id": "openrouter/mai-image-2.5",
+      "provider": "openrouter",
+      "family": "mai-image-2.5",
+      "maker": "microsoft",
+      "displayName": "MAI-Image-2.5",
+      "pricing": {
+        "inputPer1M": 5,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 47
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 4096,
+      "maxTokens": 1024,
+      "wireId": "microsoft/mai-image-2.5"
+    },
+    {
+      "id": "openrouter/flux.2-klein-4b",
+      "provider": "openrouter",
+      "family": "flux.2-klein-4b",
+      "maker": "black-forest-labs",
+      "displayName": "FLUX.2 Klein 4B",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 3.41796875
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 40960,
+      "maxTokens": 40960,
+      "wireId": "black-forest-labs/flux.2-klein-4b"
+    },
+    {
+      "id": "openrouter/seedream-5-0-pro",
+      "provider": "openrouter",
+      "family": "seedream-5-0-pro",
+      "maker": "bytedance-seed",
+      "displayName": "Seedream 5.0 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 10.77844311
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "bytedance-seed/seedream-5-0-pro"
+    },
+    {
+      "id": "openrouter/qwen-image-3",
+      "provider": "openrouter",
+      "family": "qwen-image-3",
+      "maker": "qwen",
+      "displayName": "Qwen Image 3",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 7.18562874
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 65536,
+      "wireId": "qwen/qwen-image-3"
+    },
+    {
+      "id": "openrouter/krea-2-medium",
+      "provider": "openrouter",
+      "family": "krea-2-medium",
+      "maker": "krea",
+      "displayName": "Krea 2 Medium",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 7.18562874
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 65536,
+      "wireId": "krea/krea-2-medium"
+    },
+    {
+      "id": "openrouter/flux.2-max",
+      "provider": "openrouter",
+      "family": "flux.2-max",
+      "maker": "black-forest-labs",
+      "displayName": "FLUX.2 Max",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 17.08984375
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 46864,
+      "maxTokens": 46864,
+      "wireId": "black-forest-labs/flux.2-max"
+    },
+    {
+      "id": "openrouter/gpt-5-image-mini",
+      "provider": "openrouter",
+      "family": "gpt-5-image-mini",
+      "maker": "openai",
+      "displayName": "GPT-5 Image Mini",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 2,
+        "cachedInputPer1M": 0.25,
+        "imageOutputPer1M": 8
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5-image-mini"
+    },
+    {
+      "id": "openrouter/krea-2-medium-turbo",
+      "provider": "openrouter",
+      "family": "krea-2-medium-turbo",
+      "maker": "krea",
+      "displayName": "Krea 2 Medium Turbo",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 3.59281437
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 65536,
+      "wireId": "krea/krea-2-medium-turbo"
     }
   ]
 }

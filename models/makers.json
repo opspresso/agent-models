@@ -1,16 +1,74 @@
 {
-  "openai": "OpenAI",
-  "anthropic": "Anthropic",
-  "google": "Google",
-  "xai": "xAI",
-  "deepseek": "DeepSeek",
-  "zhipu": "Z.ai",
-  "minimax": "MiniMax",
-  "moonshot": "Moonshot AI",
-  "qwen": "Alibaba Qwen",
-  "nvidia": "NVIDIA",
-  "xiaomimimo": "Xiaomi",
-  "tencent": "Tencent",
-  "stepfun": "StepFun",
-  "upstage": "Upstage"
+  "openai": {
+    "displayName": "OpenAI",
+    "openrouterVendor": "openai"
+  },
+  "anthropic": {
+    "displayName": "Anthropic",
+    "openrouterVendor": "anthropic"
+  },
+  "google": {
+    "displayName": "Google",
+    "openrouterVendor": "google"
+  },
+  "xai": {
+    "displayName": "xAI",
+    "openrouterVendor": "x-ai"
+  },
+  "deepseek": {
+    "displayName": "DeepSeek",
+    "openrouterVendor": "deepseek"
+  },
+  "zhipu": {
+    "displayName": "Z.ai",
+    "openrouterVendor": "z-ai"
+  },
+  "minimax": {
+    "displayName": "MiniMax",
+    "openrouterVendor": "minimax"
+  },
+  "moonshot": {
+    "displayName": "Moonshot AI",
+    "openrouterVendor": "moonshotai"
+  },
+  "qwen": {
+    "displayName": "Alibaba Qwen",
+    "openrouterVendor": "qwen"
+  },
+  "nvidia": {
+    "displayName": "NVIDIA",
+    "openrouterVendor": "nvidia"
+  },
+  "xiaomimimo": {
+    "displayName": "Xiaomi",
+    "openrouterVendor": "xiaomi"
+  },
+  "tencent": {
+    "displayName": "Tencent",
+    "openrouterVendor": "tencent"
+  },
+  "stepfun": {
+    "displayName": "StepFun",
+    "openrouterVendor": "stepfun"
+  },
+  "upstage": {
+    "displayName": "Upstage",
+    "openrouterVendor": "upstage"
+  },
+  "bytedance-seed": {
+    "displayName": "ByteDance Seed",
+    "openrouterVendor": "bytedance-seed"
+  },
+  "black-forest-labs": {
+    "displayName": "Black Forest Labs",
+    "openrouterVendor": "black-forest-labs"
+  },
+  "microsoft": {
+    "displayName": "Microsoft",
+    "openrouterVendor": "microsoft"
+  },
+  "krea": {
+    "displayName": "Krea",
+    "openrouterVendor": "krea"
+  }
 }

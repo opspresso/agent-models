@@ -217,5 +217,278 @@
     "contextWindow": 131072,
     "maxTokens": 32768,
     "note": "Window from OpenRouter's context_length, the only machine-readable source that carries it."
+  },
+  "gemma-4-26b-a4b-it": {
+    "displayName": "Gemma 4 26B A4B",
+    "pricing": {
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.34
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-03); numbers and flags are OpenRouter's."
+  },
+  "gemma-4-31b-it": {
+    "displayName": "Gemma 4 31B",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.34,
+      "cachedInputPer1M": 0.1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 262144,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-02); numbers and flags are OpenRouter's."
+  },
+  "gemini-3.1-flash-lite-preview": {
+    "displayName": "Gemini 3.1 Flash Lite Preview",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.5,
+      "cachedInputPer1M": 0.025
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-03-03); numbers and flags are OpenRouter's."
+  },
+  "gemini-3.1-pro-preview-customtools": {
+    "displayName": "Gemini 3.1 Pro Preview Custom Tools",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-02-25); numbers and flags are OpenRouter's."
+  },
+  "gemini-3.1-pro-preview": {
+    "displayName": "Gemini 3.1 Pro Preview",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-02-19); numbers and flags are OpenRouter's."
+  },
+  "gemini-3-flash-preview": {
+    "displayName": "Gemini 3 Flash Preview",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 3,
+      "cachedInputPer1M": 0.05
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-12-17); numbers and flags are OpenRouter's."
+  },
+  "gemini-2.5-pro": {
+    "displayName": "Gemini 2.5 Pro",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-06-17); numbers and flags are OpenRouter's."
+  },
+  "gemini-2.5-pro-preview": {
+    "displayName": "Gemini 2.5 Pro Preview 06-05",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-06-05); numbers and flags are OpenRouter's."
+  },
+  "gemini-2.5-pro-preview-05-06": {
+    "displayName": "Gemini 2.5 Pro Preview 05-06",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65535,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-05-07); numbers and flags are OpenRouter's."
+  },
+  "gemma-3-4b-it": {
+    "displayName": "Gemma 3 4B",
+    "pricing": {
+      "inputPer1M": 0.05,
+      "outputPer1M": 0.1
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 131072,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-03-13); numbers and flags are OpenRouter's."
+  },
+  "gemma-3-12b-it": {
+    "displayName": "Gemma 3 12B",
+    "pricing": {
+      "inputPer1M": 0.05,
+      "outputPer1M": 0.15
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 131072,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-03-13); numbers and flags are OpenRouter's."
+  },
+  "gemma-3-27b-it": {
+    "displayName": "Gemma 3 27B",
+    "pricing": {
+      "inputPer1M": 0.08,
+      "outputPer1M": 0.45,
+      "cachedInputPer1M": 0.04
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 262144,
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-03-12); numbers and flags are OpenRouter's."
+  },
+  "gemma-2-27b-it": {
+    "displayName": "Gemma 2 27B",
+    "pricing": {
+      "inputPer1M": 0.65,
+      "outputPer1M": 0.65
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 8192,
+    "maxTokens": 2048,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-07-13); numbers and flags are OpenRouter's."
+  },
+  "gemini-2.5-flash-image": {
+    "displayName": "Nano Banana (Gemini 2.5 Flash Image)",
+    "pricing": {
+      "inputPer1M": 0.3,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.03,
+      "imageOutputPer1M": 30
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 32768,
+    "maxTokens": 32768,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-3.1-flash-image-preview": {
+    "displayName": "Nano Banana 2 (Gemini 3.1 Flash Image Preview)",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 3,
+      "imageOutputPer1M": 60
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-3-pro-image-preview": {
+    "displayName": "Nano Banana Pro (Gemini 3 Pro Image Preview)",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2,
+      "imageOutputPer1M": 120
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 32768,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }

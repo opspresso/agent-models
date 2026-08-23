@@ -1,20 +1,4 @@
 {
-  "nemotron-3.5-lightning": {
-    "displayName": "Nemotron 3.5 Lightning",
-    "pricing": {
-      "inputPer1M": 0.08,
-      "outputPer1M": 0.2,
-      "cachedInputPer1M": 0.04
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": false,
-      "reasoning": true
-    },
-    "contextWindow": 262144,
-    "maxTokens": 131072
-  },
   "nemotron-3-super-120b": {
     "displayName": "Nemotron 3 Super",
     "pricing": {
@@ -30,5 +14,38 @@
     "contextWindow": 1000000,
     "maxTokens": 16384,
     "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
+  },
+  "nemotron-3.5-lightning": {
+    "displayName": "Nemotron 3.5 Lightning",
+    "pricing": {
+      "inputPer1M": 0.08,
+      "outputPer1M": 0.2,
+      "cachedInputPer1M": 0.04
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-08-11); numbers and flags are OpenRouter's."
+  },
+  "nemotron-3-super-120b-a12b": {
+    "displayName": "Nemotron 3 Super",
+    "pricing": {
+      "inputPer1M": 0.085,
+      "outputPer1M": 0.4
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-03-11); numbers and flags are OpenRouter's."
   }
 }

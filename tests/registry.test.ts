@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { describe, it } from "node:test";
-import { dirname, resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   buildCatalog,
   deriveModels,
   loadRegistry,
   validateRegistry,
+  writeRegistry,
   type Catalog,
   type Registry,
 } from "../src/registry.ts";
@@ -51,14 +54,21 @@ describe("the committed registry", () => {
     assert.equal(models.find((m) => m.id === "bedrock/gpt-oss-120b")?.maker, "openai");
     assert.equal(models.find((m) => m.id === "openrouter/claude-opus-5")?.maker, "anthropic");
   });
+
+  it("keeps each maker's display name and OpenRouter vendor together", () => {
+    assert.deepEqual(registry.makers.openai, { displayName: "OpenAI", openrouterVendor: "openai" });
+    assert.deepEqual(registry.makers.xai, { displayName: "xAI", openrouterVendor: "x-ai" });
+  });
 });
 
 /** A small valid registry to break one thing at a time. */
 function fixture(): Registry {
   return {
     providers: ["openai", "anthropic", "openrouter"],
-    makers: { openai: "OpenAI", anthropic: "Anthropic" },
-    openrouterVendors: { openai: "openai", anthropic: "anthropic" },
+    makers: {
+      openai: { displayName: "OpenAI", openrouterVendor: "openai" },
+      anthropic: { displayName: "Anthropic", openrouterVendor: "anthropic" },
+    },
     families: {
       "gpt-x": {
         maker: "openai",
@@ -119,10 +129,12 @@ describe("validateRegistry", () => {
     assert.match(errors, /provider "bedrock" is not in providers.json/);
   });
 
-  it("rejects an OpenRouter vendor mapped from a maker it does not know", () => {
+  it("validates a maker's display name and OpenRouter vendor", () => {
     const r = fixture();
-    r.openrouterVendors = { ...r.openrouterVendors, acme: "acme-ai" };
-    assert.match(validateRegistry(r).join("\n"), /openrouter-vendors.json: maker "acme" is not in makers.json/);
+    r.makers.acme = { displayName: "", openrouterVendor: "acme/ai" };
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /maker acme: displayName is required/);
+    assert.match(errors, /maker acme: openrouterVendor must be a bare vendor slug/);
   });
 
   it("rejects a duplicate offering", () => {
@@ -194,6 +206,24 @@ describe("validateRegistry", () => {
     assert.deepEqual(validateRegistry(r), []);
   });
 
+  it("allows explicit zero limits only for image models", () => {
+    const r = fixture();
+    r.families["draw"] = {
+      maker: "openai",
+      displayName: "Draw",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perImage: 0.02 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: true, reasoning: false, imageGeneration: true },
+      contextWindow: 0,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openai", family: "draw" });
+    assert.deepEqual(validateRegistry(r), []);
+
+    r.families["gpt-x"]!.contextWindow = 0;
+    r.families["gpt-x"]!.maxTokens = 0;
+    assert.match(validateRegistry(r).join("\n"), /zero for an image model/);
+  });
+
   it("does not let a route change what kind of model it is", () => {
     const r = fixture();
     r.offerings[2]!.capabilities = { imageGeneration: true };
@@ -222,6 +252,25 @@ describe("deriveModels", () => {
   });
 });
 
+describe("writeRegistry", () => {
+  it("clears maker and provider files whose last model was removed", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
+    try {
+      writeRegistry(root, fixture());
+      const reduced = fixture();
+      delete reduced.families["claude-y.1"];
+      reduced.offerings = reduced.offerings.filter((offering) =>
+        offering.provider !== "anthropic" && offering.provider !== "openrouter");
+      writeRegistry(root, reduced);
+      assert.equal(readFileSync(join(root, "models/families/anthropic.json"), "utf-8"), "{}\n");
+      assert.equal(readFileSync(join(root, "models/offerings/anthropic.json"), "utf-8"), "[]\n");
+      assert.equal(readFileSync(join(root, "models/offerings/openrouter.json"), "utf-8"), "[]\n");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("buildCatalog", () => {
   const now = new Date("2026-08-20T00:00:00.000Z");
   const later = new Date("2026-08-21T00:00:00.000Z");
@@ -231,6 +280,7 @@ describe("buildCatalog", () => {
     assert.equal(catalog.version, 1);
     assert.equal(catalog.updatedAt, now.toISOString());
     assert.equal(catalog.models.length, 3);
+    assert.deepEqual(catalog.makers, { openai: "OpenAI", anthropic: "Anthropic" });
     assert.deepEqual(Object.keys(catalog.models[0] as object), [
       "id", "provider", "family", "maker", "displayName", "pricing", "capabilities", "contextWindow", "maxTokens",
     ]);

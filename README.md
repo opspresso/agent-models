@@ -68,7 +68,7 @@ What a model *is* and who *serves* it are two lists, resolved into the catalog a
 ```
 models/
   providers.json              the routes a model id may be prefixed with, in catalog order
-  makers.json                 maker id → display label
+  makers.json                 maker id → { displayName, openrouterVendor? }
   families/<maker>.json       { "<family>": { displayName, pricing, capabilities, contextWindow, maxTokens, note? } }
   offerings/<provider>.json   [ { family, wireId?, pricing?, capabilities?, maxTokens?, hidden?, missingSince?, note? } ]
 ```
@@ -104,8 +104,9 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 
 ## Adding or changing a model
 
-1. Add the family to `models/families/<maker>.json` (a new maker goes in `makers.json`
-   first) and an offering to each `models/offerings/<provider>.json` that serves it.
+1. Add the family to `models/families/<maker>.json` (a new maker, including its optional
+   OpenRouter vendor slug, goes in `makers.json` first) and an offering to each
+   `models/offerings/<provider>.json` that serves it.
 2. `pnpm format` — rewrites the files in canonical key order and validates them.
 3. `pnpm build` — regenerates `docs/models.json`. CI fails if the committed catalog does not
    match its sources, so commit both.
@@ -131,7 +132,7 @@ independent of the others:
 
 | Source | Needs | May change | May add |
 |---|---|---|---|
-| OpenRouter `/api/v1/models`, `/images/models`, `/models/{id}/endpoints` | nothing | a **router-only** family's price, discount, window and output cap; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | new families; OpenRouter routes to existing families |
+| OpenRouter `/api/v1/models`, `/images/models`, `/models/{id}/endpoints`, public weekly text and image rankings feeds | nothing | a **router-only** family's price, discount, window and output cap; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | eligible text and image families; OpenRouter routes to existing families |
 | xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
 | Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
 | OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
@@ -143,28 +144,43 @@ are added and retired by hand, with numbers from the AWS Pricing API.
 ### Additions
 
 **A new family** is created from OpenRouter's catalog when a listing is all of: filed under
-a maker in `makers.json` (through `models/openrouter-vendors.json`, which maps maker ids to
-OpenRouter's vendor slugs); first listed within the last **30 days**; a priced text model
-(not `:free`/`:batch`/`:nitro` variants, not a `-20250929`/`-0813` dated snapshot); and
-stating both a context window and a usable max output. It gets OpenRouter's numbers and
-flags (`tools`, `structured_outputs`, image input, `reasoning`), a `note` saying when and
-where it came from, and an OpenRouter route. Everything else the catalog lists goes to the
-*needs a look* list instead of the registry: a maker this registry does not know (add it to
-`makers.json` and `openrouter-vendors.json` and the next run adopts its recent models), an
-image model (priced per image, from another endpoint, by hand), a listing without an output
-cap. Older listings are the backlog, which is a person's — the window keeps a first run from
-importing a vendor's whole history.
+a maker's `openrouterVendor` in `makers.json`; made by OpenAI, Anthropic, Google or xAI, or
+present in the weekly usage leaderboard's first **20 open-weight** or first **20 closed-weight** rows;
+first listed within the last **30 days**; a priced text model (not
+`:free`/`:batch`/`:nitro` variants, not a `-20250929`/`-0813` dated snapshot); and stating
+both a context window and a usable max output. The ranking is the same one shown at
+`openrouter.ai/rankings`: prompt and completion tokens are totalled by variant, models with
+a Hugging Face id are open weight, and the rest are closed weight. A ranked serving variant
+qualifies its standard model family.
+
+The text family gets OpenRouter's numbers and flags (`tools`, `structured_outputs`, image
+input, `reasoning`), a `note` saying when and where it came from, and an OpenRouter route.
+An eligible text model from a maker this registry does not know and an eligible listing
+without an output cap go to the *needs a look* list instead. Unranked non-major text models
+are ignored. If the public text rankings feed fails or changes shape, the run still updates
+existing routes and major-maker additions but adds no text family from another maker. Older
+listings are the backlog, which is a person's — the window keeps a first run from importing
+a vendor's whole history.
+
+**An image family** is created when it appears in the weekly image leaderboard's first
+**20 rows**, ordered by image-producing request count as on `openrouter.ai/rankings/image`.
+The image catalog supplies its name and modalities; `/models/{id}/endpoints` supplies the
+normalized image-token price, context window and output cap. Explicit zero limits are retained
+for image-only models when OpenRouter publishes them. A previously unknown maker is added from
+the ranked model's vendor slug and display-name prefix. Image ranking failure or missing
+endpoint price/limits fails closed for image additions without blocking text updates.
 
 **A new route** is added when a catalog serves a family the registry already has: OpenRouter
 under `<vendor>/<family>`, a vendor under the family id (Anthropic's hyphenated spelling
-becomes the `wireId`). Two guards: a family every route of which is hidden is never routed
-again — it was retired on purpose — and an OpenRouter listing is routed only when its
-context window equals the family's, the one cheap identity check there is (`qwen/qwen3-235b-a22b`
-is the original model; this registry's `qwen3-235b-a22b` is the Instruct 2507). An
-OpenRouter route narrows `tools`/`structuredOutput` when the router lacks them; a route to an
-image family is never added automatically, since an image route is verified by drawing with
-it. The first *vendor* route to a router-only family puts the family at the list price (the
-router's discount moves to the router's offering).
+becomes the `wireId`). OpenRouter applies the same major-maker or leaderboard eligibility
+gate to routes and families. Two further guards: a family every route of which is hidden is
+never routed again — it was retired on purpose — and an OpenRouter listing is routed only
+when its context window equals the family's, the one cheap identity check there is
+(`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
+Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
+An image route is added only while its model is in the weekly image Top 20. The first
+*vendor* route to a router-only family puts the family at the list price (the router's
+discount moves to the router's offering).
 
 ### Retirement
 
@@ -199,7 +215,10 @@ The job summary on every run still holds the full report: a table of what change
 *needs a look* list.
 
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
-read from the same environment variable names.
+read from the same environment variable names. `--reset-openrouter` removes every OpenRouter
+route and any family left without another route, then bootstraps OpenRouter from the full
+eligible catalog without the normal 30-day discovery window. The reset is not written if the
+catalog or either weekly rankings feed cannot be read.
 
 ## Commands
 
@@ -209,6 +228,7 @@ pnpm format          # canonical key order + validation of models/
 pnpm build           # models/ → docs/models.json
 pnpm build:check     # exit 1 if docs/models.json is stale (CI)
 pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
+pnpm update-models --reset-openrouter # rebuild only OpenRouter from all eligible models
 pnpm notify          # deliver update-report.json to Slack / the issue (CI runs it after the commit)
 pnpm typecheck
 pnpm test

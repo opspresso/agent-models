@@ -1,21 +1,4 @@
 {
-  "kimi-k3": {
-    "displayName": "Kimi K3",
-    "pricing": {
-      "inputPer1M": 3,
-      "outputPer1M": 15,
-      "cachedInputPer1M": 0.3
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1048576,
-    "maxTokens": 262144,
-    "note": "Max output is not published for K3; K2.7 Code's cap, the nearest sibling that states one."
-  },
   "kimi-k2.5": {
     "displayName": "Kimi K2.5",
     "pricing": {

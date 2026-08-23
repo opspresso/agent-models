@@ -4,11 +4,14 @@ import type { PlacedOffering, Registry } from "../src/registry.ts";
 import {
   DISCOVERY_WINDOW_DAYS,
   OPENROUTER_IMAGE_MODELS_URL,
+  OPENROUTER_IMAGE_RANKINGS_URL,
+  OPENROUTER_RANKINGS_URL,
   applyOpenRouter,
   catalogDiscount,
   discoverOpenRouter,
   discoveryEndpointIds,
   fetchOpenRouterCatalog,
+  resetOpenRouterRegistry,
   type OpenRouterCatalog,
   type OpenRouterModel,
 } from "../src/sources/openrouter.ts";
@@ -26,8 +29,13 @@ const TODAY = "2026-08-20";
 function fixture(): Registry {
   return {
     providers: ["openai", "anthropic", "xai", "google", "openrouter"],
-    makers: { openai: "OpenAI", anthropic: "Anthropic", xai: "xAI", deepseek: "DeepSeek", google: "Google" },
-    openrouterVendors: { openai: "openai", anthropic: "anthropic", xai: "x-ai", deepseek: "deepseek", google: "google" },
+    makers: {
+      openai: { displayName: "OpenAI", openrouterVendor: "openai" },
+      anthropic: { displayName: "Anthropic", openrouterVendor: "anthropic" },
+      xai: { displayName: "xAI", openrouterVendor: "x-ai" },
+      deepseek: { displayName: "DeepSeek", openrouterVendor: "deepseek" },
+      google: { displayName: "Google", openrouterVendor: "google" },
+    },
     families: {
       // Vendor-served, also routed through OpenRouter.
       "gpt-x": {
@@ -104,7 +112,7 @@ function fixture(): Registry {
 
 /** An OpenRouter catalog with no endpoints read — the discount stays whatever it was. */
 function orCatalog(models: OpenRouterModel[], extra: Partial<OpenRouterCatalog> = {}): OpenRouterCatalog {
-  return { models, imageIds: [], endpoints: {}, ...extra };
+  return { models, imageIds: [], imageModels: [], endpoints: {}, rankings: [], imageRankings: [], ...extra };
 }
 
 const GPT_X_LISTED: OpenRouterModel = {
@@ -439,9 +447,12 @@ describe("applyOpenAi", () => {
 const at = (date: string) => Math.floor(Date.parse(`${date}T12:00:00Z`) / 1000);
 const RECENT = at("2026-08-15");
 const OLD = at("2026-01-10");
+const NEW_TEXT_PERMASLUG = "deepseek/deepseek-z2-20260815";
 
 const NEW_TEXT: OpenRouterModel = {
   id: "deepseek/deepseek-z2",
+  canonical_slug: NEW_TEXT_PERMASLUG,
+  hugging_face_id: "deepseek-ai/DeepSeek-Z2",
   name: "DeepSeek: DeepSeek Z2",
   created: RECENT,
   context_length: 1_000_000,
@@ -449,6 +460,26 @@ const NEW_TEXT: OpenRouterModel = {
   top_provider: { max_completion_tokens: 128_000 },
   architecture: { input_modalities: ["text"], output_modalities: ["text"] },
   supported_parameters: ["tools", "reasoning", "response_format"],
+};
+
+const NEW_TEXT_RANKING = {
+  model_permaslug: NEW_TEXT_PERMASLUG,
+  variant_permaslug: NEW_TEXT_PERMASLUG,
+  total_completion_tokens: 200,
+  total_prompt_tokens: 800,
+};
+
+const IMAGE_MODEL = {
+  id: "krea/krea-2-medium",
+  name: "Krea: Krea 2 Medium",
+  created: OLD,
+  architecture: { input_modalities: ["text", "image"], output_modalities: ["image"] },
+};
+
+const IMAGE_RANKING = {
+  model_permaslug: "krea/krea-2-medium-20260720",
+  variant_permaslug: "krea/krea-2-medium-20260720",
+  image_output_requests: 10_000,
 };
 
 describe("undiscounted / promoteFamily", () => {
@@ -486,8 +517,112 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("adds a weekly top-20 image model, its maker, and its route from endpoint metadata", () => {
+    const { registry } = discoverOpenRouter(
+      fixture(),
+      orCatalog([], {
+        imageIds: [IMAGE_MODEL.id],
+        imageModels: [IMAGE_MODEL],
+        imageRankings: [IMAGE_RANKING],
+        endpoints: {
+          [IMAGE_MODEL.id]: [{
+            context_length: 65_536,
+            pricing: { prompt: "0", completion: "0", image_output: "0.00001" },
+          }],
+        },
+      }),
+      TODAY,
+    );
+    assert.deepEqual(registry.makers.krea, { displayName: "Krea", openrouterVendor: "krea" });
+    assert.deepEqual(registry.families["krea-2-medium"], {
+      maker: "krea",
+      displayName: "Krea 2 Medium",
+      pricing: { inputPer1M: 0, outputPer1M: 0, imageOutputPer1M: 10 },
+      capabilities: {
+        tools: false,
+        structuredOutput: false,
+        imageInput: true,
+        reasoning: false,
+        imageGeneration: true,
+      },
+      contextWindow: 65_536,
+      maxTokens: 65_536,
+      note: "Added automatically on 2026-08-20 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's.",
+    });
+    assert.ok(registry.offerings.some((offering) => offering.wireId === IMAGE_MODEL.id));
+  });
+
+  it("keeps explicit zero limits for a ranked image-only model", () => {
+    const { registry } = discoverOpenRouter(
+      fixture(),
+      orCatalog([], {
+        imageIds: [IMAGE_MODEL.id],
+        imageModels: [IMAGE_MODEL],
+        imageRankings: [IMAGE_RANKING],
+        endpoints: {
+          [IMAGE_MODEL.id]: [{
+            context_length: 0,
+            max_completion_tokens: 0,
+            pricing: { image_output: "0.00001" },
+          }],
+        },
+      }),
+      TODAY,
+    );
+    assert.equal(registry.families["krea-2-medium"]!.contextWindow, 0);
+    assert.equal(registry.families["krea-2-medium"]!.maxTokens, 0);
+  });
+
+  it("does not add the image leaderboard's 21st model", () => {
+    const higher = Array.from({ length: 20 }, (_, index) => ({
+      model_permaslug: `other/image-${index}`,
+      variant_permaslug: `other/image-${index}`,
+      image_output_requests: 100 - index,
+    }));
+    const { registry } = discoverOpenRouter(
+      fixture(),
+      orCatalog([], {
+        imageIds: [IMAGE_MODEL.id],
+        imageModels: [IMAGE_MODEL],
+        imageRankings: [...higher, { ...IMAGE_RANKING, image_output_requests: 1 }],
+        endpoints: {
+          [IMAGE_MODEL.id]: [{
+            context_length: 65_536,
+            pricing: { prompt: "0", completion: "0", image_output: "0.00001" },
+          }],
+        },
+      }),
+      TODAY,
+    );
+    assert.equal(registry.families["krea-2-medium"], undefined);
+    assert.equal(registry.makers.krea, undefined);
+  });
+
+  it("resets only OpenRouter offerings and their orphaned families", () => {
+    const { registry, removedFamilies, removedOfferings } = resetOpenRouterRegistry(fixture());
+    assert.equal(removedOfferings, 3);
+    assert.equal(removedFamilies, 1);
+    assert.ok(!registry.offerings.some((offering) => offering.provider === "openrouter"));
+    assert.equal(registry.families["deepseek-z"], undefined);
+    assert.ok(registry.families["gpt-x"]);
+    assert.ok(registry.families["draw-1"]);
+  });
+
+  it("bootstraps an older ranked model after an OpenRouter reset", () => {
+    const reset = resetOpenRouterRegistry(fixture()).registry;
+    const oldRanked = { ...NEW_TEXT, created: OLD };
+    const { registry } = discoverOpenRouter(
+      reset,
+      orCatalog([oldRanked], { rankings: [NEW_TEXT_RANKING] }),
+      TODAY,
+      { bootstrap: true },
+    );
+    assert.ok(registry.families["deepseek-z2"]);
+    assert.ok(registry.offerings.some((offering) => offering.wireId === "deepseek/deepseek-z2"));
+  });
+
   it("adds a recent, priced text model of a known maker as a new family with its route", () => {
-    const { registry, result } = discoverOpenRouter(fixture(), orCatalog([NEW_TEXT]), TODAY);
+    const { registry, result } = discoverOpenRouter(fixture(), orCatalog([NEW_TEXT], { rankings: [NEW_TEXT_RANKING] }), TODAY);
     const family = registry.families["deepseek-z2"];
     assert.ok(family);
     assert.equal(family.maker, "deepseek");
@@ -507,6 +642,7 @@ describe("discoverOpenRouter", () => {
   it("carries the listing's discount on a new router-only family", () => {
     const catalog = orCatalog([NEW_TEXT], {
       endpoints: { "deepseek/deepseek-z2": [{ pricing: { prompt: "0.0000002", completion: "0.0000008", discount: 0.25 } }] },
+      rankings: [NEW_TEXT_RANKING],
     });
     const { registry } = discoverOpenRouter(fixture(), catalog, TODAY);
     assert.equal(registry.families["deepseek-z2"]!.pricing.discount, 0.25);
@@ -528,21 +664,73 @@ describe("discoverOpenRouter", () => {
     assert.deepEqual(result.notes, []);
   });
 
-  it("reports what it will not add: an unknown maker, an image model, a listing without an output cap", () => {
+  it("reports what it will not add: an unknown maker and a listing without an output cap", () => {
     const { registry, result } = discoverOpenRouter(
       fixture(),
       orCatalog([
-        { ...NEW_TEXT, id: "mistralai/mistral-z", name: "Mistral: Z" },
-        { ...NEW_TEXT, id: "deepseek/deepseek-draw", architecture: { input_modalities: ["text"], output_modalities: ["image"] } },
-        { ...NEW_TEXT, id: "deepseek/deepseek-nocap", top_provider: { max_completion_tokens: null } },
-      ]),
+        { ...NEW_TEXT, id: "mistralai/mistral-z", canonical_slug: "mistralai/mistral-z", name: "Mistral: Z" },
+        { ...NEW_TEXT, id: "deepseek/deepseek-nocap", canonical_slug: "deepseek/deepseek-nocap", top_provider: { max_completion_tokens: null } },
+      ], {
+        rankings: [
+          { ...NEW_TEXT_RANKING, model_permaslug: "mistralai/mistral-z", variant_permaslug: "mistralai/mistral-z" },
+          { ...NEW_TEXT_RANKING, model_permaslug: "deepseek/deepseek-nocap", variant_permaslug: "deepseek/deepseek-nocap" },
+        ],
+      }),
       TODAY,
     );
     assert.deepEqual(Object.keys(registry.families), Object.keys(fixture().families));
     const notes = result.notes.join("\n");
-    assert.match(notes, /1 recent model from "mistralai", not a known maker \(mistral-z\)/);
-    assert.match(notes, /new image model deepseek\/deepseek-draw/);
+    assert.match(notes, /1 eligible model from "mistralai", not a known maker \(mistral-z\)/);
     assert.match(notes, /deepseek\/deepseek-nocap states no usable max output/);
+  });
+
+  it("adds recent models from the four major makers without a ranking", () => {
+    const models = [
+      { vendor: "openai", slug: "gpt-z" },
+      { vendor: "anthropic", slug: "claude-z" },
+      { vendor: "google", slug: "gemini-z" },
+      { vendor: "x-ai", slug: "grok-z" },
+    ].map(({ vendor, slug }) => ({
+      ...NEW_TEXT,
+      id: `${vendor}/${slug}`,
+      canonical_slug: `${vendor}/${slug}-20260815`,
+      hugging_face_id: null,
+    }));
+    const { registry } = discoverOpenRouter(fixture(), orCatalog(models, { rankings: null }), TODAY);
+    for (const model of models) {
+      assert.ok(registry.offerings.some((offering) => offering.wireId === model.id), model.id);
+    }
+  });
+
+  it("adds only the first 20 open and first 20 closed ranking rows from other makers", () => {
+    const models = Array.from({ length: 42 }, (_, index) => {
+      const open = index < 21;
+      const number = index % 21 + 1;
+      const slug = `${open ? "open" : "closed"}-${number}`;
+      return {
+        ...NEW_TEXT,
+        id: `deepseek/${slug}`,
+        canonical_slug: `deepseek/${slug}-20260815`,
+        hugging_face_id: open ? `deepseek-ai/${slug}` : null,
+      };
+    });
+    const rankings = models.map((model, index) => ({
+      model_permaslug: model.canonical_slug,
+      variant_permaslug: model.canonical_slug,
+      total_completion_tokens: 0,
+      total_prompt_tokens: 21 - index % 21,
+    }));
+    const { registry } = discoverOpenRouter(fixture(), orCatalog(models, { rankings }), TODAY);
+    assert.equal(registry.offerings.filter((offering) => offering.family.startsWith("open-")).length, 20);
+    assert.equal(registry.offerings.filter((offering) => offering.family.startsWith("closed-")).length, 20);
+    assert.ok(!registry.families["open-21"]);
+    assert.ok(!registry.families["closed-21"]);
+  });
+
+  it("fails closed for a non-major maker when rankings are unavailable", () => {
+    const { registry, result } = discoverOpenRouter(fixture(), orCatalog([NEW_TEXT], { rankings: null }), TODAY);
+    assert.equal(registry.families["deepseek-z2"], undefined);
+    assert.match(result.notes.join("\n"), /rankings could not be read/);
   });
 
   it("adds an OpenRouter route to a family it already has, narrowing capabilities the router lacks", () => {
@@ -599,9 +787,22 @@ describe("discoverOpenRouter", () => {
       // skip it anyway — its endpoints are a wasted read.
       [NEW_TEXT, { ...NEW_TEXT, id: "mistralai/x" }, { ...NEW_TEXT, id: "deepseek/old", created: OLD }, { ...NEW_TEXT, id: "x-ai/grok-q", created: OLD }, { ...NEW_TEXT, id: "openai/gpt-x-20260101" }, { ...NEW_TEXT, id: "openai/gpt-x-2026-01-01" }],
       TODAY,
+      [NEW_TEXT_RANKING],
     );
     assert.deepEqual(ids, ["deepseek/deepseek-z2", "x-ai/grok-q"]);
     assert.equal(DISCOVERY_WINDOW_DAYS, 30);
+  });
+
+  it("reads endpoints for older eligible models during a bootstrap", () => {
+    const oldRanked = { ...NEW_TEXT, created: OLD };
+    const ids = discoveryEndpointIds(
+      resetOpenRouterRegistry(fixture()).registry,
+      [oldRanked, { ...oldRanked, id: "deepseek/unranked", canonical_slug: "deepseek/unranked" }],
+      TODAY,
+      [NEW_TEXT_RANKING],
+      { bootstrap: true },
+    );
+    assert.deepEqual(ids, ["deepseek/deepseek-z2"]);
   });
 });
 
@@ -713,6 +914,27 @@ describe("fetch guards and snapshot folding", () => {
           : { data: [{ slug: "renamed-field" }] },
       )) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
+  });
+
+  it("OpenRouter: a failed rankings read leaves the provider catalog usable but the rankings unavailable", async () => {
+    const fetchFn = (async (url: string | URL | Request) => {
+      const target = String(url);
+      if (target === OPENROUTER_RANKINGS_URL) {
+        return { ok: false, status: 503, statusText: "Unavailable", json: async () => ({}) } as Response;
+      }
+      if (target === OPENROUTER_IMAGE_RANKINGS_URL) {
+        return jsonResponse({ data: [IMAGE_RANKING] });
+      }
+      return jsonResponse(
+        target.includes("/images/models")
+          ? { data: [{ id: "openai/gpt-image-2" }] }
+          : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
+      );
+    }) as unknown as typeof fetch;
+    const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
+    assert.equal(catalog.rankings, null);
+    assert.deepEqual(catalog.imageRankings, [IMAGE_RANKING]);
+    assert.deepEqual(catalog.models.map((model) => model.id), ["openai/gpt-x"]);
   });
 
   it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {

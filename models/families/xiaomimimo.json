@@ -1,6 +1,23 @@
 {
+  "mimo-v2.5-pro": {
+    "displayName": "MiMo-V2.5-Pro",
+    "pricing": {
+      "inputPer1M": 0.435,
+      "outputPer1M": 0.87,
+      "cachedInputPer1M": 0.0036
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-22); numbers and flags are OpenRouter's."
+  },
   "mimo-v2.5": {
-    "displayName": "MiMo V2.5",
+    "displayName": "MiMo-V2.5",
     "pricing": {
       "inputPer1M": 0.14,
       "outputPer1M": 0.28,
@@ -13,6 +30,7 @@
       "reasoning": true
     },
     "contextWindow": 1050000,
-    "maxTokens": 131072
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-22); numbers and flags are OpenRouter's."
   }
 }

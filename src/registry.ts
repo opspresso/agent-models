@@ -12,7 +12,7 @@
  * Source files live under `models/`:
  *
  *   models/providers.json          the routes a model id may be prefixed with
- *   models/makers.json             maker id → display label
+ *   models/makers.json             maker id → display name and source metadata
  *   models/families/<maker>.json   { "<family>": ModelFamily } — the file is the maker
  *   models/offerings/<provider>.json [ModelOffering] — the file is the provider
  *
@@ -126,16 +126,15 @@ export interface ModelConfig {
   hidden?: boolean;
 }
 
+export interface ModelMaker {
+  displayName: string;
+  /** The vendor slug OpenRouter files this maker's models under. Absent when it has none. */
+  openrouterVendor?: string;
+}
+
 export interface Registry {
   providers: string[];
-  makers: Record<string, string>;
-  /**
-   * Maker id → the vendor slug OpenRouter files that maker's models under
-   * (`xai` → `x-ai`, `moonshot` → `moonshotai`). A maker missing here is one
-   * whose OpenRouter listings are reported, never adopted. Not part of the
-   * catalog: it says where to look, not what was found.
-   */
-  openrouterVendors: Record<string, string>;
+  makers: Record<string, ModelMaker>;
   /** Keyed by family id; the maker is on the entry because the file it came from said so. */
   families: Record<string, ModelFamily & { maker: string }>;
   offerings: PlacedOffering[];
@@ -213,6 +212,8 @@ const MODEL_KEYS = [
   "hidden",
 ] as const;
 
+const MAKER_KEYS = ["displayName", "openrouterVendor"] as const;
+
 type Plain = Record<string, unknown>;
 
 function ordered(value: Plain, keys: readonly string[]): Plain {
@@ -270,6 +271,10 @@ function orderedModel(model: ModelConfig): Plain {
   );
 }
 
+function orderedMaker(maker: ModelMaker): Plain {
+  return ordered(maker as unknown as Plain, MAKER_KEYS);
+}
+
 /** Two-space JSON with a trailing newline — the one format every file here is written in. */
 export function formatJson(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
@@ -297,9 +302,7 @@ function listJson(dir: string): string[] {
 export function loadRegistry(root: string): Registry {
   const base = join(root, "models");
   const providers = readJson(join(base, "providers.json")) as string[];
-  const makers = readJson(join(base, "makers.json")) as Record<string, string>;
-  const vendorsPath = join(base, "openrouter-vendors.json");
-  const openrouterVendors = existsSync(vendorsPath) ? (readJson(vendorsPath) as Record<string, string>) : {};
+  const makers = readJson(join(base, "makers.json")) as Record<string, ModelMaker>;
 
   const families: Registry["families"] = {};
   for (const file of listJson(join(base, "families"))) {
@@ -330,7 +333,7 @@ export function loadRegistry(root: string): Registry {
     }
   }
 
-  return { providers, makers, openrouterVendors, families, offerings };
+  return { providers, makers, families, offerings };
 }
 
 /**
@@ -344,8 +347,12 @@ export function writeRegistry(root: string, registry: Registry): void {
   mkdirSync(join(base, "offerings"), { recursive: true });
 
   writeFileSync(join(base, "providers.json"), formatJson(registry.providers));
-  writeFileSync(join(base, "makers.json"), formatJson(registry.makers));
-  writeFileSync(join(base, "openrouter-vendors.json"), formatJson(registry.openrouterVendors));
+  writeFileSync(
+    join(base, "makers.json"),
+    formatJson(
+      Object.fromEntries(Object.entries(registry.makers).map(([id, maker]) => [id, orderedMaker(maker)])),
+    ),
+  );
 
   const byMaker = new Map<string, Plain>();
   for (const [id, { maker, ...family }] of Object.entries(registry.families)) {
@@ -353,8 +360,8 @@ export function writeRegistry(root: string, registry: Registry): void {
     group[id] = orderedFamily(family);
     byMaker.set(maker, group);
   }
-  for (const [maker, group] of byMaker) {
-    writeFileSync(join(base, "families", `${maker}.json`), formatJson(group));
+  for (const maker of Object.keys(registry.makers)) {
+    writeFileSync(join(base, "families", `${maker}.json`), formatJson(byMaker.get(maker) ?? {}));
   }
 
   const byProvider = new Map<string, Plain[]>();
@@ -363,8 +370,8 @@ export function writeRegistry(root: string, registry: Registry): void {
     group.push(orderedOffering(offering));
     byProvider.set(provider, group);
   }
-  for (const [provider, group] of byProvider) {
-    writeFileSync(join(base, "offerings", `${provider}.json`), formatJson(group));
+  for (const provider of registry.providers) {
+    writeFileSync(join(base, "offerings", `${provider}.json`), formatJson(byProvider.get(provider) ?? []));
   }
 }
 
@@ -476,6 +483,10 @@ function isCount(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
+function isImageCount(value: unknown, imageGeneration: boolean): value is number {
+  return isCount(value) || (imageGeneration && value === 0);
+}
+
 /** Every problem with the registry, or an empty list. Never throws on bad data — it reports it. */
 export function validateRegistry(registry: Registry): string[] {
   const errors: string[] = [];
@@ -491,14 +502,31 @@ export function validateRegistry(registry: Registry): string[] {
     errors.push('providers.json must not carry "selfhosted" — deployments publish those models themselves');
   }
   if (!isPlain(registry.makers)) {
-    errors.push("makers.json must be an object of maker id → label");
-  }
-  for (const [maker, slug] of Object.entries(registry.openrouterVendors ?? {})) {
-    if (registry.makers[maker] === undefined) {
-      errors.push(`openrouter-vendors.json: maker "${maker}" is not in makers.json`);
-    }
-    if (typeof slug !== "string" || slug === "" || slug.includes("/")) {
-      errors.push(`openrouter-vendors.json: "${maker}" needs a bare vendor slug`);
+    errors.push("makers.json must be an object of maker id → maker definition");
+  } else {
+    const vendors = new Map<string, string>();
+    for (const [id, maker] of Object.entries(registry.makers)) {
+      const where = `maker ${id}`;
+      if (!isPlain(maker)) {
+        errors.push(`${where}: not an object`);
+        continue;
+      }
+      for (const key of unknownKeys(maker, MAKER_KEYS)) {
+        errors.push(`${where}: unknown field "${key}"`);
+      }
+      if (typeof maker.displayName !== "string" || maker.displayName.trim() === "") {
+        errors.push(`${where}: displayName is required`);
+      }
+      const vendor = maker.openrouterVendor;
+      if (vendor !== undefined) {
+        if (typeof vendor !== "string" || vendor === "" || vendor.includes("/")) {
+          errors.push(`${where}: openrouterVendor must be a bare vendor slug`);
+        } else if (vendors.has(vendor)) {
+          errors.push(`${where}: openrouterVendor "${vendor}" is already used by maker ${vendors.get(vendor)}`);
+        } else {
+          vendors.set(vendor, id);
+        }
+      }
     }
   }
 
@@ -521,11 +549,12 @@ export function validateRegistry(registry: Registry): string[] {
     }
     checkPricing(where, family.pricing, false, errors);
     checkCapabilities(where, family.capabilities, false, errors);
-    if (!isCount(family.contextWindow)) {
-      errors.push(`${where}: contextWindow must be a positive integer`);
+    const imageGeneration = family.capabilities?.imageGeneration === true;
+    if (!isImageCount(family.contextWindow, imageGeneration)) {
+      errors.push(`${where}: contextWindow must be a positive integer, or zero for an image model`);
     }
-    if (!isCount(family.maxTokens)) {
-      errors.push(`${where}: maxTokens must be a positive integer`);
+    if (!isImageCount(family.maxTokens, imageGeneration)) {
+      errors.push(`${where}: maxTokens must be a positive integer, or zero for an image model`);
     }
     if (family.note !== undefined && typeof family.note !== "string") {
       errors.push(`${where}: note must be a string`);
@@ -665,7 +694,7 @@ export function buildCatalog(registry: Registry, previous: Catalog | null, now: 
   const models = deriveModels(registry).map((model) => orderedModel(model) as unknown as ModelConfig);
   const content = {
     providers: [...registry.providers],
-    makers: { ...registry.makers },
+    makers: Object.fromEntries(Object.entries(registry.makers).map(([id, maker]) => [id, maker.displayName])),
     models,
   };
   const unchanged =

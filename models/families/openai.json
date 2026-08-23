@@ -169,5 +169,711 @@
     "contextWindow": 400000,
     "maxTokens": 128000,
     "note": "cachedInputPer1M is the cached text-input rate; OpenAI's cached image-input rate ($2.00/MTok) has no field here."
+  },
+  "gpt-5.6-luna-pro": {
+    "displayName": "GPT-5.6 Luna Pro",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 1.2,
+      "cachedInputPer1M": 0.02
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-09); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.6-terra-pro": {
+    "displayName": "GPT-5.6 Terra Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 12,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-09); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.6-sol-pro": {
+    "displayName": "GPT-5.6 Sol Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.2,
+      "discount": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-09); numbers and flags are OpenRouter's."
+  },
+  "gpt-chat-latest": {
+    "displayName": "GPT Chat Latest",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 30,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-05); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.5-pro": {
+    "displayName": "GPT-5.5 Pro",
+    "pricing": {
+      "inputPer1M": 30,
+      "outputPer1M": 180
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-24); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.5": {
+    "displayName": "GPT-5.5",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 30,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-24); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.4-nano": {
+    "displayName": "GPT-5.4 Nano",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 1.25,
+      "cachedInputPer1M": 0.02
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-03-17); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.4-pro": {
+    "displayName": "GPT-5.4 Pro",
+    "pricing": {
+      "inputPer1M": 30,
+      "outputPer1M": 180
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-03-05); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.3-codex": {
+    "displayName": "GPT-5.3-Codex",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.175
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-02-24); numbers and flags are OpenRouter's."
+  },
+  "gpt-audio": {
+    "displayName": "GPT Audio",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 10
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-01-19); numbers and flags are OpenRouter's."
+  },
+  "gpt-audio-mini": {
+    "displayName": "GPT Audio Mini",
+    "pricing": {
+      "inputPer1M": 0.6,
+      "outputPer1M": 2.4
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-01-19); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.2-codex": {
+    "displayName": "GPT-5.2-Codex",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.175
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-01-14); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.2-chat": {
+    "displayName": "GPT-5.2 Chat",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.175
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 32000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-12-10); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.2-pro": {
+    "displayName": "GPT-5.2 Pro",
+    "pricing": {
+      "inputPer1M": 21,
+      "outputPer1M": 168
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-12-10); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.2": {
+    "displayName": "GPT-5.2",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.175
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-12-10); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.1-codex-max": {
+    "displayName": "GPT-5.1-Codex-Max",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-12-04); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.1-codex": {
+    "displayName": "GPT-5.1-Codex",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.13
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-11-13); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.1-codex-mini": {
+    "displayName": "GPT-5.1-Codex-Mini",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 2,
+      "cachedInputPer1M": 0.03
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-11-13); numbers and flags are OpenRouter's."
+  },
+  "gpt-oss-safeguard-20b": {
+    "displayName": "gpt-oss-safeguard-20b",
+    "pricing": {
+      "inputPer1M": 0.075,
+      "outputPer1M": 0.3,
+      "cachedInputPer1M": 0.0375
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 131072,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-10-29); numbers and flags are OpenRouter's."
+  },
+  "gpt-5-pro": {
+    "displayName": "GPT-5 Pro",
+    "pricing": {
+      "inputPer1M": 15,
+      "outputPer1M": 120
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-10-06); numbers and flags are OpenRouter's."
+  },
+  "gpt-5": {
+    "displayName": "GPT-5",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.125
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-08-07); numbers and flags are OpenRouter's."
+  },
+  "gpt-5-nano": {
+    "displayName": "GPT-5 Nano",
+    "pricing": {
+      "inputPer1M": 0.05,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.005
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-08-07); numbers and flags are OpenRouter's."
+  },
+  "o3-pro": {
+    "displayName": "o3 Pro",
+    "pricing": {
+      "inputPer1M": 20,
+      "outputPer1M": 80
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-06-10); numbers and flags are OpenRouter's."
+  },
+  "o4-mini-high": {
+    "displayName": "o4 Mini High",
+    "pricing": {
+      "inputPer1M": 1.1,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.275
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-16); numbers and flags are OpenRouter's."
+  },
+  "o3": {
+    "displayName": "o3",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 8,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-16); numbers and flags are OpenRouter's."
+  },
+  "o4-mini": {
+    "displayName": "o4 Mini",
+    "pricing": {
+      "inputPer1M": 1.1,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.275
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-16); numbers and flags are OpenRouter's."
+  },
+  "gpt-4.1": {
+    "displayName": "GPT-4.1",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 8,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 1047576,
+    "maxTokens": 32768,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-14); numbers and flags are OpenRouter's."
+  },
+  "gpt-4.1-mini": {
+    "displayName": "GPT-4.1 Mini",
+    "pricing": {
+      "inputPer1M": 0.4,
+      "outputPer1M": 1.6,
+      "cachedInputPer1M": 0.1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 1047576,
+    "maxTokens": 32768,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-14); numbers and flags are OpenRouter's."
+  },
+  "gpt-4.1-nano": {
+    "displayName": "GPT-4.1 Nano",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.025
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 1047576,
+    "maxTokens": 32768,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-04-14); numbers and flags are OpenRouter's."
+  },
+  "o1-pro": {
+    "displayName": "o1-pro",
+    "pricing": {
+      "inputPer1M": 150,
+      "outputPer1M": 600
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-03-19); numbers and flags are OpenRouter's."
+  },
+  "o3-mini-high": {
+    "displayName": "o3 Mini High",
+    "pricing": {
+      "inputPer1M": 1.1,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.55
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-02-12); numbers and flags are OpenRouter's."
+  },
+  "o3-mini": {
+    "displayName": "o3 Mini",
+    "pricing": {
+      "inputPer1M": 1.1,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.55
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-01-31); numbers and flags are OpenRouter's."
+  },
+  "o1": {
+    "displayName": "o1",
+    "pricing": {
+      "inputPer1M": 15,
+      "outputPer1M": 60,
+      "cachedInputPer1M": 7.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 100000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-12-17); numbers and flags are OpenRouter's."
+  },
+  "gpt-4o-mini": {
+    "displayName": "GPT-4o-mini",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.6,
+      "cachedInputPer1M": 0.075
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-07-18); numbers and flags are OpenRouter's."
+  },
+  "gpt-4o": {
+    "displayName": "GPT-4o",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 1.25
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 16384,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-05-13); numbers and flags are OpenRouter's."
+  },
+  "gpt-4-turbo": {
+    "displayName": "GPT-4 Turbo",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 30
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-04-09); numbers and flags are OpenRouter's."
+  },
+  "gpt-4-turbo-preview": {
+    "displayName": "GPT-4 Turbo Preview",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 30
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 128000,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-01-25); numbers and flags are OpenRouter's."
+  },
+  "gpt-3.5-turbo-16k": {
+    "displayName": "GPT-3.5 Turbo 16k",
+    "pricing": {
+      "inputPer1M": 3,
+      "outputPer1M": 4
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 16385,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2023-08-28); numbers and flags are OpenRouter's."
+  },
+  "gpt-3.5-turbo": {
+    "displayName": "GPT-3.5 Turbo",
+    "pricing": {
+      "inputPer1M": 0.5,
+      "outputPer1M": 1.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 16385,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2023-05-28); numbers and flags are OpenRouter's."
+  },
+  "gpt-4": {
+    "displayName": "GPT-4",
+    "pricing": {
+      "inputPer1M": 30,
+      "outputPer1M": 60
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 8191,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2023-05-28); numbers and flags are OpenRouter's."
+  },
+  "gpt-5.4-image-2": {
+    "displayName": "GPT-5.4 Image 2",
+    "pricing": {
+      "inputPer1M": 8,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 2,
+      "imageOutputPer1M": 30
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 272000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-5-image-mini": {
+    "displayName": "GPT-5 Image Mini",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 2,
+      "cachedInputPer1M": 0.25,
+      "imageOutputPer1M": 8
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }

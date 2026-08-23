@@ -1,0 +1,38 @@
+{
+  "seedream-4.5": {
+    "displayName": "Seedream 4.5",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 9.58083832
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 4096,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "seedream-5-0-pro": {
+    "displayName": "Seedream 5.0 Pro",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 10.77844311
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  }
+}

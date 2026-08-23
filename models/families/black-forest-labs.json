@@ -1,0 +1,56 @@
+{
+  "flux.2-pro": {
+    "displayName": "FLUX.2 Pro",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 7.32421875
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 46864,
+    "maxTokens": 46864,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "flux.2-klein-4b": {
+    "displayName": "FLUX.2 Klein 4B",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 3.41796875
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 40960,
+    "maxTokens": 40960,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "flux.2-max": {
+    "displayName": "FLUX.2 Max",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 17.08984375
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 46864,
+    "maxTokens": 46864,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  }
+}

@@ -1,53 +1,7 @@
 [
   {
-    "family": "claude-fable-5",
-    "wireId": "anthropic/claude-fable-5"
-  },
-  {
-    "family": "claude-opus-5",
-    "wireId": "anthropic/claude-opus-5"
-  },
-  {
-    "family": "claude-sonnet-5",
-    "wireId": "anthropic/claude-sonnet-5"
-  },
-  {
-    "family": "claude-opus-4.8",
-    "wireId": "anthropic/claude-opus-4.8"
-  },
-  {
-    "family": "claude-haiku-4.5",
-    "wireId": "anthropic/claude-haiku-4.5"
-  },
-  {
-    "family": "gpt-5.6-sol",
-    "wireId": "openai/gpt-5.6-sol",
-    "pricing": {
-      "inputPer1M": 2,
-      "outputPer1M": 10,
-      "cachedInputPer1M": 0.2,
-      "discount": 0.5
-    }
-  },
-  {
-    "family": "gpt-5.6-terra",
-    "wireId": "openai/gpt-5.6-terra"
-  },
-  {
-    "family": "gpt-5.6-luna",
-    "wireId": "openai/gpt-5.6-luna"
-  },
-  {
-    "family": "gpt-5.4",
-    "wireId": "openai/gpt-5.4"
-  },
-  {
-    "family": "gpt-5.4-mini",
-    "wireId": "openai/gpt-5.4-mini"
-  },
-  {
-    "family": "gemini-3.6-flash",
-    "wireId": "google/gemini-3.6-flash"
+    "family": "glm-5.3",
+    "wireId": "z-ai/glm-5.3"
   },
   {
     "family": "gemini-3.7-flash",
@@ -64,36 +18,82 @@
     "wireId": "x-ai/grok-4.6"
   },
   {
+    "family": "nemotron-3.5-lightning",
+    "wireId": "nvidia/nemotron-3.5-lightning"
+  },
+  {
+    "family": "solar-pro4",
+    "wireId": "upstage/solar-pro4"
+  },
+  {
+    "family": "qwen3.8-max",
+    "wireId": "qwen/qwen3.8-max"
+  },
+  {
+    "family": "claude-opus-5-fast",
+    "wireId": "anthropic/claude-opus-5-fast"
+  },
+  {
+    "family": "claude-opus-5",
+    "wireId": "anthropic/claude-opus-5"
+  },
+  {
+    "family": "gemini-3.6-flash",
+    "wireId": "google/gemini-3.6-flash"
+  },
+  {
+    "family": "gemini-3.5-flash-lite",
+    "wireId": "google/gemini-3.5-flash-lite"
+  },
+  {
+    "family": "gpt-5.6-luna-pro",
+    "wireId": "openai/gpt-5.6-luna-pro"
+  },
+  {
+    "family": "gpt-5.6-luna",
+    "wireId": "openai/gpt-5.6-luna"
+  },
+  {
+    "family": "gpt-5.6-terra-pro",
+    "wireId": "openai/gpt-5.6-terra-pro"
+  },
+  {
+    "family": "gpt-5.6-terra",
+    "wireId": "openai/gpt-5.6-terra"
+  },
+  {
+    "family": "gpt-5.6-sol-pro",
+    "wireId": "openai/gpt-5.6-sol-pro"
+  },
+  {
+    "family": "gpt-5.6-sol",
+    "wireId": "openai/gpt-5.6-sol",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.2,
+      "discount": 0.5
+    }
+  },
+  {
     "family": "grok-4.5",
     "wireId": "x-ai/grok-4.5"
-  },
-  {
-    "family": "grok-4.3",
-    "wireId": "x-ai/grok-4.3"
-  },
-  {
-    "family": "deepseek-v4-flash",
-    "wireId": "deepseek/deepseek-v4-flash"
-  },
-  {
-    "family": "deepseek-v4-pro",
-    "wireId": "deepseek/deepseek-v4-pro"
-  },
-  {
-    "family": "deepseek-v4-pro-0813",
-    "wireId": "deepseek/deepseek-v4-pro-0813"
-  },
-  {
-    "family": "mimo-v2.5",
-    "wireId": "xiaomi/mimo-v2.5"
   },
   {
     "family": "hy3",
     "wireId": "tencent/hy3"
   },
   {
+    "family": "claude-sonnet-5",
+    "wireId": "anthropic/claude-sonnet-5"
+  },
+  {
     "family": "glm-5.2",
     "wireId": "z-ai/glm-5.2"
+  },
+  {
+    "family": "claude-fable-5",
+    "wireId": "anthropic/claude-fable-5"
   },
   {
     "family": "minimax-m3",
@@ -104,72 +104,12 @@
     "wireId": "stepfun/step-3.7-flash"
   },
   {
-    "family": "kimi-k3",
-    "wireId": "moonshotai/kimi-k3"
+    "family": "claude-opus-4.8-fast",
+    "wireId": "anthropic/claude-opus-4.8-fast"
   },
   {
-    "family": "qwen3.8-max",
-    "wireId": "qwen/qwen3.8-max"
-  },
-  {
-    "family": "qwen3.8-2.4t-a95b",
-    "wireId": "qwen/qwen3.8-2.4t-a95b"
-  },
-  {
-    "family": "qwen3.8-27b",
-    "wireId": "qwen/qwen3.8-27b"
-  },
-  {
-    "family": "nemotron-3.5-lightning",
-    "wireId": "nvidia/nemotron-3.5-lightning"
-  },
-  {
-    "family": "solar-pro-4",
-    "wireId": "upstage/solar-pro4"
-  },
-  {
-    "family": "solar-pro-3",
-    "wireId": "upstage/solar-pro-3"
-  },
-  {
-    "family": "gpt-image-2",
-    "wireId": "openai/gpt-image-2"
-  },
-  {
-    "family": "gemini-3-pro-image",
-    "wireId": "google/gemini-3-pro-image"
-  },
-  {
-    "family": "gemini-3.1-flash-image",
-    "wireId": "google/gemini-3.1-flash-image"
-  },
-  {
-    "family": "gemini-3.1-flash-lite-image",
-    "wireId": "google/gemini-3.1-flash-lite-image"
-  },
-  {
-    "family": "grok-imagine-image-quality",
-    "wireId": "x-ai/grok-imagine-image-quality"
-  },
-  {
-    "family": "grok-imagine-image-2.0",
-    "wireId": "x-ai/grok-imagine-image-2.0"
-  },
-  {
-    "family": "glm-5.3",
-    "wireId": "z-ai/glm-5.3"
-  },
-  {
-    "family": "qwen3.7-flash",
-    "wireId": "qwen/qwen3.7-flash"
-  },
-  {
-    "family": "claude-opus-5-fast",
-    "wireId": "anthropic/claude-opus-5-fast"
-  },
-  {
-    "family": "gemini-3.5-flash-lite",
-    "wireId": "google/gemini-3.5-flash-lite"
+    "family": "claude-opus-4.8",
+    "wireId": "anthropic/claude-opus-4.8"
   },
   {
     "family": "grok-build-0.1",
@@ -180,68 +120,132 @@
     "wireId": "google/gemini-3.5-flash"
   },
   {
+    "family": "claude-opus-4.7-fast",
+    "wireId": "anthropic/claude-opus-4.7-fast"
+  },
+  {
     "family": "gemini-3.1-flash-lite",
     "wireId": "google/gemini-3.1-flash-lite"
+  },
+  {
+    "family": "gpt-chat-latest",
+    "wireId": "openai/gpt-chat-latest"
+  },
+  {
+    "family": "grok-4.3",
+    "wireId": "x-ai/grok-4.3"
+  },
+  {
+    "family": "gpt-5.5-pro",
+    "wireId": "openai/gpt-5.5-pro"
+  },
+  {
+    "family": "gpt-5.5",
+    "wireId": "openai/gpt-5.5"
+  },
+  {
+    "family": "deepseek-v4-pro",
+    "wireId": "deepseek/deepseek-v4-pro"
+  },
+  {
+    "family": "deepseek-v4-flash",
+    "wireId": "deepseek/deepseek-v4-flash"
+  },
+  {
+    "family": "mimo-v2.5-pro",
+    "wireId": "xiaomi/mimo-v2.5-pro"
+  },
+  {
+    "family": "mimo-v2.5",
+    "wireId": "xiaomi/mimo-v2.5"
   },
   {
     "family": "claude-opus-4.7",
     "wireId": "anthropic/claude-opus-4.7"
   },
   {
-    "family": "minimax-m2.5",
-    "wireId": "minimax/minimax-m2.5",
-    "pricing": {
-      "inputPer1M": 0.27,
-      "outputPer1M": 1.08,
-      "cachedInputPer1M": 0.027,
-      "discount": 0.1
-    }
+    "family": "gemma-4-26b-a4b-it",
+    "wireId": "google/gemma-4-26b-a4b-it"
   },
   {
-    "family": "glm-5",
-    "wireId": "z-ai/glm-5",
-    "pricing": {
-      "inputPer1M": 0.6,
-      "outputPer1M": 1.92,
-      "cachedInputPer1M": 0.12,
-      "discount": 0.4
-    }
+    "family": "gemma-4-31b-it",
+    "wireId": "google/gemma-4-31b-it"
   },
   {
-    "family": "qwen3-coder-next",
-    "wireId": "qwen/qwen3-coder-next",
-    "pricing": {
-      "inputPer1M": 0.12,
-      "outputPer1M": 0.8,
-      "cachedInputPer1M": 0.07
-    }
+    "family": "minimax-m2.7",
+    "wireId": "minimax/minimax-m2.7"
   },
   {
-    "family": "kimi-k2.5",
-    "wireId": "moonshotai/kimi-k2.5",
-    "pricing": {
-      "inputPer1M": 0.45,
-      "outputPer1M": 2.25,
-      "cachedInputPer1M": 0.07
-    }
+    "family": "gpt-5.4-nano",
+    "wireId": "openai/gpt-5.4-nano"
   },
   {
-    "family": "glm-4.7-flash",
-    "wireId": "z-ai/glm-4.7-flash",
-    "pricing": {
-      "inputPer1M": 0.06,
-      "outputPer1M": 0.4,
-      "cachedInputPer1M": 0.01
-    }
+    "family": "gpt-5.4-mini",
+    "wireId": "openai/gpt-5.4-mini"
   },
   {
-    "family": "glm-4.7",
-    "wireId": "z-ai/glm-4.7",
-    "pricing": {
-      "inputPer1M": 0.4,
-      "outputPer1M": 1.75,
-      "cachedInputPer1M": 0.08
-    }
+    "family": "nemotron-3-super-120b-a12b",
+    "wireId": "nvidia/nemotron-3-super-120b-a12b"
+  },
+  {
+    "family": "gpt-5.4-pro",
+    "wireId": "openai/gpt-5.4-pro"
+  },
+  {
+    "family": "gpt-5.4",
+    "wireId": "openai/gpt-5.4"
+  },
+  {
+    "family": "gemini-3.1-flash-lite-preview",
+    "wireId": "google/gemini-3.1-flash-lite-preview"
+  },
+  {
+    "family": "gemini-3.1-pro-preview-customtools",
+    "wireId": "google/gemini-3.1-pro-preview-customtools"
+  },
+  {
+    "family": "gpt-5.3-codex",
+    "wireId": "openai/gpt-5.3-codex"
+  },
+  {
+    "family": "gemini-3.1-pro-preview",
+    "wireId": "google/gemini-3.1-pro-preview"
+  },
+  {
+    "family": "claude-opus-4.6",
+    "wireId": "anthropic/claude-opus-4.6"
+  },
+  {
+    "family": "gpt-audio",
+    "wireId": "openai/gpt-audio"
+  },
+  {
+    "family": "gpt-audio-mini",
+    "wireId": "openai/gpt-audio-mini"
+  },
+  {
+    "family": "gpt-5.2-codex",
+    "wireId": "openai/gpt-5.2-codex"
+  },
+  {
+    "family": "gemini-3-flash-preview",
+    "wireId": "google/gemini-3-flash-preview"
+  },
+  {
+    "family": "gpt-5.2-chat",
+    "wireId": "openai/gpt-5.2-chat"
+  },
+  {
+    "family": "gpt-5.2-pro",
+    "wireId": "openai/gpt-5.2-pro"
+  },
+  {
+    "family": "gpt-5.2",
+    "wireId": "openai/gpt-5.2"
+  },
+  {
+    "family": "gpt-5.1-codex-max",
+    "wireId": "openai/gpt-5.1-codex-max"
   },
   {
     "family": "deepseek-v3.2",
@@ -253,36 +257,235 @@
     }
   },
   {
-    "family": "kimi-k2-thinking",
-    "wireId": "moonshotai/kimi-k2-thinking",
-    "pricing": {
-      "inputPer1M": 0.6,
-      "outputPer1M": 2.5,
-      "cachedInputPer1M": 0.15
-    }
+    "family": "claude-opus-4.5",
+    "wireId": "anthropic/claude-opus-4.5"
   },
   {
-    "family": "gemini-2.5-flash-lite",
-    "wireId": "google/gemini-2.5-flash-lite"
+    "family": "gpt-5.1-codex",
+    "wireId": "openai/gpt-5.1-codex"
   },
   {
-    "family": "gemini-2.5-flash",
-    "wireId": "google/gemini-2.5-flash"
+    "family": "gpt-5.1-codex-mini",
+    "wireId": "openai/gpt-5.1-codex-mini"
   },
   {
-    "family": "hy-mt2-1.8b",
-    "wireId": "tencent/hy-mt2-1.8b"
+    "family": "gpt-oss-safeguard-20b",
+    "wireId": "openai/gpt-oss-safeguard-20b"
   },
   {
-    "family": "hy-mt2-30b-a3b",
-    "wireId": "tencent/hy-mt2-30b-a3b"
+    "family": "claude-haiku-4.5",
+    "wireId": "anthropic/claude-haiku-4.5"
   },
   {
-    "family": "deepseek-v4-flash-vision-exp",
-    "wireId": "deepseek/deepseek-v4-flash-vision-exp"
+    "family": "gpt-5-pro",
+    "wireId": "openai/gpt-5-pro"
   },
   {
-    "family": "hy-mt2-7b",
-    "wireId": "tencent/hy-mt2-7b"
+    "family": "claude-sonnet-4.5",
+    "wireId": "anthropic/claude-sonnet-4.5"
+  },
+  {
+    "family": "gpt-5",
+    "wireId": "openai/gpt-5"
+  },
+  {
+    "family": "gpt-5-nano",
+    "wireId": "openai/gpt-5-nano"
+  },
+  {
+    "family": "claude-opus-4.1",
+    "wireId": "anthropic/claude-opus-4.1"
+  },
+  {
+    "family": "gemini-2.5-pro",
+    "wireId": "google/gemini-2.5-pro"
+  },
+  {
+    "family": "o3-pro",
+    "wireId": "openai/o3-pro"
+  },
+  {
+    "family": "gemini-2.5-pro-preview",
+    "wireId": "google/gemini-2.5-pro-preview"
+  },
+  {
+    "family": "claude-opus-4",
+    "wireId": "anthropic/claude-opus-4"
+  },
+  {
+    "family": "claude-sonnet-4",
+    "wireId": "anthropic/claude-sonnet-4"
+  },
+  {
+    "family": "gemini-2.5-pro-preview-05-06",
+    "wireId": "google/gemini-2.5-pro-preview-05-06"
+  },
+  {
+    "family": "o4-mini-high",
+    "wireId": "openai/o4-mini-high"
+  },
+  {
+    "family": "o3",
+    "wireId": "openai/o3"
+  },
+  {
+    "family": "o4-mini",
+    "wireId": "openai/o4-mini"
+  },
+  {
+    "family": "gpt-4.1",
+    "wireId": "openai/gpt-4.1"
+  },
+  {
+    "family": "gpt-4.1-mini",
+    "wireId": "openai/gpt-4.1-mini"
+  },
+  {
+    "family": "gpt-4.1-nano",
+    "wireId": "openai/gpt-4.1-nano"
+  },
+  {
+    "family": "o1-pro",
+    "wireId": "openai/o1-pro"
+  },
+  {
+    "family": "gemma-3-4b-it",
+    "wireId": "google/gemma-3-4b-it"
+  },
+  {
+    "family": "gemma-3-12b-it",
+    "wireId": "google/gemma-3-12b-it"
+  },
+  {
+    "family": "gemma-3-27b-it",
+    "wireId": "google/gemma-3-27b-it"
+  },
+  {
+    "family": "o3-mini-high",
+    "wireId": "openai/o3-mini-high"
+  },
+  {
+    "family": "o3-mini",
+    "wireId": "openai/o3-mini"
+  },
+  {
+    "family": "o1",
+    "wireId": "openai/o1"
+  },
+  {
+    "family": "gpt-4o-mini",
+    "wireId": "openai/gpt-4o-mini"
+  },
+  {
+    "family": "gemma-2-27b-it",
+    "wireId": "google/gemma-2-27b-it"
+  },
+  {
+    "family": "gpt-4o",
+    "wireId": "openai/gpt-4o"
+  },
+  {
+    "family": "gpt-4-turbo",
+    "wireId": "openai/gpt-4-turbo"
+  },
+  {
+    "family": "claude-3-haiku",
+    "wireId": "anthropic/claude-3-haiku"
+  },
+  {
+    "family": "gpt-4-turbo-preview",
+    "wireId": "openai/gpt-4-turbo-preview"
+  },
+  {
+    "family": "gpt-3.5-turbo-16k",
+    "wireId": "openai/gpt-3.5-turbo-16k"
+  },
+  {
+    "family": "gpt-3.5-turbo",
+    "wireId": "openai/gpt-3.5-turbo"
+  },
+  {
+    "family": "gpt-4",
+    "wireId": "openai/gpt-4"
+  },
+  {
+    "family": "gemini-3.1-flash-image",
+    "wireId": "google/gemini-3.1-flash-image"
+  },
+  {
+    "family": "gemini-2.5-flash-image",
+    "wireId": "google/gemini-2.5-flash-image"
+  },
+  {
+    "family": "gemini-3.1-flash-lite-image",
+    "wireId": "google/gemini-3.1-flash-lite-image"
+  },
+  {
+    "family": "gemini-3.1-flash-image-preview",
+    "wireId": "google/gemini-3.1-flash-image-preview"
+  },
+  {
+    "family": "gpt-image-2",
+    "wireId": "openai/gpt-image-2"
+  },
+  {
+    "family": "gemini-3-pro-image-preview",
+    "wireId": "google/gemini-3-pro-image-preview"
+  },
+  {
+    "family": "gemini-3-pro-image",
+    "wireId": "google/gemini-3-pro-image"
+  },
+  {
+    "family": "gpt-5.4-image-2",
+    "wireId": "openai/gpt-5.4-image-2"
+  },
+  {
+    "family": "seedream-4.5",
+    "wireId": "bytedance-seed/seedream-4.5"
+  },
+  {
+    "family": "grok-imagine-image-quality",
+    "wireId": "x-ai/grok-imagine-image-quality"
+  },
+  {
+    "family": "flux.2-pro",
+    "wireId": "black-forest-labs/flux.2-pro"
+  },
+  {
+    "family": "grok-imagine-image-2.0",
+    "wireId": "x-ai/grok-imagine-image-2.0"
+  },
+  {
+    "family": "mai-image-2.5",
+    "wireId": "microsoft/mai-image-2.5"
+  },
+  {
+    "family": "flux.2-klein-4b",
+    "wireId": "black-forest-labs/flux.2-klein-4b"
+  },
+  {
+    "family": "seedream-5-0-pro",
+    "wireId": "bytedance-seed/seedream-5-0-pro"
+  },
+  {
+    "family": "qwen-image-3",
+    "wireId": "qwen/qwen-image-3"
+  },
+  {
+    "family": "krea-2-medium",
+    "wireId": "krea/krea-2-medium"
+  },
+  {
+    "family": "flux.2-max",
+    "wireId": "black-forest-labs/flux.2-max"
+  },
+  {
+    "family": "gpt-5-image-mini",
+    "wireId": "openai/gpt-5-image-mini"
+  },
+  {
+    "family": "krea-2-medium-turbo",
+    "wireId": "krea/krea-2-medium-turbo"
   }
 ]

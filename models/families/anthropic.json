@@ -128,6 +128,159 @@
     },
     "contextWindow": 1000000,
     "maxTokens": 128000,
-    "note": "Added automatically on 2026-08-19 from OpenRouter's catalog (listed 2026-07-24); numbers and flags are OpenRouter's."
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-24); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4.8-fast": {
+    "displayName": "Claude Opus 4.8 (Fast)",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 50,
+      "cachedInputPer1M": 1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-27); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4.7-fast": {
+    "displayName": "Claude Opus 4.7 (Fast)",
+    "pricing": {
+      "inputPer1M": 30,
+      "outputPer1M": 150,
+      "cachedInputPer1M": 3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-12); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4.6": {
+    "displayName": "Claude Opus 4.6",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 25,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-02-04); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4.5": {
+    "displayName": "Claude Opus 4.5",
+    "pricing": {
+      "inputPer1M": 5,
+      "outputPer1M": 25,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 64000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-11-24); numbers and flags are OpenRouter's."
+  },
+  "claude-sonnet-4.5": {
+    "displayName": "Claude Sonnet 4.5",
+    "pricing": {
+      "inputPer1M": 3,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 64000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-09-29); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4.1": {
+    "displayName": "Claude Opus 4.1",
+    "pricing": {
+      "inputPer1M": 15,
+      "outputPer1M": 75,
+      "cachedInputPer1M": 1.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 32000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-08-05); numbers and flags are OpenRouter's."
+  },
+  "claude-opus-4": {
+    "displayName": "Claude Opus 4",
+    "pricing": {
+      "inputPer1M": 15,
+      "outputPer1M": 75,
+      "cachedInputPer1M": 1.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 200000,
+    "maxTokens": 32000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-05-22); numbers and flags are OpenRouter's."
+  },
+  "claude-sonnet-4": {
+    "displayName": "Claude Sonnet 4",
+    "pricing": {
+      "inputPer1M": 3,
+      "outputPer1M": 15,
+      "cachedInputPer1M": 0.3
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 64000,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-05-22); numbers and flags are OpenRouter's."
+  },
+  "claude-3-haiku": {
+    "displayName": "Claude 3 Haiku",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.25,
+      "cachedInputPer1M": 0.03
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false
+    },
+    "contextWindow": 200000,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-03-13); numbers and flags are OpenRouter's."
   }
 }

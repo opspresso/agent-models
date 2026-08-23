@@ -1,52 +1,4 @@
 {
-  "qwen3.8-max": {
-    "displayName": "Qwen3.8 Max",
-    "pricing": {
-      "inputPer1M": 2,
-      "outputPer1M": 6,
-      "cachedInputPer1M": 0.25
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1000000,
-    "maxTokens": 131072
-  },
-  "qwen3.8-2.4t-a95b": {
-    "displayName": "Qwen3.8 2.4T A95B",
-    "pricing": {
-      "inputPer1M": 2,
-      "outputPer1M": 6,
-      "cachedInputPer1M": 0.25
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": false,
-      "reasoning": true
-    },
-    "contextWindow": 1048576,
-    "maxTokens": 131072
-  },
-  "qwen3.8-27b": {
-    "displayName": "Qwen3.8 27B",
-    "pricing": {
-      "inputPer1M": 0.4,
-      "outputPer1M": 3,
-      "cachedInputPer1M": 0.05
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1000000,
-    "maxTokens": 131072
-  },
   "qwen3-coder-next": {
     "displayName": "Qwen3 Coder Next",
     "pricing": {
@@ -79,21 +31,39 @@
     "maxTokens": 16384,
     "note": "Price is AWS's own (Pricing API, us-east-1 standard-tier mantle rows); window and capability flags from OpenRouter's entry for the same open-weight model, the only machine-readable source that carries them."
   },
-  "qwen3.7-flash": {
-    "displayName": "Qwen3.7 Flash",
+  "qwen3.8-max": {
+    "displayName": "Qwen3.8 Max",
     "pricing": {
-      "inputPer1M": 0.03,
-      "outputPer1M": 0.13,
-      "cachedInputPer1M": 0.006
+      "inputPer1M": 2,
+      "outputPer1M": 6,
+      "cachedInputPer1M": 0.25
     },
     "capabilities": {
       "tools": true,
-      "structuredOutput": false,
+      "structuredOutput": true,
       "imageInput": true,
       "reasoning": true
     },
     "contextWindow": 1000000,
+    "maxTokens": 131072,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-08-03); numbers and flags are OpenRouter's."
+  },
+  "qwen-image-3": {
+    "displayName": "Qwen Image 3",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 7.18562874
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
     "maxTokens": 65536,
-    "note": "Added automatically on 2026-08-19 from OpenRouter's catalog (listed 2026-07-27); numbers and flags are OpenRouter's."
+    "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }
