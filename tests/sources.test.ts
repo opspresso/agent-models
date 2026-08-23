@@ -280,6 +280,20 @@ describe("applyOpenRouter", () => {
     assert.ok(result.changes.some((c) => c.field === "contextWindow"));
   });
 
+  it("refreshes a router-only family's output cap from endpoints when the aggregate cap is missing", () => {
+    const model = { ...DEEPSEEK_Z_LISTED, top_provider: { max_completion_tokens: null } };
+    const catalog = orCatalog([model], {
+      endpoints: {
+        [model.id]: [
+          { context_length: 1_048_576, max_completion_tokens: 131_072 },
+          { context_length: 1_048_576, max_completion_tokens: 262_144 },
+        ],
+      },
+    });
+    const { registry } = applyOpenRouter(fixture(), catalog, TODAY);
+    assert.equal(registry.families["deepseek-z"]!.maxTokens, 262_144);
+  });
+
   it("refuses an output cap the catalog puts above the window", () => {
     const catalog = orCatalog([
       { ...DEEPSEEK_Z_LISTED, context_length: 100_000, top_provider: { max_completion_tokens: 400_000 } },
@@ -697,6 +711,42 @@ describe("discoverOpenRouter", () => {
       { provider: "openrouter", family: "deepseek-z2", wireId: "deepseek/deepseek-z2" },
     );
     assert.deepEqual(result.changes.map((c) => c.field), ["added"]);
+  });
+
+  it("adds an eligible text model from its largest usable endpoint cap when the aggregate cap is missing", () => {
+    const input = fixture();
+    input.makers.moonshot = { displayName: "Moonshot AI", openrouterVendor: "moonshotai" };
+    const model = {
+      ...NEW_TEXT,
+      id: "moonshotai/kimi-k3",
+      canonical_slug: "moonshotai/kimi-k3-20260715",
+      name: "MoonshotAI: Kimi K3",
+      created: OLD,
+      context_length: 1_048_576,
+      top_provider: { max_completion_tokens: null },
+    };
+    const ranking = {
+      ...NEW_TEXT_RANKING,
+      model_permaslug: model.canonical_slug,
+      variant_permaslug: model.canonical_slug,
+    };
+    const { registry, result } = discoverOpenRouter(
+      input,
+      orCatalog([model], {
+        endpoints: {
+          [model.id]: [
+            { context_length: 1_048_576, max_completion_tokens: 16_384 },
+            { context_length: 1_048_576, max_completion_tokens: 262_144 },
+            { context_length: 65_536, max_completion_tokens: 131_072 },
+          ],
+        },
+        rankings: [ranking],
+      }),
+      TODAY,
+    );
+    assert.equal(registry.families["kimi-k3"]?.maxTokens, 262_144);
+    assert.ok(registry.offerings.some((offering) => offering.wireId === model.id));
+    assert.ok(!result.notes.some((note) => note.includes("no usable max output")));
   });
 
   it("carries the listing's discount on a new router-only family", () => {

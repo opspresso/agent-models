@@ -26,7 +26,8 @@
  *     the router is one API, and "also via openrouter" is cheap to be right about.
  *   - A new family, when a known maker's model is a recent major-provider
  *     listing or ranks in OpenRouter's weekly top 20 open- or closed-weight
- *     models, is priced text and states its output cap.
+ *     models, is priced text and states its output cap in the aggregate model
+ *     or at least one endpoint.
  *   - An image family and route when the model ranks in the weekly image top
  *     20 and its endpoint states a price and limits (including explicit zero
  *     limits for image-only models). Its maker is adopted with it when the
@@ -344,6 +345,25 @@ function isImageLimit(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
+/** Prefer the aggregate cap; otherwise use the largest endpoint OpenRouter can route the request to. */
+function textMaxTokens(
+  model: OpenRouterModel,
+  endpoints: OpenRouterEndpoint[] | null | undefined,
+): number | null {
+  const window = model.context_length;
+  if (!isPositiveInt(window)) return null;
+  const aggregate = model.top_provider?.max_completion_tokens;
+  if (isPositiveInt(aggregate) && aggregate <= window) return aggregate;
+  const usable = (endpoints ?? []).flatMap((endpoint) => {
+    const maxOut = endpoint.max_completion_tokens;
+    const endpointWindow = isPositiveInt(endpoint.context_length)
+      ? Math.min(endpoint.context_length, window)
+      : window;
+    return isPositiveInt(maxOut) && maxOut <= endpointWindow ? [maxOut] : [];
+  });
+  return usable.length > 0 ? Math.max(...usable) : null;
+}
+
 /** A reset may only proceed when every policy input and ranked image endpoint is usable. */
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
   if (catalog.rankings === null || catalog.imageRankings === null) return false;
@@ -496,14 +516,13 @@ export function applyOpenRouter(
         changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
         family.contextWindow = window;
       }
-      const maxOut = entry.top_provider?.max_completion_tokens;
-      if (isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
-        if (maxOut > family.contextWindow) {
-          notes.push(`${id}: OpenRouter states max_completion_tokens ${maxOut} above the ${family.contextWindow} window; left alone`);
-        } else {
-          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-          family.maxTokens = maxOut;
-        }
+      const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
+      const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
+      if (maxOut !== null && maxOut !== family.maxTokens) {
+        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
+        family.maxTokens = maxOut;
+      } else if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
+        notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${family.contextWindow} window; left alone`);
       }
       if (offering.pricing !== undefined) {
         changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: undefined });
@@ -963,14 +982,14 @@ export function discoverOpenRouter(
     if (price === null) {
       continue;
     }
-    const maxOut = model.top_provider?.max_completion_tokens;
     const window = model.context_length;
     if (!isPositiveInt(window)) {
       notes.push(`openrouter: new model ${model.id} states no context window; add it by hand`);
       continue;
     }
-    if (!isPositiveInt(maxOut) || maxOut > window) {
-      notes.push(`openrouter: new model ${model.id} states no usable max output (${maxOut ?? "none"} against a ${window} window); add it by hand`);
+    const maxOut = textMaxTokens(model, catalog.endpoints[model.id]);
+    if (maxOut === null) {
+      notes.push(`openrouter: new model ${model.id} states no usable max output (${model.top_provider?.max_completion_tokens ?? "none"} against a ${window} window); add it by hand`);
       continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[model.id]);

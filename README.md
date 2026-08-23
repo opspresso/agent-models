@@ -152,8 +152,9 @@ are added and retired by hand, with numbers from the AWS Pricing API.
 
 **A new family** is created from OpenRouter's catalog when a listing is filed under a maker's
 `openrouterVendor` in `makers.json`; is a priced text model (not `:free`/`:batch`/`:nitro`
-variants or a `-20250929`/`-0813` dated snapshot); and states both a context window and a
-usable max output. It must also be either from OpenAI, Anthropic, Google or xAI and first
+variants or a `-20250929`/`-0813` dated snapshot); and states a context window plus a usable
+max output in the aggregate model or at least one endpoint. It must also be either from
+OpenAI, Anthropic, Google or xAI and first
 listed within the last **30 days**, or present in the weekly usage leaderboard's first
 **20 open-weight** or first **20 closed-weight** rows. Ranked models are eligible regardless
 of listing age. The ranking is the same one shown at
@@ -163,8 +164,10 @@ qualifies its standard model family.
 
 The text family gets OpenRouter's numbers and flags (`tools`, `structured_outputs`, image
 input, `reasoning`), a `note` saying when and where it came from, and an OpenRouter route.
+The aggregate max output is preferred; when it is absent, the largest valid endpoint cap is
+used because OpenRouter routes a `max_tokens` request only to endpoints that support it.
 An eligible text model from a maker this registry does not know and an eligible listing
-without an output cap go to the *needs a look* list instead. Unranked non-major text models
+without any output cap go to the *needs a look* list instead. Unranked non-major text models
 are ignored. If the public text rankings feed fails or changes shape, the run still updates
 existing routes and major-maker additions but adds no text family from another maker. Older
 unranked listings are the backlog, which is a person's — the window keeps a first run from
