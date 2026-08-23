@@ -34,8 +34,8 @@
   "qwen3.8-27b": {
     "displayName": "Qwen3.8 27B",
     "pricing": {
-      "inputPer1M": 0.45,
-      "outputPer1M": 3.2,
+      "inputPer1M": 0.4,
+      "outputPer1M": 3,
       "cachedInputPer1M": 0.05
     },
     "capabilities": {

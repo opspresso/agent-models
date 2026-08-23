@@ -2,10 +2,9 @@
   "deepseek-v4-flash": {
     "displayName": "DeepSeek V4 Flash",
     "pricing": {
-      "inputPer1M": 0.07826,
-      "outputPer1M": 0.15652,
-      "cachedInputPer1M": 0.015652,
-      "discount": 0.441
+      "inputPer1M": 0.05446,
+      "outputPer1M": 0.10892,
+      "cachedInputPer1M": 0.010892
     },
     "capabilities": {
       "tools": true,
@@ -19,10 +18,10 @@
   "deepseek-v4-pro": {
     "displayName": "DeepSeek V4 Pro",
     "pricing": {
-      "inputPer1M": 0.54897,
-      "outputPer1M": 1.09794,
-      "cachedInputPer1M": 0.0457475,
-      "discount": 0.6845
+      "inputPer1M": 0.413772,
+      "outputPer1M": 0.827544,
+      "cachedInputPer1M": 0.034481,
+      "discount": 0.7622
     },
     "capabilities": {
       "tools": true,
@@ -36,10 +35,10 @@
   "deepseek-v4-pro-0813": {
     "displayName": "DeepSeek V4 Pro 0813",
     "pricing": {
-      "inputPer1M": 1.188,
-      "outputPer1M": 3.564,
-      "cachedInputPer1M": 0.0396,
-      "discount": 0.1
+      "inputPer1M": 1.122,
+      "outputPer1M": 3.366,
+      "cachedInputPer1M": 0.0374,
+      "discount": 0.15
     },
     "capabilities": {
       "tools": true,

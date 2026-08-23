@@ -280,5 +280,9 @@
   {
     "family": "deepseek-v4-flash-vision-exp",
     "wireId": "deepseek/deepseek-v4-flash-vision-exp"
+  },
+  {
+    "family": "hy-mt2-7b",
+    "wireId": "tencent/hy-mt2-7b"
   }
 ]

@@ -46,5 +46,21 @@
     "contextWindow": 8192,
     "maxTokens": 4096,
     "note": "Added automatically on 2026-08-21 from OpenRouter's catalog (listed 2026-08-20); numbers and flags are OpenRouter's."
+  },
+  "hy-mt2-7b": {
+    "displayName": "Hy-MT2-7B",
+    "pricing": {
+      "inputPer1M": 0.074,
+      "outputPer1M": 0.295
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": false
+    },
+    "contextWindow": 8192,
+    "maxTokens": 4096,
+    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-08-19); numbers and flags are OpenRouter's."
   }
 }
