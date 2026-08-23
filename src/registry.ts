@@ -21,7 +21,17 @@
  * registry can read it.
  */
 
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { basename, join } from "node:path";
 
 // ---------------------------------------------------------------------------
@@ -98,10 +108,22 @@ export interface ModelOffering {
   /**
    * `YYYY-MM-DD` the daily update first found this live route missing from its
    * provider's catalog. Cleared when it is back; turned into `hidden` after
-   * the grace period (`src/sources/presence.ts`). Bookkeeping, not a fact
+   * the successful-observation grace (`src/sources/presence.ts`). Bookkeeping, not a fact
    * about the model — the catalog does not carry it.
    */
   missingSince?: string;
+  /** Successful catalog observations in the current absence streak. */
+  missingObservations?: number;
+  /** Prevents retries on one UTC date from counting more than once. */
+  lastMissingAt?: string;
+  /** Why automation hid the route. Absent means a deliberate/manual retirement. */
+  hiddenReason?: "catalog" | "ranking" | "reset";
+  /** First successful ranking observation on which the route was ineligible. */
+  rankMissingSince?: string;
+  /** Successful ranking observations in the current ineligible streak. */
+  rankMissingObservations?: number;
+  /** Prevents retries on one UTC date from counting more than once. */
+  lastRankMissingAt?: string;
   note?: string;
 }
 
@@ -194,7 +216,13 @@ const OFFERING_KEYS = [
   "capabilities",
   "maxTokens",
   "hidden",
+  "hiddenReason",
   "missingSince",
+  "missingObservations",
+  "lastMissingAt",
+  "rankMissingSince",
+  "rankMissingObservations",
+  "lastRankMissingAt",
   "note",
 ] as const;
 
@@ -342,13 +370,21 @@ export function loadRegistry(root: string): Registry {
  * — so a script's change lands in the file a person would have edited.
  */
 export function writeRegistry(root: string, registry: Registry): void {
+  const errors = validateRegistry(registry);
+  if (errors.length > 0) {
+    throw new Error(`registry is invalid:\n  - ${errors.join("\n  - ")}`);
+  }
   const base = join(root, "models");
-  mkdirSync(join(base, "families"), { recursive: true });
-  mkdirSync(join(base, "offerings"), { recursive: true });
+  const transaction = mkdtempSync(join(root, ".models-write-"));
+  const staging = join(transaction, "models");
+  const backup = join(transaction, "previous");
+  try {
+    mkdirSync(join(staging, "families"), { recursive: true });
+    mkdirSync(join(staging, "offerings"), { recursive: true });
 
-  writeFileSync(join(base, "providers.json"), formatJson(registry.providers));
+  writeFileSync(join(staging, "providers.json"), formatJson(registry.providers));
   writeFileSync(
-    join(base, "makers.json"),
+    join(staging, "makers.json"),
     formatJson(
       Object.fromEntries(Object.entries(registry.makers).map(([id, maker]) => [id, orderedMaker(maker)])),
     ),
@@ -361,7 +397,7 @@ export function writeRegistry(root: string, registry: Registry): void {
     byMaker.set(maker, group);
   }
   for (const maker of Object.keys(registry.makers)) {
-    writeFileSync(join(base, "families", `${maker}.json`), formatJson(byMaker.get(maker) ?? {}));
+    writeFileSync(join(staging, "families", `${maker}.json`), formatJson(byMaker.get(maker) ?? {}));
   }
 
   const byProvider = new Map<string, Plain[]>();
@@ -371,7 +407,38 @@ export function writeRegistry(root: string, registry: Registry): void {
     byProvider.set(provider, group);
   }
   for (const provider of registry.providers) {
-    writeFileSync(join(base, "offerings", `${provider}.json`), formatJson(byProvider.get(provider) ?? []));
+    writeFileSync(join(staging, "offerings", `${provider}.json`), formatJson(byProvider.get(provider) ?? []));
+  }
+  const removals = join(base, "removals.json");
+  if (existsSync(removals)) {
+    copyFileSync(removals, join(staging, "removals.json"));
+  }
+
+    if (existsSync(base)) {
+      renameSync(base, backup);
+    }
+    try {
+      renameSync(staging, base);
+    } catch (error) {
+      if (existsSync(backup)) {
+        renameSync(backup, base);
+      }
+      throw error;
+    }
+    rmSync(backup, { recursive: true, force: true });
+  } finally {
+    rmSync(transaction, { recursive: true, force: true });
+  }
+}
+
+/** Write a generated file through a same-directory rename. */
+export function writeTextAtomic(path: string, text: string): void {
+  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    writeFileSync(temporary, text);
+    renameSync(temporary, path);
+  } finally {
+    rmSync(temporary, { force: true });
   }
 }
 
@@ -419,6 +486,18 @@ function unknownKeys(value: Plain, known: readonly string[]): string[] {
 
 function isPrice(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isSafeSlug(value: string): boolean {
+  return value.length <= 100 && /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/.test(value);
+}
+
+function isUtcDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+  const parsed = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
 }
 
 function checkPricing(where: string, pricing: unknown, partial: boolean, errors: string[]): void {
@@ -493,6 +572,12 @@ export function validateRegistry(registry: Registry): string[] {
 
   if (!Array.isArray(registry.providers) || registry.providers.some((p) => typeof p !== "string")) {
     errors.push("providers.json must be an array of strings");
+  } else {
+    for (const provider of registry.providers) {
+      if (!isSafeSlug(provider)) {
+        errors.push(`provider id "${provider}" must be a safe slug`);
+      }
+    }
   }
   // Self-hosted models are published by each deployment (Agent Studio's own
   // declarations), never by this catalog: a selfhosted entry published here
@@ -507,6 +592,9 @@ export function validateRegistry(registry: Registry): string[] {
     const vendors = new Map<string, string>();
     for (const [id, maker] of Object.entries(registry.makers)) {
       const where = `maker ${id}`;
+      if (!isSafeSlug(id)) {
+        errors.push(`maker id "${id}" must be a safe slug`);
+      }
       if (!isPlain(maker)) {
         errors.push(`${where}: not an object`);
         continue;
@@ -533,6 +621,9 @@ export function validateRegistry(registry: Registry): string[] {
   // Families
   for (const [id, family] of Object.entries(registry.families)) {
     const where = `family ${id}`;
+    if (!isSafeSlug(id)) {
+      errors.push(`${where}: id must be a safe slug`);
+    }
     if (!isPlain(family)) {
       errors.push(`${where}: not an object`);
       continue;
@@ -601,13 +692,34 @@ export function validateRegistry(registry: Registry): string[] {
     if (offering.hidden !== undefined && offering.hidden !== true) {
       errors.push(`${where}: hidden is either true or absent`);
     }
-    if (offering.missingSince !== undefined) {
-      if (typeof offering.missingSince !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(offering.missingSince)) {
-        errors.push(`${where}: missingSince must be a YYYY-MM-DD date`);
+    if (offering.hiddenReason !== undefined) {
+      if (!offering.hidden || !["catalog", "ranking", "reset"].includes(offering.hiddenReason)) {
+        errors.push(`${where}: hiddenReason requires hidden and must be catalog, ranking, or reset`);
       }
-      if (offering.hidden) {
+    }
+    if (offering.missingSince !== undefined) {
+      if (!isUtcDate(offering.missingSince)) {
+        errors.push(`${where}: missingSince must be a valid UTC date in YYYY-MM-DD form`);
+      }
+      if (offering.hidden && offering.hiddenReason !== "catalog") {
         errors.push(`${where}: a hidden route is not watched — drop missingSince`);
       }
+    }
+    for (const field of ["lastMissingAt", "rankMissingSince", "lastRankMissingAt"] as const) {
+      if (offering[field] !== undefined && !isUtcDate(offering[field])) {
+        errors.push(`${where}: ${field} must be a valid UTC date in YYYY-MM-DD form`);
+      }
+    }
+    for (const field of ["missingObservations", "rankMissingObservations"] as const) {
+      if (offering[field] !== undefined && !isCount(offering[field])) {
+        errors.push(`${where}: ${field} must be a positive integer`);
+      }
+    }
+    if ((offering.missingObservations === undefined) !== (offering.missingSince === undefined)) {
+      errors.push(`${where}: missingSince and missingObservations must be carried together`);
+    }
+    if ((offering.rankMissingObservations === undefined) !== (offering.rankMissingSince === undefined)) {
+      errors.push(`${where}: rankMissingSince and rankMissingObservations must be carried together`);
     }
     if (offering.note !== undefined && typeof offering.note !== "string") {
       errors.push(`${where}: note must be a string`);

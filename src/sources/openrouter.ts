@@ -24,10 +24,9 @@
  *   - A route to a family this registry already has, when the catalog lists
  *     an eligible model under its maker's vendor slug — the family is curated,
  *     the router is one API, and "also via openrouter" is cheap to be right about.
- *   - A new family, when a known maker's model appeared in the catalog within
- *     `DISCOVERY_WINDOW_DAYS`, is a priced text model, states its output cap,
- *     and is made by a major API provider or ranks in OpenRouter's weekly top
- *     20 open- or closed-weight models.
+ *   - A new family, when a known maker's model is a recent major-provider
+ *     listing or ranks in OpenRouter's weekly top 20 open- or closed-weight
+ *     models, is priced text and states its output cap.
  *   - An image family and route when the model ranks in the weekly image top
  *     20 and its endpoint states a price and limits (including explicit zero
  *     limits for image-only models). Its maker is adopted with it when the
@@ -35,9 +34,9 @@
  */
 
 import type { ModelCapabilities, ModelFamily, ModelPricing, PlacedOffering, Registry } from "../registry.ts";
-import { daysBetween, observePresence, utcDate } from "./presence.ts";
+import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isPositiveInt, perMillion, samePricing, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, isPositiveInt, perMillion, samePricing, type Change, type SourceResult } from "./types.ts";
 
 /** How far back a first listing counts as new. Older listings are the backlog, which is a person's. */
 export const DISCOVERY_WINDOW_DAYS = 30;
@@ -142,10 +141,21 @@ export interface OpenRouterDiscoveryOptions {
   bootstrap?: boolean;
 }
 
-async function fetchData(url: string, fetchFn: typeof fetch): Promise<unknown[]> {
-  const body = (await fetchJson(url, {}, fetchFn)) as { data?: unknown };
+async function fetchData(url: string, fetchFn: typeof fetch, complete = false): Promise<unknown[]> {
+  const body = (await fetchJson(url, {}, fetchFn)) as { data?: unknown; total_count?: unknown; links?: { next?: unknown } };
   if (!Array.isArray(body.data)) {
     throw new Error(`GET ${url} → no "data" array`);
+  }
+  if (complete) {
+    if (!Number.isInteger(body.total_count) || (body.total_count as number) < 0 || body.links === undefined || !("next" in body.links)) {
+      throw new Error(`GET ${url} → missing completeness metadata`);
+    }
+    if (body.total_count !== body.data.length) {
+      throw new Error(`GET ${url} → partial catalog (${body.data.length} of ${body.total_count} entries)`);
+    }
+    if (body.links.next !== null) {
+      throw new Error(`GET ${url} → paginated catalog is incomplete`);
+    }
   }
   return body.data;
 }
@@ -212,7 +222,7 @@ export async function fetchOpenRouterCatalog(
     () => ({ ok: false as const }),
   );
   const [models, images, rankingsResult, imageRankingsResult] = await Promise.all([
-    fetchData(OPENROUTER_MODELS_URL, fetchFn),
+    fetchData(OPENROUTER_MODELS_URL, fetchFn, true),
     fetchData(OPENROUTER_IMAGE_MODELS_URL, fetchFn),
     rankingsRequest,
     imageRankingsRequest,
@@ -229,21 +239,27 @@ export async function fetchOpenRouterCatalog(
   // The empty guards catch a missing list; these catch a renamed id field —
   // raw entries none of which carry an id would read as a catalog that
   // retired everything at once.
-  if (idsOf(models).length === 0) {
-    throw new Error(`GET ${OPENROUTER_MODELS_URL} → no usable entries (shape drift?)`);
+  if (!models.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENROUTER_MODELS_URL} → invalid or no usable entries (shape drift?)`);
   }
-  if (idsOf(images).length === 0) {
-    throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → no usable entries (shape drift?)`);
+  if (!images.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
   }
-  const rankings = rankingsResult.ok && rankingsResult.data.length > 0 && rankingsResult.data.every(isRanking)
+  let rankings = rankingsResult.ok && rankingsResult.data.length > 0 && rankingsResult.data.every(isRanking)
     ? rankingsResult.data as OpenRouterRanking[]
     : null;
-  const imageRankings = imageRankingsResult.ok
+  let imageRankings = imageRankingsResult.ok
       && imageRankingsResult.data.length > 0
       && imageRankingsResult.data.every(isImageRanking)
     ? imageRankingsResult.data as OpenRouterImageRanking[]
     : null;
   const imageModels = images as OpenRouterImageModel[];
+  if (rankings !== null && leaderboardPermaslugs(models as OpenRouterModel[], rankings)?.size !== LEADERBOARD_LIMIT * 2) {
+    rankings = null;
+  }
+  if (imageRankings !== null && imageLeaderboardIds(imageModels, imageRankings)?.length !== LEADERBOARD_LIMIT) {
+    imageRankings = null;
+  }
   const imageLeaderboard = imageLeaderboardIds(imageModels, imageRankings) ?? [];
   const listed = new Set([...idsOf(models), ...idsOf(images)]);
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
@@ -259,7 +275,10 @@ export async function fetchOpenRouterCatalog(
           const body = (await fetchJson(openRouterEndpointsUrl(id), {}, fetchFn)) as {
             data?: { endpoints?: unknown };
           };
-          endpoints[id] = Array.isArray(body.data?.endpoints) ? (body.data.endpoints as OpenRouterEndpoint[]) : [];
+          if (!Array.isArray(body.data?.endpoints)) {
+            throw new Error("no endpoints array");
+          }
+          endpoints[id] = body.data.endpoints as OpenRouterEndpoint[];
         } catch {
           endpoints[id] = null;
         }
@@ -293,8 +312,19 @@ function tokenPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | 
   };
 }
 
+function standardImageEndpoint(endpoints: OpenRouterEndpoint[] | null | undefined): OpenRouterEndpoint | undefined {
+  return endpoints
+    ?.filter((candidate) => {
+      const tier = `${candidate.tag ?? ""} ${candidate.provider_name ?? ""}`.toLowerCase();
+      return Number(candidate.pricing?.image_output) > 0 && !tier.includes("flex") && !tier.includes("priority");
+    })
+    .sort((left, right) =>
+      `${left.tag ?? ""}\0${left.provider_name ?? ""}`.localeCompare(`${right.tag ?? ""}\0${right.provider_name ?? ""}`),
+    )[0];
+}
+
 function imagePricing(endpoints: OpenRouterEndpoint[] | null | undefined): ModelPricing | null {
-  const endpoint = endpoints?.find((candidate) => Number(candidate.pricing?.image_output) > 0);
+  const endpoint = standardImageEndpoint(endpoints);
   const imageOutput = Number(endpoint?.pricing?.image_output);
   if (!(imageOutput > 0)) {
     return null;
@@ -312,6 +342,22 @@ function imagePricing(endpoints: OpenRouterEndpoint[] | null | undefined): Model
 
 function isImageLimit(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+/** A reset may only proceed when every policy input and ranked image endpoint is usable. */
+export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
+  if (catalog.rankings === null || catalog.imageRankings === null) return false;
+  const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
+  if (ids === null || ids.length !== LEADERBOARD_LIMIT) return false;
+  return ids.every((id) => {
+    const endpoint = standardImageEndpoint(catalog.endpoints[id]);
+    const window = endpoint?.context_length;
+    const maxOut = endpoint?.max_completion_tokens ?? window;
+    return imagePricing(catalog.endpoints[id]) !== null
+      && isImageLimit(window)
+      && isImageLimit(maxOut)
+      && maxOut <= window;
+  });
 }
 
 /**
@@ -370,7 +416,7 @@ export function applyOpenRouter(
   const notes: string[] = [];
 
   for (const offering of next.offerings) {
-    if (offering.provider !== "openrouter" || offering.wireId === undefined || offering.hidden) {
+    if (offering.provider !== "openrouter" || offering.wireId === undefined || (offering.hidden && offering.hiddenReason !== "catalog")) {
       continue;
     }
     const id = `openrouter/${offering.family}`;
@@ -392,23 +438,21 @@ export function applyOpenRouter(
       if (!routerOnly) {
         continue;
       }
-      const endpoint = catalog.endpoints[offering.wireId]?.find(
-        (candidate) => Number(candidate.pricing?.image_output) > 0,
-      );
+      const endpoint = standardImageEndpoint(catalog.endpoints[offering.wireId]);
       const price = imagePricing(catalog.endpoints[offering.wireId]);
       if (price !== null && !samePricing({ ...family.pricing }, { ...price })) {
         changes.push({ target: `family ${offering.family}`, field: "pricing", from: family.pricing, to: price });
         family.pricing = price;
       }
       const window = endpoint?.context_length;
-      if (isPositiveInt(window) && window !== family.contextWindow) {
+      if (isImageLimit(window) && window !== family.contextWindow) {
         changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
         family.contextWindow = window;
       }
-      const maxOut = isPositiveInt(endpoint?.max_completion_tokens)
+      const maxOut = isImageLimit(endpoint?.max_completion_tokens)
         ? endpoint.max_completion_tokens
         : window;
-      if (isPositiveInt(maxOut) && maxOut <= family.contextWindow && maxOut !== family.maxTokens) {
+      if (isImageLimit(maxOut) && maxOut <= family.contextWindow && maxOut !== family.maxTokens) {
         changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
         family.maxTokens = maxOut;
       }
@@ -639,7 +683,8 @@ function isRecent(model: OpenRouterModel, today: string): boolean {
   if (typeof model.created !== "number" || !Number.isFinite(model.created)) {
     return false;
   }
-  return daysBetween(utcDate(new Date(model.created * 1000)), today) <= DISCOVERY_WINDOW_DAYS;
+  const age = daysBetween(utcDate(new Date(model.created * 1000)), today);
+  return age >= 0 && age <= DISCOVERY_WINDOW_DAYS;
 }
 
 function isEligibleModel(
@@ -703,7 +748,7 @@ function discoverRankedImages(
     }
 
     const endpoints = catalog.endpoints[id];
-    const endpoint = endpoints?.find((candidate) => Number(candidate.pricing?.image_output) > 0);
+    const endpoint = standardImageEndpoint(endpoints);
     const price = imagePricing(endpoints);
     const window = endpoint?.context_length;
     if (price === null || !isImageLimit(window)) {
@@ -753,27 +798,27 @@ function discoverRankedImages(
   }
 }
 
-/** Drop every OpenRouter route and any family that no remaining provider serves. */
+/** Hide every live OpenRouter route without deleting any published id or family. */
 export function resetOpenRouterRegistry(registry: Registry): {
   registry: Registry;
-  removedFamilies: number;
-  removedOfferings: number;
+  deactivatedOfferings: number;
 } {
   const next = structuredClone(registry);
-  const beforeOfferings = next.offerings.length;
-  next.offerings = next.offerings.filter((offering) => offering.provider !== "openrouter");
-  const served = new Set(next.offerings.map((offering) => offering.family));
-  const beforeFamilies = Object.keys(next.families).length;
-  for (const family of Object.keys(next.families)) {
-    if (!served.has(family)) {
-      delete next.families[family];
+  let deactivatedOfferings = 0;
+  for (const offering of next.offerings) {
+    if (offering.provider === "openrouter" && !offering.hidden) {
+      offering.hidden = true;
+      offering.hiddenReason = "reset";
+      delete offering.missingSince;
+      delete offering.missingObservations;
+      delete offering.lastMissingAt;
+      delete offering.rankMissingSince;
+      delete offering.rankMissingObservations;
+      delete offering.lastRankMissingAt;
+      deactivatedOfferings += 1;
     }
   }
-  return {
-    registry: next,
-    removedFamilies: beforeFamilies - Object.keys(next.families).length,
-    removedOfferings: beforeOfferings - next.offerings.length,
-  };
+  return { registry: next, deactivatedOfferings };
 }
 
 /**
@@ -809,7 +854,8 @@ export function discoveryEndpointIds(
       if (!isEligibleModel(maker, model, rankedPermaslugs)) {
         return false;
       }
-      return options.bootstrap === true || isRecent(model, today) || registry.families[parts.slug] !== undefined;
+      const ranked = typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
+      return options.bootstrap === true || ranked || isRecent(model, today) || registry.families[parts.slug] !== undefined;
     })
     .map((model) => model.id);
 }
@@ -832,6 +878,29 @@ export function discoverOpenRouter(
   if (rankedPermaslugs === null) {
     notes.push("openrouter: weekly rankings could not be read; non-major models and routes were not added");
   }
+  const rankedImageIds = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
+  const textById = new Map(catalog.models.map((model) => [model.id, model]));
+  for (const offering of next.offerings) {
+    if (offering.provider !== "openrouter" || offering.wireId === undefined) continue;
+    const family = next.families[offering.family];
+    if (family?.capabilities.imageGeneration) {
+      if (rankedImageIds !== null) {
+        observeRankingEligibility(offering, rankedImageIds.includes(offering.wireId), today, changes, notes);
+      }
+      continue;
+    }
+    if (family !== undefined && MAJOR_MODEL_MAKERS.has(family.maker)) {
+      const eligible = offering.hiddenReason !== "reset" || textById.has(offering.wireId);
+      observeRankingEligibility(offering, eligible, today, changes, notes);
+      continue;
+    }
+    if (rankedPermaslugs !== null) {
+      const model = textById.get(offering.wireId);
+      const eligible = typeof model?.canonical_slug === "string" && rankedPermaslugs.has(model.canonical_slug);
+      observeRankingEligibility(offering, eligible, today, changes, notes);
+    }
+  }
+
   // Ids this registry already routes to, whatever family name it files them
   // under — `upstage/solar-pro4` is `solar-pro-4` here, not a second family.
   const routed = new Set(next.offerings.filter((o) => o.provider === "openrouter").map((o) => o.wireId));
@@ -845,7 +914,7 @@ export function discoverOpenRouter(
     const { vendor, slug } = parts;
     const maker = makerOfVendor.get(vendor);
     const leaderboardEligible = typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
-    const withinDiscoveryWindow = options.bootstrap === true || isRecent(model, today);
+    const withinDiscoveryWindow = options.bootstrap === true || leaderboardEligible || isRecent(model, today);
 
     if (maker === undefined) {
       if (leaderboardEligible && withinDiscoveryWindow && !isDated(slug) && tokenPricing(model) !== null) {

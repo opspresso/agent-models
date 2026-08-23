@@ -12,7 +12,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isPositiveInt, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
 export const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -41,6 +41,15 @@ export async function fetchAnthropicModels(
     };
     if (!Array.isArray(body.data)) {
       throw new Error(`GET ${url} → no "data" array`);
+    }
+    if (!body.data.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+      throw new Error(`GET ${url} → invalid entry (shape drift?)`);
+    }
+    if (body.has_more !== undefined && typeof body.has_more !== "boolean") {
+      throw new Error(`GET ${url} → invalid has_more (shape drift?)`);
+    }
+    if (body.has_more === true && !isExternalId(body.last_id)) {
+      throw new Error(`GET ${url} → has_more without a valid last_id`);
     }
     collected.push(...(body.data as AnthropicModel[]));
     if (body.has_more !== true || typeof body.last_id !== "string" || body.last_id === "") {
@@ -78,7 +87,7 @@ export function applyAnthropic(
   }
 
   for (const offering of next.offerings) {
-    if (offering.provider !== "anthropic" || offering.hidden) {
+    if (offering.provider !== "anthropic" || (offering.hidden && offering.hiddenReason !== "catalog")) {
       continue;
     }
     const family = next.families[offering.family];

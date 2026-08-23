@@ -70,7 +70,8 @@ models/
   providers.json              the routes a model id may be prefixed with, in catalog order
   makers.json                 maker id → { displayName, openrouterVendor? }
   families/<maker>.json       { "<family>": { displayName, pricing, capabilities, contextWindow, maxTokens, note? } }
-  offerings/<provider>.json   [ { family, wireId?, pricing?, capabilities?, maxTokens?, hidden?, missingSince?, note? } ]
+  offerings/<provider>.json   route overrides plus hidden/presence/ranking lifecycle bookkeeping
+  removals.json               exact published ids proposed for permanent removal through a PR
 ```
 
 A **family** states the model once — price, window, what it can do. An **offering** says a
@@ -111,6 +112,12 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 3. `pnpm build` — regenerates `docs/models.json`. CI fails if the committed catalog does not
    match its sources, so commit both.
 
+Published ids first become `hidden` tombstones. After automation hides a model at the end of its
+lifecycle grace period, it merges the routine update and then opens a separate draft deletion PR.
+That PR carries an exact `{ id, reason, requestedAt }` entry in `models/removals.json`, requests
+its code owner and is not auto-merged by the workflow. CI rejects removals without a request,
+while the `main` ruleset rejects direct pushes.
+
 Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models` (public),
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
 `/v1/models` (`max_input_tokens`, `max_tokens`), the AWS Pricing API for Bedrock (mind the
@@ -119,8 +126,8 @@ Google, which publish no API for it.
 
 ## Keeping it current
 
-`.github/workflows/update.yml` runs every day at 00:00 UTC (and on demand), commits
-whatever moved — which republishes the Pages site (`main:/docs`, served at
+`.github/workflows/update.yml` runs every day at 22:00 UTC (and on demand), validates whatever
+moved and merges routine updates through a pull request — which republishes the Pages site (`main:/docs`, served at
 `models.opspresso.com`) — and tells people about it. Three phases, every source
 independent of the others:
 
@@ -143,12 +150,13 @@ are added and retired by hand, with numbers from the AWS Pricing API.
 
 ### Additions
 
-**A new family** is created from OpenRouter's catalog when a listing is all of: filed under
-a maker's `openrouterVendor` in `makers.json`; made by OpenAI, Anthropic, Google or xAI, or
-present in the weekly usage leaderboard's first **20 open-weight** or first **20 closed-weight** rows;
-first listed within the last **30 days**; a priced text model (not
-`:free`/`:batch`/`:nitro` variants, not a `-20250929`/`-0813` dated snapshot); and stating
-both a context window and a usable max output. The ranking is the same one shown at
+**A new family** is created from OpenRouter's catalog when a listing is filed under a maker's
+`openrouterVendor` in `makers.json`; is a priced text model (not `:free`/`:batch`/`:nitro`
+variants or a `-20250929`/`-0813` dated snapshot); and states both a context window and a
+usable max output. It must also be either from OpenAI, Anthropic, Google or xAI and first
+listed within the last **30 days**, or present in the weekly usage leaderboard's first
+**20 open-weight** or first **20 closed-weight** rows. Ranked models are eligible regardless
+of listing age. The ranking is the same one shown at
 `openrouter.ai/rankings`: prompt and completion tokens are totalled by variant, models with
 a Hugging Face id are open weight, and the rest are closed weight. A ranked serving variant
 qualifies its standard model family.
@@ -159,8 +167,8 @@ An eligible text model from a maker this registry does not know and an eligible 
 without an output cap go to the *needs a look* list instead. Unranked non-major text models
 are ignored. If the public text rankings feed fails or changes shape, the run still updates
 existing routes and major-maker additions but adds no text family from another maker. Older
-listings are the backlog, which is a person's — the window keeps a first run from importing
-a vendor's whole history.
+unranked listings are the backlog, which is a person's — the window keeps a first run from
+importing a major vendor's whole history.
 
 **An image family** is created when it appears in the weekly image leaderboard's first
 **20 rows**, ordered by image-producing request count as on `openrouter.ai/rankings/image`.
@@ -185,26 +193,41 @@ discount moves to the router's offering).
 ### Retirement
 
 Every source also watches **presence**: whether each live route is still in its provider's
-catalog. A route that is not gets `missingSince` (the first day it was not found); the day
-it is back, the field goes. After **7 consecutive days** absent the route is set
+catalog. A route that is not gets `missingSince` and an observation count; retries on the
+same UTC date count once. The day it is back, the bookkeeping goes. After **7 successful
+absent catalog observations** the route is set
 `hidden: true`, `missingSince` is dropped and a sentence is appended to its `note` saying
-when and why. What it never does is delete: a stored configuration may still name the id,
-and past usage is priced by looking it up.
+when and why. The lifecycle update itself never deletes; it preserves the tombstone until
+the separate draft deletion PR is reviewed.
 
-A day a source could not be read is not observed at all — the clock neither starts nor
-advances — and an empty catalog is treated as a failed read, not as everything retired.
+OpenRouter also watches automatic eligibility. Non-major text routes must remain in the
+weekly open/closed Top 20 and image routes in the weekly image Top 20. Leaving that policy
+for **14 successful ranking observations** hides the route; re-entry restores it
+automatically. Major text makers are exempt. A failed or incomplete ranking read does not
+advance this lifecycle. Routes hidden manually remain manual and are never restored by
+automation.
+
+A source read that fails is not observed at all — neither lifecycle advances — and an empty,
+partial or malformed catalog is treated as a failed read, not as everything retired.
 Bedrock has no presence source, so its routes are retired by hand: set `hidden: true` and
 say why in `note`. OpenRouter's announced `expiration_date` (within a year) is reported ahead
 of time.
 
+Before anything is written, a safety gate quarantines suspicious bulk changes: removals,
+large addition bursts, provider-wide disappearance, order-of-magnitude price changes and
+large limit changes. The report is still produced for review, but `models/` remains
+unchanged. Network reads refuse redirects, time out after 30 seconds and cap JSON responses
+at 10 MiB. After reviewing the complete diff, a person may apply that exact anomaly set by
+rerunning with the digest-specific `--approve-anomaly=<digest>` printed in the report.
+
 ### Notifications
 
-Two channels with two jobs, both optional and both run after the commit
+Two channels with two jobs, both optional and run even when a later build or test fails
 (`scripts/notify.ts`):
 
 - **Slack** (`SLACK_WEBHOOK_URL`) carries *events*: a message per run that changed
   something — a price, a route added, a family added, a model retired — or could not read a
-  source, with the commit and the run linked. A quiet day posts nothing.
+  source, with the run linked. A quiet day posts nothing.
 - **A rolling GitHub issue** (the workflow's own token) carries *state*: "Model registry:
   needs a look", rewritten by every run with everything that needs a person — an unknown
   maker, a window a router disagrees on, an absence being counted down, a source that could
@@ -215,10 +238,10 @@ The job summary on every run still holds the full report: a table of what change
 *needs a look* list.
 
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
-read from the same environment variable names. `--reset-openrouter` removes every OpenRouter
-route and any family left without another route, then bootstraps OpenRouter from the full
-eligible catalog without the normal 30-day discovery window. The reset is not written if the
-catalog or either weekly rankings feed cannot be read.
+read from the same environment variable names. `--reset-openrouter` first preserves every
+OpenRouter route as a hidden reset tombstone, then restores or adds the routes allowed by the
+current major-maker and Top 20 policies. The reset is not written unless both rankings are
+complete and every image Top 20 endpoint has usable standard-tier price and limits.
 
 ## Commands
 
@@ -227,9 +250,11 @@ pnpm install
 pnpm format          # canonical key order + validation of models/
 pnpm build           # models/ → docs/models.json
 pnpm build:check     # exit 1 if docs/models.json is stale (CI)
+pnpm check-removals -- HEAD^ --pull-request # verify PR removals against models/removals.json
+pnpm propose-removals # turn update-report.json candidates into a draft-PR deletion patch
 pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
 pnpm update-models --reset-openrouter # rebuild only OpenRouter from all eligible models
-pnpm notify          # deliver update-report.json to Slack / the issue (CI runs it after the commit)
+pnpm notify          # deliver update-report.json to Slack / the issue
 pnpm typecheck
 pnpm test
 ```

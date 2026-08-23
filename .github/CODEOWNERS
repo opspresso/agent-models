@@ -1,1 +1,8 @@
 *     @nalbam @nalbam-me @nalbam-bot
+/models/
+/docs/models.json
+/.github/CODEOWNERS @nalbam
+/.github/workflows/ci.yml @nalbam
+/models/removals.json @nalbam
+/scripts/check-removals.ts @nalbam
+/src/removals.ts @nalbam

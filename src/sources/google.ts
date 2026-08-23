@@ -12,7 +12,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isPositiveInt, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
 export const GOOGLE_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_PAGES = 25;
@@ -35,6 +35,13 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
     };
     if (!Array.isArray(body.models)) {
       throw new Error(`GET ${GOOGLE_MODELS_URL} → no "models" array`);
+    }
+    if (!body.models.every((entry) => {
+      if (typeof entry !== "object" || entry === null || !isExternalId((entry as { name?: unknown }).name)) return false;
+      const methods = (entry as { supportedGenerationMethods?: unknown }).supportedGenerationMethods;
+      return methods === undefined || Array.isArray(methods) && methods.every((method) => typeof method === "string");
+    })) {
+      throw new Error(`GET ${url} → invalid entry (shape drift?)`);
     }
     collected.push(...(body.models as GoogleModel[]));
     if (typeof body.nextPageToken !== "string" || body.nextPageToken === "") {
@@ -79,7 +86,7 @@ export function applyGoogle(
   const notes: string[] = [];
   const byId = byFamilyId(catalog);
   for (const offering of next.offerings) {
-    if (offering.provider !== "google" || offering.hidden) {
+    if (offering.provider !== "google" || (offering.hidden && offering.hiddenReason !== "catalog")) {
       continue;
     }
     const family = next.families[offering.family];

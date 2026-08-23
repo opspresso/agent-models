@@ -17,7 +17,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, samePricing, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, samePricing, type Change, type SourceResult } from "./types.ts";
 
 export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
 /** The drawing models' own catalog — read for existence; their per-image price stays hand-kept. */
@@ -55,6 +55,17 @@ export async function fetchXaiCatalog(apiKey: string, fetchFn: typeof fetch = fe
     fetchModels(XAI_LANGUAGE_MODELS_URL, apiKey, fetchFn),
     fetchModels(XAI_IMAGE_MODELS_URL, apiKey, fetchFn),
   ]);
+  const valid = (entry: unknown): boolean => {
+    if (typeof entry !== "object" || entry === null || !isExternalId((entry as { id?: unknown }).id)) return false;
+    const aliases = (entry as { aliases?: unknown }).aliases;
+    return aliases === undefined || Array.isArray(aliases) && aliases.every(isExternalId);
+  };
+  if (!language.every(valid)) {
+    throw new Error(`GET ${XAI_LANGUAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
+  if (!images.every(valid)) {
+    throw new Error(`GET ${XAI_IMAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
   const imageNames: string[] = [];
   for (const entry of images as Array<{ id?: unknown; aliases?: unknown }>) {
     if (typeof entry.id === "string") {
@@ -101,7 +112,7 @@ export function applyXai(
   const drawn = new Set(catalog.imageNames);
 
   for (const offering of next.offerings) {
-    if (offering.provider !== "xai" || offering.hidden) {
+    if (offering.provider !== "xai" || (offering.hidden && offering.hiddenReason !== "catalog")) {
       continue;
     }
     const family = next.families[offering.family];

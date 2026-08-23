@@ -7,37 +7,41 @@ export type SourceOutcome =
   | { kind: "skipped"; source: string; reason: string }
   | { kind: "failed"; source: string; error: string };
 
+function inline(value: unknown): string {
+  return String(value).replaceAll("|", "\\|").replace(/[\r\n]+/g, " ").replaceAll("@", "&#64;");
+}
+
 function cell(value: unknown): string {
   if (value === undefined) {
     return "—";
   }
-  return `\`${JSON.stringify(value)}\``;
+  return `\`${inline(JSON.stringify(value)).replaceAll("`", "\\`")}\``;
 }
 
 export function renderReport(outcomes: SourceOutcome[], date: string): string {
   const lines: string[] = [`## Model update — ${date}`, ""];
   for (const outcome of outcomes) {
     if (outcome.kind === "skipped") {
-      lines.push(`### ${outcome.source} — skipped`, "", outcome.reason, "");
+      lines.push(`### ${inline(outcome.source)} — skipped`, "", inline(outcome.reason), "");
       continue;
     }
     if (outcome.kind === "failed") {
-      lines.push(`### ${outcome.source} — failed`, "", "```", outcome.error, "```", "");
+      lines.push(`### ${inline(outcome.source)} — failed`, "", ...String(outcome.error).split(/\r?\n/).map((line) => `    ${inline(line)}`), "");
       continue;
     }
     const { source, changes, notes } = outcome.result;
-    lines.push(`### ${source} — ${changes.length} change${changes.length === 1 ? "" : "s"}`, "");
+    lines.push(`### ${inline(source)} — ${changes.length} change${changes.length === 1 ? "" : "s"}`, "");
     if (changes.length > 0) {
       lines.push("| Target | Field | From | To |", "|---|---|---|---|");
       for (const change of changes) {
-        lines.push(`| ${change.target} | ${change.field} | ${cell(change.from)} | ${cell(change.to)} |`);
+        lines.push(`| ${inline(change.target)} | ${inline(change.field)} | ${cell(change.from)} | ${cell(change.to)} |`);
       }
       lines.push("");
     }
     if (notes.length > 0) {
       lines.push("Needs a look:", "");
       for (const note of notes) {
-        lines.push(`- ${note}`);
+        lines.push(`- ${inline(note)}`);
       }
       lines.push("");
     }

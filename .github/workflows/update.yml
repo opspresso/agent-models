@@ -1,7 +1,7 @@
 name: Update models
 
 # Brings `models/` up to date with what the providers publish, republishes
-# `docs/models.json`, and tells people what moved — every day at 00:00 UTC, or
+# `docs/models.json`, and tells people what moved — every day at 22:00 UTC, or
 # on demand.
 #
 # OpenRouter's catalog is public and always read. The vendor catalogs are read
@@ -12,10 +12,10 @@ name: Update models
 # Optional repository secrets: XAI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,
 # GOOGLE_API_KEY, SLACK_WEBHOOK_URL.
 #
-# The commit is made with the workflow's own token, which is enough for the
-# Pages site (models.opspresso.com): it is served from `main:/docs` by the
-# classic Pages build, which runs on every push to the branch — the push below
-# included. The same token keeps the rolling "needs a look" issue.
+# The workflow's token merges routine changes through a pull request. A model
+# removal is proposed separately as a draft pull request for human review.
+# The resulting `main` update republishes the classic Pages site at
+# models.opspresso.com. The same token keeps the rolling "needs a look" issue.
 on:
   schedule:
     - cron: "0 22 * * *"
@@ -24,6 +24,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: write
 
 concurrency:
   group: update-models
@@ -32,16 +33,26 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
 
-      - uses: pnpm/action-setup@v6
+      - name: Sync the current main branch
+        run: |
+          git fetch origin main
+          git merge --ff-only origin/main
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
           version: 11.10.0
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -51,7 +62,7 @@ jobs:
 
       # Writes `models/`, `update-report.json` and the job summary. Exits 1 when
       # a source could not be read; the step is allowed to continue so what the
-      # other sources found is still built and committed, and the failure is
+      # other sources found is still built and proposed, and the failure is
       # raised again at the end.
       - name: Update sources from the providers
         id: update
@@ -67,10 +78,15 @@ jobs:
         run: pnpm build
 
       - name: Tests
-        run: pnpm test
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build:check
+          node scripts/check-removals.ts HEAD
 
-      - name: Commit and push when anything changed
-        id: commit
+      - name: Merge routine updates through a pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # `git diff --quiet` misses untracked files (a new maker's family
           # file) that `git add` below would include — porcelain sees both.
@@ -80,24 +96,63 @@ jobs:
           fi
           git config user.name "nalbam-bot"
           git config user.email "bot@nalbam.com"
+          branch="automation/update-models-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
           git add models docs
           git commit -m "chore: update models $(date -u +%F)"
-          # A human push while the job ran would otherwise fail the whole day.
-          git pull --rebase origin main
-          git push
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          gh auth setup-git
+          git push origin "$branch"
+          pr_url=$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: update models $(date -u +%F)" \
+            --body "Automated provider and leaderboard refresh from $RUN_URL")
+          gh pr merge "$pr_url" --squash --delete-branch
 
-      # After the commit, so the message can point at it. Slack carries what
-      # changed or failed; the issue carries what needs a person.
+      - name: Open a draft pull request for model removals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(node -e 'const r=require("./update-report.json"); process.stdout.write(String(r.removalCandidates?.length ?? 0))')" = "0" ]; then
+            echo "no model removals to propose"
+            exit 0
+          fi
+          open_pr=$(gh pr list --state open --json headRefName,url --jq '[.[] | select(.headRefName | startswith("automation/model-removals-"))][0].url // ""')
+          if [ -n "$open_pr" ]; then
+            echo "model removal pull request already open: $open_pr"
+            exit 0
+          fi
+          git fetch origin main
+          git switch main
+          git merge --ff-only origin/main
+          pnpm propose-removals
+          pnpm build
+          node scripts/check-removals.ts HEAD --pull-request
+          branch="automation/model-removals-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
+          git add models docs
+          git commit -m "chore: propose model removals $(date -u +%F)"
+          gh auth setup-git
+          git push origin "$branch"
+          removal_pr=$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --draft \
+            --reviewer nalbam \
+            --title "chore: review model removals $(date -u +%F)" \
+            --body "Review the lifecycle-qualified model removals proposed by $RUN_URL. The workflow does not auto-merge this pull request.")
+          echo "Model removal review: $removal_pr" >> "$GITHUB_STEP_SUMMARY"
+
+      # After the attempted update, so failures are reported too.
       - name: Notify
+        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMIT_URL: ${{ steps.commit.outputs.sha && format('{0}/{1}/commit/{2}', github.server_url, github.repository, steps.commit.outputs.sha) || '' }}
         run: pnpm notify
 
       - name: Fail when a source could not be read
-        if: steps.update.outcome == 'failure'
+        if: always() && steps.update.outcome == 'failure'
         run: |
-          echo "::error::at least one provider catalog could not be read — see the job summary"
+          echo "::error::the model update did not complete safely — see the job summary"
           exit 1

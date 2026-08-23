@@ -18,6 +18,14 @@ const ISSUE_LABEL = "needs-a-look";
 /** Slack's useful limit is well under its hard one; past this, the run link is the message. */
 const SLACK_MAX_LINES = 40;
 
+function slack(value: unknown): string {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replace(/[\r\n]+/g, " ");
+}
+
+function markdown(value: unknown): string {
+  return String(value).replaceAll("@", "&#64;").replace(/[\r\n]+/g, " ");
+}
+
 export interface NotifyContext {
   date: string;
   outcomes: SourceOutcome[];
@@ -28,11 +36,11 @@ export interface NotifyContext {
 }
 
 function changeLine(source: string, change: Change): string {
-  const value = (v: unknown) => (v === undefined ? "—" : JSON.stringify(v));
+  const value = (v: unknown) => (v === undefined ? "—" : slack(JSON.stringify(v)));
   if (change.field === "added") {
-    return `• ${source}: added ${change.target} (${value(change.to)})`;
+    return `• ${slack(source)}: added ${slack(change.target)} (${value(change.to)})`;
   }
-  return `• ${source}: ${change.target} ${change.field}: ${value(change.from)} → ${value(change.to)}`;
+  return `• ${slack(source)}: ${slack(change.target)} ${slack(change.field)}: ${value(change.from)} → ${value(change.to)}`;
 }
 
 /** The Slack text for a run, or null when the run has nothing to announce. */
@@ -45,9 +53,9 @@ export function slackMessage(context: NotifyContext): string | null {
   if (failures.length === 0 && changes.length === 0) {
     return null;
   }
-  lines.push(`*Model registry — ${context.date}*`);
+  lines.push(`*Model registry — ${slack(context.date)}*`);
   if (failures.length > 0) {
-    lines.push(`:red_circle: ${failures.map((f) => (f.kind === "failed" ? `${f.source} could not be read` : "")).join(", ")}`);
+    lines.push(`:red_circle: ${failures.map((f) => (f.kind === "failed" ? `${slack(f.source)} could not be read` : "")).join(", ")}`);
   }
   if (changes.length > 0) {
     lines.push(`${changes.length} change${changes.length === 1 ? "" : "s"}${context.commitUrl ? ` — <${context.commitUrl}|committed>` : ""}`);
@@ -65,6 +73,8 @@ export async function postSlack(webhookUrl: string, text: string, fetchFn: typeo
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ text }),
+    redirect: "error",
+    signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) {
     throw new Error(`Slack webhook → ${response.status} ${response.statusText}`);
@@ -76,9 +86,9 @@ export function issueBody(context: NotifyContext): string | null {
   const sections: string[] = [];
   for (const outcome of context.outcomes) {
     if (outcome.kind === "failed") {
-      sections.push(`### ${outcome.source} — could not be read\n\n\`\`\`\n${outcome.error}\n\`\`\``);
+      sections.push(`### ${markdown(outcome.source)} — could not be read\n\n${String(outcome.error).split(/\r?\n/).map((line) => `    ${markdown(line)}`).join("\n")}`);
     } else if (outcome.kind === "applied" && outcome.result.notes.length > 0) {
-      sections.push(`### ${outcome.result.source}\n\n${outcome.result.notes.map((n) => `- ${n}`).join("\n")}`);
+      sections.push(`### ${markdown(outcome.result.source)}\n\n${outcome.result.notes.map((n) => `- ${markdown(n)}`).join("\n")}`);
     }
   }
   if (sections.length === 0) {
@@ -120,6 +130,8 @@ export async function syncIssue(
       method,
       headers,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) {
       throw new Error(`${method} ${path} → ${response.status} ${response.statusText}`);
