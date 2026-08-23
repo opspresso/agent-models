@@ -12,9 +12,10 @@ name: Update models
 # Optional repository secrets: XAI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,
 # GOOGLE_API_KEY, SLACK_WEBHOOK_URL.
 #
-# The workflow's token opens and auto-merges a pull request. The resulting
-# `main` update republishes the classic Pages site at models.opspresso.com.
-# The same token keeps the rolling "needs a look" issue.
+# The workflow's token merges routine changes through a pull request. A model
+# removal is proposed separately as a draft pull request for human review.
+# The resulting `main` update republishes the classic Pages site at
+# models.opspresso.com. The same token keeps the rolling "needs a look" issue.
 on:
   schedule:
     - cron: "0 22 * * *"
@@ -83,7 +84,7 @@ jobs:
           pnpm build:check
           node scripts/check-removals.ts HEAD
 
-      - name: Open an auto-merge pull request when anything changed
+      - name: Merge routine updates through a pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -106,7 +107,41 @@ jobs:
             --head "$branch" \
             --title "chore: update models $(date -u +%F)" \
             --body "Automated provider and leaderboard refresh from $RUN_URL")
-          gh pr merge "$pr_url" --auto --squash --delete-branch
+          gh pr merge "$pr_url" --squash --delete-branch
+
+      - name: Open a draft pull request for model removals
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(node -e 'const r=require("./update-report.json"); process.stdout.write(String(r.removalCandidates?.length ?? 0))')" = "0" ]; then
+            echo "no model removals to propose"
+            exit 0
+          fi
+          open_pr=$(gh pr list --state open --json headRefName,url --jq '[.[] | select(.headRefName | startswith("automation/model-removals-"))][0].url // ""')
+          if [ -n "$open_pr" ]; then
+            echo "model removal pull request already open: $open_pr"
+            exit 0
+          fi
+          git fetch origin main
+          git switch main
+          git merge --ff-only origin/main
+          pnpm propose-removals
+          pnpm build
+          node scripts/check-removals.ts HEAD --pull-request
+          branch="automation/model-removals-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
+          git add models docs
+          git commit -m "chore: propose model removals $(date -u +%F)"
+          gh auth setup-git
+          git push origin "$branch"
+          removal_pr=$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --draft \
+            --reviewer nalbam \
+            --title "chore: review model removals $(date -u +%F)" \
+            --body "Review the lifecycle-qualified model removals proposed by $RUN_URL. The workflow does not auto-merge this pull request.")
+          echo "Model removal review: $removal_pr" >> "$GITHUB_STEP_SUMMARY"
 
       # After the attempted update, so failures are reported too.
       - name: Notify

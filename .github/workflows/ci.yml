@@ -42,7 +42,7 @@ jobs:
       - name: Catalog is built from its sources
         run: pnpm build:check
 
-      - name: Pull request removals are explicitly approved
+      - name: Pull request removals are explicitly requested
         if: github.event_name == 'pull_request'
         env:
           REMOVAL_BASE: ${{ format('origin/{0}', github.base_ref) }}

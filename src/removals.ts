@@ -1,10 +1,16 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { Registry } from "./registry.ts";
 
-export interface RemovalApproval {
+export interface RemovalRequest {
   id: string;
   reason: string;
-  approvedAt: string;
+  requestedAt: string;
+}
+
+export interface RemovalCandidate {
+  id: string;
+  reason: string;
 }
 
 function isUtcDate(value: unknown): value is string {
@@ -13,7 +19,7 @@ function isUtcDate(value: unknown): value is string {
   return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
 }
 
-export function loadRemovalManifest(root: string): RemovalApproval[] {
+export function loadRemovalManifest(root: string): RemovalRequest[] {
   const path = join(root, "models", "removals.json");
   if (!existsSync(path)) return [];
   const value = JSON.parse(readFileSync(path, "utf-8")) as unknown;
@@ -24,7 +30,7 @@ export function loadRemovalManifest(root: string): RemovalApproval[] {
       throw new Error(`models/removals.json[${index}] must be an object`);
     }
     const row = entry as Record<string, unknown>;
-    const unknown = Object.keys(row).filter((key) => !["id", "reason", "approvedAt"].includes(key));
+    const unknown = Object.keys(row).filter((key) => !["id", "reason", "requestedAt"].includes(key));
     if (unknown.length > 0) throw new Error(`models/removals.json[${index}] has unknown field "${unknown[0]}"`);
     if (typeof row.id !== "string" || !/^[a-z0-9._-]+\/[a-z0-9._-]+$/.test(row.id)) {
       throw new Error(`models/removals.json[${index}].id must be provider/family`);
@@ -34,27 +40,27 @@ export function loadRemovalManifest(root: string): RemovalApproval[] {
     if (typeof row.reason !== "string" || row.reason.trim() === "") {
       throw new Error(`models/removals.json[${index}].reason is required`);
     }
-    if (!isUtcDate(row.approvedAt)) {
-      throw new Error(`models/removals.json[${index}].approvedAt must be a valid UTC date`);
+    if (!isUtcDate(row.requestedAt)) {
+      throw new Error(`models/removals.json[${index}].requestedAt must be a valid UTC date`);
     }
   }
-  return value as RemovalApproval[];
+  return value as RemovalRequest[];
 }
 
-export function unapprovedRemovals(
+export function unrequestedRemovals(
   previousIds: readonly string[],
   nextIds: readonly string[],
-  approvals: readonly RemovalApproval[],
+  requests: readonly RemovalRequest[],
 ): string[] {
   const next = new Set(nextIds);
-  const approved = new Set(approvals.map(({ id }) => id));
-  return previousIds.filter((id) => !next.has(id) && !approved.has(id));
+  const requested = new Set(requests.map(({ id }) => id));
+  return previousIds.filter((id) => !next.has(id) && !requested.has(id));
 }
 
 export function assertRemovalPolicy(
   previousIds: readonly string[],
   nextIds: readonly string[],
-  approvals: readonly RemovalApproval[],
+  requests: readonly RemovalRequest[],
   pullRequest: boolean,
 ): void {
   const next = new Set(nextIds);
@@ -63,10 +69,58 @@ export function assertRemovalPolicy(
   if (!pullRequest) {
     throw new Error(`published model removals are allowed only through a pull request: ${removed.join(", ")}`);
   }
-  const unapproved = unapprovedRemovals(previousIds, nextIds, approvals);
-  if (unapproved.length > 0) {
+  const unrequested = unrequestedRemovals(previousIds, nextIds, requests);
+  if (unrequested.length > 0) {
     throw new Error(
-      `unapproved published model removal(s): ${unapproved.join(", ")} — add exact entries to models/removals.json`,
+      `published model removal(s) without a removal request: ${unrequested.join(", ")} — add exact entries to models/removals.json`,
     );
   }
+}
+
+export function findRemovalCandidates(
+  registry: Registry,
+  requests: readonly RemovalRequest[],
+): RemovalCandidate[] {
+  const requested = new Set(requests.map(({ id }) => id));
+  return registry.offerings.flatMap((offering) => {
+    const id = `${offering.provider}/${offering.family}`;
+    if (!offering.hidden || requested.has(id)) return [];
+    if (offering.hiddenReason === "catalog") {
+      return [{ id, reason: "Absent from the provider catalog after its grace period" }];
+    }
+    if (offering.hiddenReason === "ranking") {
+      return [{ id, reason: "Outside the OpenRouter ranking policy after its grace period" }];
+    }
+    return [];
+  });
+}
+
+export function applyRemovalCandidates(
+  registry: Registry,
+  candidates: readonly RemovalCandidate[],
+  requests: readonly RemovalRequest[],
+  requestedAt: string,
+): { registry: Registry; requests: RemovalRequest[] } {
+  if (!isUtcDate(requestedAt)) throw new Error("removal request date must be a valid UTC date");
+  const existing = new Set(requests.map(({ id }) => id));
+  const candidateIds = new Set<string>();
+  for (const candidate of candidates) {
+    if (candidateIds.has(candidate.id)) throw new Error(`removal candidate repeats "${candidate.id}"`);
+    candidateIds.add(candidate.id);
+    if (existing.has(candidate.id)) throw new Error(`removal request already exists for "${candidate.id}"`);
+    const offering = registry.offerings.find(({ provider, family }) => `${provider}/${family}` === candidate.id);
+    if (offering === undefined || !offering.hidden || !["catalog", "ranking"].includes(offering.hiddenReason ?? "")) {
+      throw new Error(`${candidate.id} is not an automatically hidden offering`);
+    }
+  }
+  const offerings = registry.offerings.filter(({ provider, family }) => !candidateIds.has(`${provider}/${family}`));
+  const routed = new Set(offerings.map(({ family }) => family));
+  const families = Object.fromEntries(Object.entries(registry.families).filter(([id]) => routed.has(id)));
+  return {
+    registry: { ...registry, families, offerings },
+    requests: [
+      ...requests,
+      ...candidates.map(({ id, reason }) => ({ id, reason, requestedAt })),
+    ].sort((left, right) => left.id.localeCompare(right.id)),
+  };
 }

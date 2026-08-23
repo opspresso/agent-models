@@ -71,7 +71,7 @@ models/
   makers.json                 maker id → { displayName, openrouterVendor? }
   families/<maker>.json       { "<family>": { displayName, pricing, capabilities, contextWindow, maxTokens, note? } }
   offerings/<provider>.json   route overrides plus hidden/presence/ranking lifecycle bookkeeping
-  removals.json               exact published ids whose permanent removal was explicitly approved
+  removals.json               exact published ids proposed for permanent removal through a PR
 ```
 
 A **family** states the model once — price, window, what it can do. An **offering** says a
@@ -112,9 +112,11 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 3. `pnpm build` — regenerates `docs/models.json`. CI fails if the committed catalog does not
    match its sources, so commit both.
 
-Published ids normally stay as `hidden` tombstones. Permanent deletion additionally requires
-an exact `{ id, reason, approvedAt }` entry in `models/removals.json` and a pull request approved
-by its code owner. CI rejects unapproved PR removals, while the `main` ruleset rejects direct pushes.
+Published ids first become `hidden` tombstones. After automation hides a model at the end of its
+lifecycle grace period, it merges the routine update and then opens a separate draft deletion PR.
+That PR carries an exact `{ id, reason, requestedAt }` entry in `models/removals.json`, requests
+its code owner and is not auto-merged by the workflow. CI rejects removals without a request,
+while the `main` ruleset rejects direct pushes.
 
 Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models` (public),
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
@@ -125,7 +127,7 @@ Google, which publish no API for it.
 ## Keeping it current
 
 `.github/workflows/update.yml` runs every day at 22:00 UTC (and on demand), validates whatever
-moved and opens an auto-merge pull request — which republishes the Pages site (`main:/docs`, served at
+moved and merges routine updates through a pull request — which republishes the Pages site (`main:/docs`, served at
 `models.opspresso.com`) — and tells people about it. Three phases, every source
 independent of the others:
 
@@ -195,8 +197,8 @@ catalog. A route that is not gets `missingSince` and an observation count; retri
 same UTC date count once. The day it is back, the bookkeeping goes. After **7 successful
 absent catalog observations** the route is set
 `hidden: true`, `missingSince` is dropped and a sentence is appended to its `note` saying
-when and why. What it never does is delete: a stored configuration may still name the id,
-and past usage is priced by looking it up.
+when and why. The lifecycle update itself never deletes; it preserves the tombstone until
+the separate draft deletion PR is reviewed.
 
 OpenRouter also watches automatic eligibility. Non-major text routes must remain in the
 weekly open/closed Top 20 and image routes in the weekly image Top 20. Leaving that policy
@@ -249,6 +251,7 @@ pnpm format          # canonical key order + validation of models/
 pnpm build           # models/ → docs/models.json
 pnpm build:check     # exit 1 if docs/models.json is stale (CI)
 pnpm check-removals -- HEAD^ --pull-request # verify PR removals against models/removals.json
+pnpm propose-removals # turn update-report.json candidates into a draft-PR deletion patch
 pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
 pnpm update-models --reset-openrouter # rebuild only OpenRouter from all eligible models
 pnpm notify          # deliver update-report.json to Slack / the issue

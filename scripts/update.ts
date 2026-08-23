@@ -33,7 +33,7 @@ import { appendFileSync } from "node:fs";
 import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
 import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
-import { loadRemovalManifest } from "../src/removals.ts";
+import { findRemovalCandidates, loadRemovalManifest } from "../src/removals.ts";
 import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
 import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
@@ -118,7 +118,7 @@ const SOURCES: UpdateSource[] = [
 ];
 
 let registry = loadRegistry(ROOT);
-loadRemovalManifest(ROOT);
+const removalRequests = loadRemovalManifest(ROOT);
 const baseline = structuredClone(registry);
 const before = validateRegistry(registry);
 if (before.length > 0) {
@@ -136,6 +136,7 @@ if (resetOpenRouter) {
 const pipeline = await runUpdatePipeline(registry, SOURCES);
 registry = pipeline.registry;
 const outcomes: SourceOutcome[] = pipeline.outcomes;
+const removalCandidates = findRemovalCandidates(registry, removalRequests);
 let failed = pipeline.failed;
 if (resetOpenRouter && !pipeline.fetchedSources.includes("OpenRouter")) {
   console.error("\nOpenRouter reset aborted; the existing registry was not changed");
@@ -177,7 +178,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
 }
 if (unapprovedAnomalies || processingFailure) {
-  if (!dryRun) writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
+  if (!dryRun) writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes, removalCandidates }, null, 2)}\n`);
   console.error("\nupdate quarantined because a safety check or processing step failed; models/ was not changed");
   process.exit(1);
 }
@@ -186,7 +187,7 @@ if (dryRun) {
   console.log("\n(dry run — nothing written)");
 } else {
   writeRegistry(ROOT, registry);
-  writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
+  writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes, removalCandidates }, null, 2)}\n`);
   console.log("\nwrote models/ and update-report.json");
 }
 

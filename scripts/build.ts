@@ -10,7 +10,7 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
-import { loadRemovalManifest, unapprovedRemovals } from "../src/removals.ts";
+import { loadRemovalManifest, unrequestedRemovals } from "../src/removals.ts";
 import { assertValid, buildCatalog, formatJson, loadRegistry, readCatalog, writeTextAtomic } from "../src/registry.ts";
 import { CATALOG_PATH, ROOT } from "./_root.ts";
 
@@ -18,16 +18,15 @@ const check = process.argv.includes("--check");
 
 const registry = loadRegistry(ROOT);
 assertValid(registry);
-const removalApprovals = loadRemovalManifest(ROOT);
+const removalRequests = loadRemovalManifest(ROOT);
 
 const previous = readCatalog(CATALOG_PATH);
 const catalog = buildCatalog(registry, previous, new Date());
 
-// The automation only ever hides; deleting a family is a person's edit, and a
-// published id that vanishes re-prices every consumer's past usage of it at
-// $0. README: "an entry is deleted only when nothing can ever have referred
-// to it" — so a build that drops a published id fails unless the removal is
-// stated on purpose in models/removals.json.
+// The routine update only hides. Its separate deletion proposal, or a person's
+// edit, can drop a published id — which re-prices every consumer's past usage
+// of it at $0. A build therefore fails unless that exact removal is requested
+// in models/removals.json.
 if (previous === null && existsSync(CATALOG_PATH)) {
   // A corrupt or truncated docs/models.json must not read as "first publish"
   // and wave the removal tripwire through.
@@ -35,14 +34,14 @@ if (previous === null && existsSync(CATALOG_PATH)) {
   process.exit(1);
 }
 if (previous !== null) {
-  const removed = unapprovedRemovals(
+  const removed = unrequestedRemovals(
     previous.models.map((model) => model.id),
     catalog.models.map((model) => model.id),
-    removalApprovals,
+    removalRequests,
   );
   if (removed.length > 0) {
     console.error(
-      `refusing to drop published id(s): ${removed.join(", ")} — hide the offering instead, or approve exact ids in models/removals.json`,
+      `refusing to drop published id(s): ${removed.join(", ")} — hide the offering instead, or request exact ids in models/removals.json`,
     );
     process.exit(1);
   }
