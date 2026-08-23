@@ -1,6 +1,6 @@
 /**
- * Deliver the run's findings — after the commit, so the message can point at
- * it. Reads `update-report.json` (left by `update.ts`); does nothing when the
+ * Deliver the run's findings after an update attempt. Reads
+ * `update-report.json` (left by `update.ts`); does nothing when the
  * file is absent, because a run that wrote nothing has nothing to say.
  *
  * Channels are optional and independent:

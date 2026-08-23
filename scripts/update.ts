@@ -26,12 +26,15 @@
  * thing to publish.
  *
  * Besides the Markdown report (stdout and the job summary) the run leaves
- * `update-report.json` for `scripts/notify.ts`, which runs after the commit.
+ * `update-report.json` for `scripts/notify.ts`, which runs after the update attempt.
  */
 
-import { appendFileSync, writeFileSync } from "node:fs";
-import { loadRegistry, validateRegistry, writeRegistry, type Registry } from "../src/registry.ts";
+import { appendFileSync } from "node:fs";
+import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
+import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
+import { loadRemovalManifest } from "../src/removals.ts";
+import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
 import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { applyOpenAi, discoverOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
@@ -40,33 +43,26 @@ import {
   discoverOpenRouter,
   discoveryEndpointIds,
   fetchOpenRouterCatalog,
+  openRouterResetReady,
   resetOpenRouterRegistry,
 } from "../src/sources/openrouter.ts";
 import { utcDate } from "../src/sources/presence.ts";
 import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
-import type { SourceResult } from "../src/sources/types.ts";
 import { REPORT_PATH, ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");
 const resetOpenRouter = process.argv.includes("--reset-openrouter");
+const anomalyApproval = process.argv
+  .find((argument) => argument.startsWith("--approve-anomaly="))
+  ?.slice("--approve-anomaly=".length);
 /** The job's clock: one UTC date for the whole run, so every source agrees on what "today" is. */
 const today = utcDate(new Date());
-
-type Step = (registry: Registry) => { registry: Registry; result: SourceResult };
-
-interface Source {
-  name: string;
-  /** Why the source cannot run, or null when it can. */
-  disabled: string | null;
-  /** Read the catalog once; answer the discover and apply steps bound to it. */
-  fetch: (registry: Registry) => Promise<{ discover: Step; apply: Step }>;
-}
 
 function keyed(name: string): string | null {
   return process.env[name] ? null : `\`${name}\` is not set`;
 }
 
-const SOURCES: Source[] = [
+const SOURCES: UpdateSource[] = [
   {
     name: "OpenRouter",
     disabled: null,
@@ -78,8 +74,8 @@ const SOURCES: Source[] = [
         ...routes,
         ...discoveryEndpointIds(registry, models, today, rankings, { bootstrap: resetOpenRouter }),
       ]);
-      if (resetOpenRouter && (catalog.rankings === null || catalog.imageRankings === null)) {
-        throw new Error("weekly text and image rankings are required for an OpenRouter reset");
+      if (resetOpenRouter && !openRouterResetReady(catalog)) {
+        throw new Error("complete weekly rankings and usable Top 20 image endpoints are required for an OpenRouter reset");
       }
       return {
         discover: (r) => discoverOpenRouter(r, catalog, today, { bootstrap: resetOpenRouter }),
@@ -122,6 +118,8 @@ const SOURCES: Source[] = [
 ];
 
 let registry = loadRegistry(ROOT);
+loadRemovalManifest(ROOT);
+const baseline = structuredClone(registry);
 const before = validateRegistry(registry);
 if (before.length > 0) {
   console.error(`registry is invalid before the update:\n  - ${before.join("\n  - ")}`);
@@ -131,69 +129,17 @@ if (resetOpenRouter) {
   const reset = resetOpenRouterRegistry(registry);
   registry = reset.registry;
   console.log(
-    `reset OpenRouter in memory: removed ${reset.removedOfferings} offerings and ${reset.removedFamilies} orphaned families`,
+    `reset OpenRouter in memory: preserved and deactivated ${reset.deactivatedOfferings} offerings`,
   );
 }
 
-// Phase 1 — fetch.
-const outcomes: SourceOutcome[] = [];
-const ready: Array<{ source: Source; discover: Step; apply: Step }> = [];
-let failed = false;
-for (const source of SOURCES) {
-  if (source.disabled !== null) {
-    outcomes.push({ kind: "skipped", source: source.name, reason: source.disabled });
-    continue;
-  }
-  try {
-    const steps = await source.fetch(registry);
-    ready.push({ source, ...steps });
-  } catch (error) {
-    failed = true;
-    outcomes.push({
-      kind: "failed",
-      source: source.name,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
-if (resetOpenRouter && !ready.some(({ source }) => source.name === "OpenRouter")) {
+const pipeline = await runUpdatePipeline(registry, SOURCES);
+registry = pipeline.registry;
+const outcomes: SourceOutcome[] = pipeline.outcomes;
+let failed = pipeline.failed;
+if (resetOpenRouter && !pipeline.fetchedSources.includes("OpenRouter")) {
   console.error("\nOpenRouter reset aborted; the existing registry was not changed");
   process.exit(1);
-}
-
-// Phase 2 — discover, phase 3 — apply; one merged result per source.
-const merged = new Map<string, SourceResult>();
-function run(step: Step, name: string): void {
-  const { registry: next, result } = step(registry);
-  registry = next;
-  const sofar = merged.get(name) ?? { source: name, changes: [], notes: [] };
-  merged.set(name, {
-    source: name,
-    changes: [...sofar.changes, ...result.changes],
-    notes: [...sofar.notes, ...result.notes],
-  });
-}
-for (const { source, discover } of ready) run(discover, source.name);
-// Vendors first, the router last: applyOpenRouter compares its listing to the
-// family's list price, and on the day a vendor moves that price the comparison
-// must see today's number — router-first left a one-day discount flap that
-// self-corrected the next run, as diff noise.
-const applyOrder = [...ready].sort(
-  (a, b) => Number(a.source.name === "OpenRouter") - Number(b.source.name === "OpenRouter"),
-);
-for (const { source, apply } of applyOrder) run(apply, source.name);
-for (const { source } of ready) {
-  outcomes.push({ kind: "applied", result: merged.get(source.name) as SourceResult });
-}
-// The report in source order, whatever order the outcomes were pushed in.
-const order = (outcome: SourceOutcome): number =>
-  SOURCES.findIndex((s) => s.name === (outcome.kind === "applied" ? outcome.result.source : outcome.source));
-outcomes.sort((a, b) => order(a) - order(b));
-
-const report = renderReport(outcomes, today);
-console.log(report);
-if (process.env.GITHUB_STEP_SUMMARY) {
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
 }
 
 const after = validateRegistry(registry);
@@ -202,11 +148,45 @@ if (after.length > 0) {
   process.exit(1);
 }
 
+const anomalies = detectRegistryAnomalies(baseline, registry, { allowPolicyBootstrap: resetOpenRouter });
+const digest = anomalies.length > 0 ? anomalyDigest(anomalies) : null;
+const unapprovedAnomalies = digest !== null && anomalyApproval !== digest;
+const processingFailure = outcomes.some(
+  (outcome) => outcome.kind === "failed" && /^(discover|apply):/.test(outcome.error),
+);
+if (unapprovedAnomalies) {
+  failed = true;
+  outcomes.push({
+    kind: "failed",
+    source: "Safety gate",
+    error: `${anomalies.join("\n")}\nreview the diff, then rerun with --approve-anomaly=${digest}`,
+  });
+} else if (digest !== null) {
+  outcomes.push({
+    kind: "applied",
+    result: {
+      source: "Safety gate",
+      changes: [{ target: `anomaly set ${digest}`, field: "approved", from: false, to: true }],
+      notes: [],
+    },
+  });
+}
+const report = renderReport(outcomes, today);
+console.log(report);
+if (process.env.GITHUB_STEP_SUMMARY) {
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+}
+if (unapprovedAnomalies || processingFailure) {
+  if (!dryRun) writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
+  console.error("\nupdate quarantined because a safety check or processing step failed; models/ was not changed");
+  process.exit(1);
+}
+
 if (dryRun) {
   console.log("\n(dry run — nothing written)");
 } else {
   writeRegistry(ROOT, registry);
-  writeFileSync(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
+  writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes }, null, 2)}\n`);
   console.log("\nwrote models/ and update-report.json");
 }
 

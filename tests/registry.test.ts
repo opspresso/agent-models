@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -137,6 +137,15 @@ describe("validateRegistry", () => {
     assert.match(errors, /maker acme: openrouterVendor must be a bare vendor slug/);
   });
 
+  it("rejects maker and provider ids that are unsafe as filenames", () => {
+    const r = fixture();
+    r.providers.push("../../package");
+    r.makers["../../package"] = { displayName: "Escape" };
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /provider id.*safe slug/);
+    assert.match(errors, /maker id.*safe slug/);
+  });
+
   it("rejects a duplicate offering", () => {
     const r = fixture();
     r.offerings.push({ provider: "openai", family: "gpt-x" });
@@ -253,6 +262,20 @@ describe("deriveModels", () => {
 });
 
 describe("writeRegistry", () => {
+  it("validates before writing and cannot escape the models directory", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
+    const sentinel = join(root, "package.json");
+    writeFileSync(sentinel, "sentinel\n");
+    try {
+      const invalid = fixture();
+      invalid.providers.push("../../package");
+      assert.throws(() => writeRegistry(root, invalid), /safe slug/);
+      assert.equal(readFileSync(sentinel, "utf-8"), "sentinel\n");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("clears maker and provider files whose last model was removed", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
     try {
@@ -311,9 +334,11 @@ describe("retirement bookkeeping", () => {
   it("accepts missingSince as a date on a live route and rejects it on a hidden one", () => {
     const r = fixture();
     r.offerings[0]!.missingSince = "2026-08-20";
+    r.offerings[0]!.missingObservations = 1;
+    r.offerings[0]!.lastMissingAt = "2026-08-20";
     assert.deepEqual(validateRegistry(r), []);
     r.offerings[0]!.missingSince = "yesterday";
-    assert.match(validateRegistry(r).join("\n"), /missingSince must be a YYYY-MM-DD date/);
+    assert.match(validateRegistry(r).join("\n"), /missingSince must be a valid UTC date/);
     r.offerings[0]!.missingSince = "2026-08-20";
     r.offerings[0]!.hidden = true;
     assert.match(validateRegistry(r).join("\n"), /hidden route is not watched/);
@@ -322,8 +347,16 @@ describe("retirement bookkeeping", () => {
   it("keeps missingSince out of the catalog", () => {
     const r = fixture();
     r.offerings[0]!.missingSince = "2026-08-20";
+    r.offerings[0]!.missingObservations = 1;
+    r.offerings[0]!.lastMissingAt = "2026-08-20";
     const catalog = buildCatalog(r, null, new Date("2026-08-20T00:00:00.000Z"));
     assert.ok(!("missingSince" in (catalog.models[0] as object)));
+  });
+
+  it("rejects impossible lifecycle dates", () => {
+    const r = fixture();
+    r.offerings[0]!.missingSince = "2026-99-99";
+    assert.match(validateRegistry(r).join("\n"), /valid UTC date/);
   });
 
   it("accepts a discount as a fraction and nothing else", () => {

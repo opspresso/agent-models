@@ -1,18 +1,14 @@
 /**
  * Rewrite the source files under `models/` in canonical order — what a hand
  * edit runs before committing, so the next script-made change is a one-line
- * diff rather than a reordering. Validates afterwards and exits 1 on a problem,
- * but formats first: a misplaced key is easier to find in a tidy file.
+ * diff rather than a reordering. Validates before replacing any source file.
  */
 
-import { loadRegistry, validateRegistry, writeRegistry } from "../src/registry.ts";
+import { loadRegistry, writeRegistry } from "../src/registry.ts";
+import { loadRemovalManifest } from "../src/removals.ts";
 import { ROOT } from "./_root.ts";
 
 const registry = loadRegistry(ROOT);
+loadRemovalManifest(ROOT);
 writeRegistry(ROOT, registry);
-const errors = validateRegistry(registry);
-if (errors.length > 0) {
-  console.error(`registry is invalid:\n  - ${errors.join("\n  - ")}`);
-  process.exit(1);
-}
 console.log(`formatted ${Object.keys(registry.families).length} families, ${registry.offerings.length} offerings`);

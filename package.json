@@ -11,6 +11,7 @@
   "scripts": {
     "build": "node scripts/build.ts",
     "build:check": "node scripts/build.ts --check",
+    "check-removals": "node scripts/check-removals.ts",
     "format": "node scripts/format.ts",
     "update-models": "node scripts/update.ts",
     "notify": "node scripts/notify.ts",

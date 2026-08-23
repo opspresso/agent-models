@@ -8,7 +8,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
 
 export const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
 
@@ -21,9 +21,10 @@ export async function fetchOpenAiModelIds(apiKey: string, fetchFn: typeof fetch 
   if (!Array.isArray(body.data)) {
     throw new Error(`GET ${OPENAI_MODELS_URL} → no "data" array`);
   }
-  const ids = body.data
-    .map((entry) => (typeof entry === "object" && entry !== null ? (entry as { id?: unknown }).id : undefined))
-    .filter((id): id is string => typeof id === "string");
+  if (!body.data.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENAI_MODELS_URL} → invalid entry (shape drift?)`);
+  }
+  const ids = body.data.map((entry) => (entry as { id: string }).id);
   if (ids.length === 0) {
     throw new Error(`GET ${OPENAI_MODELS_URL} → empty catalog`);
   }
@@ -50,7 +51,7 @@ export function applyOpenAi(
   const changes: Change[] = [];
   const notes: string[] = [];
   for (const offering of next.offerings) {
-    if (offering.provider !== "openai" || offering.hidden) {
+    if (offering.provider !== "openai" || (offering.hidden && offering.hiddenReason !== "catalog")) {
       continue;
     }
     observePresence(offering, offeringNames(offering).some((name) => served.has(name)), "OpenAI", today, changes, notes);

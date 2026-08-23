@@ -5,6 +5,7 @@ import {
   DISCOVERY_WINDOW_DAYS,
   OPENROUTER_IMAGE_MODELS_URL,
   OPENROUTER_IMAGE_RANKINGS_URL,
+  OPENROUTER_MODELS_URL,
   OPENROUTER_RANKINGS_URL,
   applyOpenRouter,
   catalogDiscount,
@@ -19,9 +20,9 @@ import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
 import { applyAnthropic, discoverAnthropic, undated } from "../src/sources/anthropic.ts";
 import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
-import { daysBetween, observePresence, RETIREMENT_GRACE_DAYS } from "../src/sources/presence.ts";
+import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_DAYS } from "../src/sources/presence.ts";
 import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
-import { perMillion, type Change } from "../src/sources/types.ts";
+import { fetchJson, perMillion, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
 const TODAY = "2026-08-20";
@@ -139,41 +140,76 @@ describe("perMillion", () => {
   });
 });
 
+describe("fetchJson", () => {
+  it("refuses redirects and applies a request timeout", async () => {
+    let received: RequestInit | undefined;
+    const fetchFn = (async (_url: string | URL | Request, init?: RequestInit) => {
+      received = init;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+    assert.deepEqual(await fetchJson("https://example.test/catalog", {}, fetchFn), { ok: true });
+    assert.equal(received?.redirect, "error");
+    assert.ok(received?.signal instanceof AbortSignal);
+  });
+
+  it("rejects an oversized JSON response", async () => {
+    const fetchFn = (async () =>
+      new Response(JSON.stringify({ data: "x".repeat(11 * 1024 * 1024) }))) as typeof fetch;
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, fetchFn), /larger than/);
+  });
+});
+
 describe("observePresence", () => {
   it("counts whole UTC days", () => {
     assert.equal(daysBetween("2026-08-20", "2026-08-27"), 7);
     assert.equal(daysBetween("2026-08-31", "2026-09-01"), 1);
   });
 
-  it("records the first absence, counts the days, and hides after the grace period", () => {
+  it("counts successful absence observations, not elapsed days or same-day retries", () => {
     const offering: PlacedOffering = { provider: "openai", family: "gpt-x", note: "Kept." };
     const changes: Change[] = [];
     let notes: string[] = [];
     observePresence(offering, false, "OpenAI", "2026-08-20", changes, notes);
     assert.equal(offering.missingSince, "2026-08-20");
-    assert.match(notes[0] ?? "", /hidden automatically on 2026-08-27 if still absent/);
+    assert.equal(offering.missingObservations, 1);
 
     notes = [];
     observePresence(offering, false, "OpenAI", "2026-08-23", changes, notes);
+    observePresence(offering, false, "OpenAI", "2026-08-23", changes, notes);
     assert.equal(offering.missingSince, "2026-08-20");
     assert.equal(offering.hidden, undefined);
-    assert.match(notes[0] ?? "", /since 2026-08-20 \(day 4 of 7\)/);
+    assert.equal(offering.missingObservations, 2);
+    assert.match(notes[0] ?? "", /2 of 7 successful observations/);
 
     notes = [];
-    observePresence(offering, false, "OpenAI", "2026-08-27", changes, notes);
+    for (const day of ["2026-08-27", "2026-08-28", "2026-08-29", "2026-08-30", "2026-08-31"]) {
+      observePresence(offering, false, "OpenAI", day, changes, notes);
+    }
     assert.equal(offering.hidden, true);
+    assert.equal(offering.hiddenReason, "catalog");
     assert.equal(offering.missingSince, undefined);
-    assert.equal(offering.note, "Kept. Hidden automatically on 2026-08-27: absent from OpenAI's catalog since 2026-08-20.");
-    assert.match(notes[0] ?? "", /hidden — Hidden automatically/);
+    assert.equal(offering.note, "Kept. Hidden automatically on 2026-08-31: absent from OpenAI's catalog since 2026-08-20.");
+    assert.match(notes.at(-1) ?? "", /hidden — Hidden automatically/);
     assert.equal(RETIREMENT_GRACE_DAYS, 7);
   });
 
   it("clears the clock the day the model is back", () => {
-    const offering: PlacedOffering = { provider: "openai", family: "gpt-x", missingSince: "2026-08-20" };
+    const offering: PlacedOffering = { provider: "openai", family: "gpt-x", missingSince: "2026-08-20", missingObservations: 2, lastMissingAt: "2026-08-21" };
     const changes: Change[] = [];
     observePresence(offering, true, "OpenAI", "2026-08-25", changes, []);
     assert.equal(offering.missingSince, undefined);
     assert.deepEqual(changes.map((c) => [c.field, c.to]), [["missingSince", undefined]]);
+  });
+
+  it("restores a route hidden automatically when it returns", () => {
+    const offering: PlacedOffering = { provider: "openai", family: "gpt-x", hidden: true, hiddenReason: "catalog" };
+    const changes: Change[] = [];
+    observePresence(offering, true, "OpenAI", "2026-08-25", changes, []);
+    assert.equal(offering.hidden, undefined);
+    assert.equal(offering.hiddenReason, undefined);
+    assert.deepEqual(changes.map((change) => change.field), ["hidden"]);
   });
 
   it("does not watch a hidden route", () => {
@@ -182,6 +218,21 @@ describe("observePresence", () => {
     observePresence(offering, false, "OpenAI", "2026-08-20", [], notes);
     assert.deepEqual(notes, []);
     assert.equal(offering.missingSince, undefined);
+  });
+
+  it("hides after 14 successful ranking misses and restores on re-entry", () => {
+    const offering: PlacedOffering = { provider: "openrouter", family: "deepseek-z", wireId: "deepseek/deepseek-z" };
+    const changes: Change[] = [];
+    for (let day = 1; day <= RANKING_GRACE_OBSERVATIONS; day += 1) {
+      const date = `2026-09-${String(day).padStart(2, "0")}`;
+      observeRankingEligibility(offering, false, date, changes, []);
+      observeRankingEligibility(offering, false, date, changes, []);
+    }
+    assert.equal(offering.hidden, true);
+    assert.equal(offering.hiddenReason, "ranking");
+    observeRankingEligibility(offering, true, "2026-09-15", changes, []);
+    assert.equal(offering.hidden, undefined);
+    assert.equal(offering.hiddenReason, undefined);
   });
 });
 
@@ -525,10 +576,18 @@ describe("discoverOpenRouter", () => {
         imageModels: [IMAGE_MODEL],
         imageRankings: [IMAGE_RANKING],
         endpoints: {
-          [IMAGE_MODEL.id]: [{
-            context_length: 65_536,
-            pricing: { prompt: "0", completion: "0", image_output: "0.00001" },
-          }],
+          [IMAGE_MODEL.id]: [
+            {
+              tag: "krea/flex",
+              context_length: 65_536,
+              pricing: { prompt: "0", completion: "0", image_output: "0.000005" },
+            },
+            {
+              tag: "krea",
+              context_length: 65_536,
+              pricing: { prompt: "0", completion: "0", image_output: "0.00001" },
+            },
+          ],
         },
       }),
       TODAY,
@@ -598,12 +657,13 @@ describe("discoverOpenRouter", () => {
     assert.equal(registry.makers.krea, undefined);
   });
 
-  it("resets only OpenRouter offerings and their orphaned families", () => {
-    const { registry, removedFamilies, removedOfferings } = resetOpenRouterRegistry(fixture());
-    assert.equal(removedOfferings, 3);
-    assert.equal(removedFamilies, 1);
-    assert.ok(!registry.offerings.some((offering) => offering.provider === "openrouter"));
-    assert.equal(registry.families["deepseek-z"], undefined);
+  it("resets only OpenRouter offerings as recoverable tombstones", () => {
+    const { registry, deactivatedOfferings } = resetOpenRouterRegistry(fixture());
+    assert.equal(deactivatedOfferings, 3);
+    assert.ok(registry.offerings.filter((offering) => offering.provider === "openrouter").every(
+      (offering) => offering.hidden && offering.hiddenReason === "reset",
+    ));
+    assert.ok(registry.families["deepseek-z"]);
     assert.ok(registry.families["gpt-x"]);
     assert.ok(registry.families["draw-1"]);
   });
@@ -661,7 +721,7 @@ describe("discoverOpenRouter", () => {
     );
     assert.deepEqual(Object.keys(registry.families), Object.keys(fixture().families));
     assert.deepEqual(result.changes, []);
-    assert.deepEqual(result.notes, []);
+    assert.match(result.notes.join("\n"), /outside the OpenRouter ranking policy/);
   });
 
   it("reports what it will not add: an unknown maker and a listing without an output cap", () => {
@@ -789,7 +849,7 @@ describe("discoverOpenRouter", () => {
       TODAY,
       [NEW_TEXT_RANKING],
     );
-    assert.deepEqual(ids, ["deepseek/deepseek-z2", "x-ai/grok-q"]);
+    assert.deepEqual(ids, ["deepseek/deepseek-z2", "deepseek/old", "x-ai/grok-q"]);
     assert.equal(DISCOVERY_WINDOW_DAYS, 30);
   });
 
@@ -870,7 +930,9 @@ describe("vendor route discovery", () => {
       json: async () =>
         String(url).includes("/images/models")
           ? { data: [] }
-          : { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }] },
+          : String(url) === OPENROUTER_MODELS_URL
+            ? { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }], total_count: 1, links: { next: null } }
+            : { data: [{ id: "openai/gpt-x" }] },
     })) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
@@ -911,7 +973,9 @@ describe("fetch guards and snapshot folding", () => {
       jsonResponse(
         String(url).includes("/images/models")
           ? { data: [{ id: "openai/gpt-image-2" }] }
-          : { data: [{ slug: "renamed-field" }] },
+          : String(url) === OPENROUTER_MODELS_URL
+            ? { data: [{ slug: "renamed-field" }], total_count: 1, links: { next: null } }
+            : { data: [{ slug: "renamed-field" }] },
       )) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
   });
@@ -928,13 +992,37 @@ describe("fetch guards and snapshot folding", () => {
       return jsonResponse(
         target.includes("/images/models")
           ? { data: [{ id: "openai/gpt-image-2" }] }
-          : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
+          : target === OPENROUTER_MODELS_URL
+            ? { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }], total_count: 1, links: { next: null } }
+            : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
       );
     }) as unknown as typeof fetch;
     const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
     assert.equal(catalog.rankings, null);
-    assert.deepEqual(catalog.imageRankings, [IMAGE_RANKING]);
+    assert.equal(catalog.imageRankings, null);
     assert.deepEqual(catalog.models.map((model) => model.id), ["openai/gpt-x"]);
+  });
+
+  it("OpenRouter: rejects catalog truncation and marks a malformed endpoint response unreadable", async () => {
+    const partialFetch = (async (url: string | URL | Request) => {
+      const target = String(url);
+      if (target === OPENROUTER_MODELS_URL) {
+        return jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 2, links: { next: "next" } });
+      }
+      return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
+    }) as unknown as typeof fetch;
+    await assert.rejects(fetchOpenRouterCatalog(() => [], partialFetch), /partial catalog/);
+
+    const malformedEndpoint = (async (url: string | URL | Request) => {
+      const target = String(url);
+      if (target.endsWith("/endpoints")) return jsonResponse({ data: {} });
+      if (target.includes("/images/models")) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
+      return target === OPENROUTER_MODELS_URL
+        ? jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } })
+        : jsonResponse({ data: [{ id: "openai/gpt-x" }] });
+    }) as unknown as typeof fetch;
+    const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
+    assert.equal(catalog.endpoints["openai/gpt-x"], null);
   });
 
   it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {
