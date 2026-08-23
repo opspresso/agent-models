@@ -18,7 +18,7 @@ name: Update models
 # included. The same token keeps the rolling "needs a look" issue.
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 22 * * *"
   workflow_dispatch:
 
 permissions:
