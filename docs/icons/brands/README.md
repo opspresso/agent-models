@@ -4,6 +4,9 @@ These SVG files identify the companies that make the models in this registry, in
 `docs/index.html`. They do not identify the routing provider: a model served through Bedrock or
 OpenRouter keeps its maker's logo. They are the same files Agent Studio's console uses.
 
+`bedrock.svg` and `openrouter.svg` are the routes' own marks. Nothing renders them today —
+they are here so a view that names the route rather than the maker has one to use.
+
 The optimized SVG files come from the MIT-licensed
 [Lobe Icons collection](https://github.com/lobehub/lobe-icons). Brand marks remain the
 property of their respective owners and are used only to identify the corresponding model
