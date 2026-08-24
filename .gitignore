@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 update-report.json
+# writeRegistry's transaction directory: same filesystem as models/, so it has
+# to live here for the swap to be atomic. Only a hard kill leaves one behind.
+.models-write-*/

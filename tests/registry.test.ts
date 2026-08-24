@@ -276,6 +276,20 @@ describe("writeRegistry", () => {
     }
   });
 
+  it("carries across a file at the top of models/ that it did not write", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
+    try {
+      writeRegistry(root, fixture());
+      writeFileSync(join(root, "models/removals.json"), '[{"id":"xai/grok-old"}]\n');
+      writeFileSync(join(root, "models/NOTES.md"), "why grok-old is still here\n");
+      writeRegistry(root, fixture());
+      assert.equal(readFileSync(join(root, "models/removals.json"), "utf-8"), '[{"id":"xai/grok-old"}]\n');
+      assert.equal(readFileSync(join(root, "models/NOTES.md"), "utf-8"), "why grok-old is still here\n");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("clears maker and provider files whose last model was removed", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
     try {
