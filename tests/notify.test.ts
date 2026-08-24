@@ -17,7 +17,7 @@ describe("slackMessage", () => {
         { kind: "applied", result: { source: "OpenRouter", changes: [{ target: "family glm-5.3", field: "added", from: undefined, to: "GLM 5.3 via openrouter" }], notes: [] } },
       ],
     });
-    assert.match(text ?? "", /xAI could not be read/);
+    assert.match(text ?? "", /xAI failed/);
     assert.match(text ?? "", /added family glm-5.3/);
     assert.match(text ?? "", /committed/);
     assert.match(text ?? "", /run>/);
@@ -35,7 +35,7 @@ describe("issueBody", () => {
       ],
     });
     assert.match(body ?? "", /### OpenRouter\n\n- openrouter\/x/);
-    assert.match(body ?? "", /### Google — could not be read/);
+    assert.match(body ?? "", /### Google — failed/);
   });
 });
 

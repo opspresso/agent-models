@@ -33,7 +33,7 @@ import { appendFileSync } from "node:fs";
 import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
 import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
-import { findRemovalCandidates, loadRemovalManifest } from "../src/removals.ts";
+import { findRemovalCandidates, loadRemovalManifest, type RemovalCandidate } from "../src/removals.ts";
 import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
 import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
@@ -117,13 +117,44 @@ const SOURCES: UpdateSource[] = [
   },
 ];
 
+const outcomes: SourceOutcome[] = [];
+
+/**
+ * Render the report, leave it for `notify.ts`, and stop. Every exit comes
+ * through here, a refusal to write included: a run that gave up still has to
+ * say why on the channels people watch, or a hard failure reaches nobody but
+ * the job log.
+ *
+ * `removalCandidates` is empty unless `models/` was actually written —
+ * `propose-removals` resolves them against the registry *on disk*, so a
+ * quarantined run must not hand it candidates that only ever existed in
+ * memory.
+ */
+function finish(code: number, removalCandidates: RemovalCandidate[] = []): never {
+  const report = renderReport(outcomes, today);
+  console.log(report);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+  }
+  if (!dryRun) {
+    writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes, removalCandidates }, null, 2)}\n`);
+  }
+  process.exit(code);
+}
+
+/** Stop on a failure that is the run's own, not a source's. */
+function abort(source: string, error: string): never {
+  console.error(error);
+  outcomes.push({ kind: "failed", source, error });
+  finish(1);
+}
+
 let registry = loadRegistry(ROOT);
 const removalRequests = loadRemovalManifest(ROOT);
 const baseline = structuredClone(registry);
 const before = validateRegistry(registry);
 if (before.length > 0) {
-  console.error(`registry is invalid before the update:\n  - ${before.join("\n  - ")}`);
-  process.exit(1);
+  abort("Registry", `registry is invalid before the update:\n  - ${before.join("\n  - ")}`);
 }
 if (resetOpenRouter) {
   const reset = resetOpenRouterRegistry(registry);
@@ -135,19 +166,17 @@ if (resetOpenRouter) {
 
 const pipeline = await runUpdatePipeline(registry, SOURCES);
 registry = pipeline.registry;
-const outcomes: SourceOutcome[] = pipeline.outcomes;
-const removalCandidates = findRemovalCandidates(registry, removalRequests);
+outcomes.push(...pipeline.outcomes);
 let failed = pipeline.failed;
 if (resetOpenRouter && !pipeline.fetchedSources.includes("OpenRouter")) {
-  console.error("\nOpenRouter reset aborted; the existing registry was not changed");
-  process.exit(1);
+  abort("OpenRouter reset", "OpenRouter reset aborted; the existing registry was not changed");
 }
 
 const after = validateRegistry(registry);
 if (after.length > 0) {
-  console.error(`\nthe update would leave the registry invalid; nothing written:\n  - ${after.join("\n  - ")}`);
-  process.exit(1);
+  abort("Registry", `the update would leave the registry invalid; nothing written:\n  - ${after.join("\n  - ")}`);
 }
+const removalCandidates = findRemovalCandidates(registry, removalRequests);
 
 const anomalies = detectRegistryAnomalies(baseline, registry, { allowPolicyBootstrap: resetOpenRouter });
 const digest = anomalies.length > 0 ? anomalyDigest(anomalies) : null;
@@ -172,23 +201,15 @@ if (unapprovedAnomalies) {
     },
   });
 }
-const report = renderReport(outcomes, today);
-console.log(report);
-if (process.env.GITHUB_STEP_SUMMARY) {
-  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
-}
 if (unapprovedAnomalies || processingFailure) {
-  if (!dryRun) writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes, removalCandidates }, null, 2)}\n`);
   console.error("\nupdate quarantined because a safety check or processing step failed; models/ was not changed");
-  process.exit(1);
+  finish(1);
 }
 
 if (dryRun) {
   console.log("\n(dry run — nothing written)");
-} else {
-  writeRegistry(ROOT, registry);
-  writeTextAtomic(REPORT_PATH, `${JSON.stringify({ date: today, outcomes, removalCandidates }, null, 2)}\n`);
-  console.log("\nwrote models/ and update-report.json");
+  finish(failed ? 1 : 0);
 }
-
-process.exit(failed ? 1 : 0);
+writeRegistry(ROOT, registry);
+console.log("\nwrote models/ and update-report.json");
+finish(failed ? 1 : 0, removalCandidates);

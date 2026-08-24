@@ -2,8 +2,9 @@
  * Where the update's findings go, beyond the job summary nobody opens.
  *
  * Two channels with two jobs. **Slack** carries *events*: the run changed
- * something (a price, a route added, a model retired) or a source could not be
- * read — posted once per run that has one, so a quiet day is quiet. The
+ * something (a price, a route added, a model retired) or something failed — a
+ * source that could not be read, the safety gate, the registry's own
+ * validation — posted once per run that has one, so a quiet day is quiet. The
  * **GitHub issue** carries *state*: one rolling issue holding everything that
  * needs a person (an unknown maker, a window a router disagrees on, an absence
  * being counted down), rewritten each run and closed the day the list is
@@ -55,7 +56,10 @@ export function slackMessage(context: NotifyContext): string | null {
   }
   lines.push(`*Model registry — ${slack(context.date)}*`);
   if (failures.length > 0) {
-    lines.push(`:red_circle: ${failures.map((f) => (f.kind === "failed" ? `${slack(f.source)} could not be read` : "")).join(", ")}`);
+    // Not every failure is a read: the safety gate and the registry's own
+    // validation come through here too, and "could not be read" would be a lie
+    // about both. `renderReport` calls all three "failed"; so does this.
+    lines.push(`:red_circle: ${failures.map((f) => (f.kind === "failed" ? `${slack(f.source)} failed` : "")).join(", ")}`);
   }
   if (changes.length > 0) {
     lines.push(`${changes.length} change${changes.length === 1 ? "" : "s"}${context.commitUrl ? ` — <${context.commitUrl}|committed>` : ""}`);
@@ -86,7 +90,7 @@ export function issueBody(context: NotifyContext): string | null {
   const sections: string[] = [];
   for (const outcome of context.outcomes) {
     if (outcome.kind === "failed") {
-      sections.push(`### ${markdown(outcome.source)} — could not be read\n\n${String(outcome.error).split(/\r?\n/).map((line) => `    ${markdown(line)}`).join("\n")}`);
+      sections.push(`### ${markdown(outcome.source)} — failed\n\n${String(outcome.error).split(/\r?\n/).map((line) => `    ${markdown(line)}`).join("\n")}`);
     } else if (outcome.kind === "applied" && outcome.result.notes.length > 0) {
       sections.push(`### ${markdown(outcome.result.source)}\n\n${outcome.result.notes.map((n) => `- ${markdown(n)}`).join("\n")}`);
     }

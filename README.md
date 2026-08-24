@@ -232,16 +232,17 @@ Two channels with two jobs, both optional and run even when a later build or tes
 (`scripts/notify.ts`):
 
 - **Slack** (`SLACK_WEBHOOK_URL`) carries *events*: a message per run that changed
-  something — a price, a route added, a family added, a model retired — or could not read a
-  source, with the run linked. A quiet day posts nothing.
+  something — a price, a route added, a family added, a model retired — or that failed: a
+  source that could not be read, a quarantined anomaly set, a patch that would leave the
+  registry invalid. The run is linked. A quiet day posts nothing.
 - **A rolling GitHub issue** (the workflow's own token) carries *state*: "Model registry:
   needs a look", rewritten by every run with everything that needs a person — an unknown
   maker, a window a router disagrees on, an absence being counted down, a source that could
   not be read — and closed the day the list is empty. Act on an item and it disappears the
   next day.
 
-The job summary on every run still holds the full report: a table of what changed and the
-*needs a look* list.
+The job summary holds the full report on every run, including one that refused to write:
+a table of what changed and the *needs a look* list.
 
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
 read from the same environment variable names. `--reset-openrouter` first preserves every
