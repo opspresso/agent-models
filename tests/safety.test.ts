@@ -45,6 +45,50 @@ describe("detectRegistryAnomalies", () => {
     assert.deepEqual(detectRegistryAnomalies(before, after), []);
   });
 
+  it("quarantines any removal, an addition burst and a mass hide", () => {
+    const before = fixture();
+
+    const dropped = structuredClone(before);
+    delete dropped.families["gpt-0"];
+    dropped.offerings = dropped.offerings.filter((o) => o.family !== "gpt-0");
+    const removals = detectRegistryAnomalies(before, dropped).join("\n");
+    assert.match(removals, /1 families would be removed/);
+    assert.match(removals, /1 offerings would be removed/);
+
+    const flooded = structuredClone(before);
+    for (let index = 0; index < 41; index += 1) {
+      const id = `gpt-new-${index}`;
+      flooded.families[id] = structuredClone(before.families["gpt-0"]!);
+      flooded.offerings.push({ provider: "openai", family: id });
+    }
+    const burst = detectRegistryAnomalies(before, flooded).join("\n");
+    assert.match(burst, /41 families would be added/);
+    assert.match(burst, /41 offerings would be added/);
+    // A deliberate policy rebuild says so, and only the addition limits lift.
+    assert.deepEqual(detectRegistryAnomalies(before, flooded, { allowPolicyBootstrap: true }), []);
+
+    const wide = fixture();
+    const hidden = structuredClone(wide);
+    for (let index = 6; index < 16; index += 1) {
+      const id = `gpt-${index}`;
+      wide.families[id] = structuredClone(wide.families["gpt-0"]!);
+      wide.offerings.push({ provider: "openai", family: id });
+      hidden.families[id] = structuredClone(hidden.families["gpt-0"]!);
+      hidden.offerings.push({ provider: "openai", family: id, hidden: true, hiddenReason: "catalog" });
+    }
+    assert.match(detectRegistryAnomalies(wide, hidden).join("\n"), /10 offerings would become hidden at once/);
+  });
+
+  it("treats a price appearing or vanishing as an order-of-magnitude move", () => {
+    const before = fixture();
+    const after = structuredClone(before);
+    after.families["gpt-0"]!.pricing.inputPer1M = 0;
+    assert.match(
+      detectRegistryAnomalies(before, after).join("\n"),
+      /gpt-0 pricing.inputPer1M changed by more than 10x/,
+    );
+  });
+
   it("gives the same approval digest regardless of anomaly order", () => {
     assert.equal(anomalyDigest(["b", "a"]), anomalyDigest(["a", "b"]));
     assert.equal(anomalyDigest(["a"]).length, 12);
