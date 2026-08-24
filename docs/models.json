@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-23T15:22:40.125Z",
+  "updatedAt": "2026-08-24T22:29:41.970Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2579,10 +2579,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.396894,
-        "outputPer1M": 0.793788,
-        "cachedInputPer1M": 0.0330745,
-        "discount": 0.7719
+        "inputPer1M": 0.522,
+        "outputPer1M": 1.044,
+        "cachedInputPer1M": 0.0435,
+        "discount": 0.7
       },
       "capabilities": {
         "tools": true,
@@ -2601,10 +2601,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.04886,
-        "outputPer1M": 0.09772,
-        "cachedInputPer1M": 0.009772,
-        "discount": 0.651
+        "inputPer1M": 0.056,
+        "outputPer1M": 0.112,
+        "cachedInputPer1M": 0.0112,
+        "discount": 0.6
       },
       "capabilities": {
         "tools": true,
@@ -2727,10 +2727,9 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.24,
-        "outputPer1M": 0.96,
-        "cachedInputPer1M": 0.048,
-        "discount": 0.6
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,

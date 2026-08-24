@@ -35,10 +35,9 @@
   "minimax-m2.7": {
     "displayName": "MiniMax M2.7",
     "pricing": {
-      "inputPer1M": 0.24,
-      "outputPer1M": 0.96,
-      "cachedInputPer1M": 0.048,
-      "discount": 0.6
+      "inputPer1M": 0.3,
+      "outputPer1M": 1.2,
+      "cachedInputPer1M": 0.06
     },
     "capabilities": {
       "tools": true,
