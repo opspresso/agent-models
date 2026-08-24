@@ -34,7 +34,7 @@
  *     vendor is new to the registry.
  */
 
-import type { ModelCapabilities, ModelFamily, ModelPricing, PlacedOffering, Registry } from "../registry.ts";
+import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, perMillion, samePricing, type Change, type SourceResult } from "./types.ts";
@@ -766,6 +766,10 @@ function discoverRankedImages(
       continue;
     }
 
+    if (!isSafeSlug(slug)) {
+      notes.push(`openrouter: ranked image ${id} cannot be a family id; add it by hand under a name this registry can use`);
+      continue;
+    }
     const endpoints = catalog.endpoints[id];
     const endpoint = standardImageEndpoint(endpoints);
     const price = imagePricing(endpoints);
@@ -783,6 +787,10 @@ function discoverRankedImages(
       continue;
     }
     if (maker === undefined) {
+      if (!isSafeSlug(vendor)) {
+        notes.push(`openrouter: ranked image ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
+        continue;
+      }
       maker = vendor;
       registry.makers[maker] = {
         displayName: makerDisplayNameOf(model, vendor),
@@ -976,6 +984,10 @@ export function discoverOpenRouter(
 
     // A family this registry does not have.
     if (!withinDiscoveryWindow || isDated(slug)) {
+      continue;
+    }
+    if (!isSafeSlug(slug)) {
+      notes.push(`openrouter: new model ${model.id} cannot be a family id; add it by hand under a name this registry can use`);
       continue;
     }
     const price = tokenPricing(model);

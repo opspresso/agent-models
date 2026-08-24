@@ -494,7 +494,13 @@ function isPrice(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
-function isSafeSlug(value: string): boolean {
+/**
+ * Whether a string may be a maker, provider or family id. Exported because
+ * discovery has to ask *before* it adopts a catalog's spelling: a name filed
+ * anyway fails validation at the end of the run, and one unusable listing
+ * would take the whole day's update with it.
+ */
+export function isSafeSlug(value: string): boolean {
   return value.length <= 100 && /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/.test(value);
 }
 

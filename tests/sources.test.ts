@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { PlacedOffering, Registry } from "../src/registry.ts";
+import { validateRegistry, type PlacedOffering, type Registry } from "../src/registry.ts";
 import {
   DISCOVERY_WINDOW_DAYS,
   OPENROUTER_IMAGE_MODELS_URL,
@@ -792,6 +792,27 @@ describe("discoverOpenRouter", () => {
     const notes = result.notes.join("\n");
     assert.match(notes, /1 eligible model from "mistralai", not a known maker \(mistral-z\)/);
     assert.match(notes, /deepseek\/deepseek-nocap states no usable max output/);
+  });
+
+  it("notes a listing whose own spelling cannot be a registry id, and adds the rest", () => {
+    const { registry, result } = discoverOpenRouter(
+      fixture(),
+      orCatalog([
+        { ...NEW_TEXT, id: "deepseek/DeepSeek-Z2", canonical_slug: "deepseek/DeepSeek-Z2" },
+        { ...NEW_TEXT, id: "deepseek/deepseek-z3", canonical_slug: "deepseek/deepseek-z3" },
+      ], {
+        rankings: [
+          { ...NEW_TEXT_RANKING, model_permaslug: "deepseek/DeepSeek-Z2", variant_permaslug: "deepseek/DeepSeek-Z2" },
+          { ...NEW_TEXT_RANKING, model_permaslug: "deepseek/deepseek-z3", variant_permaslug: "deepseek/deepseek-z3" },
+        ],
+      }),
+      TODAY,
+    );
+    assert.ok(!Object.keys(registry.families).includes("DeepSeek-Z2"));
+    assert.ok(Object.keys(registry.families).includes("deepseek-z3"));
+    assert.match(result.notes.join("\n"), /deepseek\/DeepSeek-Z2 cannot be a family id/);
+    // The whole point: the run stays writable instead of failing validation.
+    assert.deepEqual(validateRegistry(registry), []);
   });
 
   it("adds recent models from the four major makers without a ranking", () => {
