@@ -280,7 +280,8 @@
   const catalog = await (await fetch("models.json", { cache: "no-cache" })).json();
   const ROUTERS = new Set(["bedrock", "openrouter"]);
   const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"], ["imageGeneration", "Image"]];
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const initials = (s) => String(s).slice(0, 2).toUpperCase();
   const makerLabel = (id) => catalog.makers[id] ?? id;
 
   // The console's own formatting, kept to the letter: `formatUsd`,
@@ -381,9 +382,13 @@
   }
 
   function card(m) {
+    // The brand mark falls back to the maker's initials, carried in a data
+    // attribute and swapped in by the delegated `error` listener below. An
+    // inline `onerror=` would have to quote the label into a JS string inside
+    // an HTML attribute, and a maker named `O'Reilly` breaks that handler.
     const mark = catalog.makers[m.maker] !== undefined
-      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(m.maker)}.svg" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" onerror="this.parentNode.classList.add('blank');this.replaceWith(document.createTextNode('${esc(makerLabel(m.maker).slice(0, 2).toUpperCase())}'))"></span>`
-      : `<span class="mark blank">${esc(m.maker.slice(0, 2).toUpperCase())}</span>`;
+      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(m.maker)}.svg" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
+      : `<span class="mark blank">${esc(initials(m.maker))}</span>`;
     const providerBadge = m.hidden
       ? `<span class="badge neutral">${esc(m.provider)} · retired</span>`
       : `<span class="badge ${ROUTERS.has(m.provider) ? "router" : "on"}">${esc(m.provider)}${ROUTERS.has(m.provider) ? " · router" : ""}</span>`;
@@ -410,6 +415,16 @@
       <div class="foot">${wire}<span>${esc(makerLabel(m.maker))}</span></div>
     </article>`;
   }
+
+  // `error` does not bubble, so the grid listens in the capture phase; one
+  // listener outlives every innerHTML rewrite below.
+  $("grid").addEventListener("error", (e) => {
+    const img = e.target;
+    if (img instanceof HTMLImageElement && img.dataset.initials !== undefined) {
+      img.parentNode?.classList.add("blank");
+      img.replaceWith(document.createTextNode(img.dataset.initials));
+    }
+  }, true);
 
   function render() {
     const rows = visibleRows();

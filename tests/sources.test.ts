@@ -1096,6 +1096,18 @@ describe("fetch guards and snapshot folding", () => {
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /no usable entries/);
   });
 
+  it("OpenAI: routes a family its catalog lists only as a dated snapshot — the same fold presence uses", () => {
+    for (const listing of ["gpt-x-20260101", "gpt-x-2026-01-01"]) {
+      const r = fixture();
+      r.offerings = r.offerings.filter((o) => o.provider !== "openai");
+      const { registry } = discoverOpenAi(r, [listing]);
+      assert.ok(
+        registry.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"),
+        listing,
+      );
+    }
+  });
+
   it("OpenAI: credits a family its provider lists only as a dated snapshot — both date forms", () => {
     const base = fixture();
     for (const listing of ["gpt-x-20260101", "gpt-x-2026-01-01"]) {

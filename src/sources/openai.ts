@@ -8,7 +8,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
+import { catalogNames, fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
 
 export const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
 
@@ -37,17 +37,11 @@ export function applyOpenAi(
   today: string,
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
-  const served = new Set(ids);
   // A provider that lists only dated snapshots still serves the undated alias
   // (Anthropic does exactly this), and agent-studio's check-models credits
   // both date forms — without the same folding here the two tools hand down
   // different verdicts on the same catalog.
-  for (const id of ids) {
-    const alias = /^(.*)-(?:\d{8}|\d{4}-\d{2}-\d{2})$/.exec(id)?.[1];
-    if (alias !== undefined && alias !== "") {
-      served.add(alias);
-    }
-  }
+  const served = catalogNames(ids);
   const changes: Change[] = [];
   const notes: string[] = [];
   for (const offering of next.offerings) {
@@ -60,15 +54,17 @@ export function applyOpenAi(
 }
 
 /**
- * An `openai/` route for every live OpenAI-made text family the catalog lists
- * by the family's own id and this registry does not yet route there. The
- * family's price is then the list price (`promoteFamily`), which is what
+ * An `openai/` route for every live OpenAI-made text family the catalog serves
+ * under the family's own id and this registry does not yet route there. Dated
+ * snapshots fold to their alias exactly as they do for presence: a route the
+ * retirement clock counts as alive is one discovery must be willing to add.
+ * The family's price is then the list price (`promoteFamily`), which is what
  * OpenAI charges and what OpenRouter's listing was discounting from.
  */
 export function discoverOpenAi(registry: Registry, ids: string[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
-  const served = new Set(ids);
+  const served = catalogNames(ids);
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "openai" || family.capabilities.imageGeneration) {
       continue;

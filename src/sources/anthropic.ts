@@ -12,7 +12,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
+import { catalogNames, fetchJson, isExternalId, isPositiveInt, snapshotAlias, type Change, type SourceResult } from "./types.ts";
 
 export const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -65,7 +65,7 @@ export async function fetchAnthropicModels(
 
 /** `<alias>-<YYYYMMDD>` → `<alias>`; anything else unchanged. */
 export function undated(id: string): string {
-  return id.replace(/-\d{8}$/, "");
+  return snapshotAlias(id) ?? id;
 }
 
 export function applyAnthropic(
@@ -131,11 +131,7 @@ export function discoverAnthropic(
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
-  const names = new Set<string>();
-  for (const model of catalog) {
-    names.add(model.id);
-    names.add(undated(model.id));
-  }
+  const names = catalogNames(catalog.map(({ id }) => id));
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "anthropic" || family.capabilities.imageGeneration) {
       continue;

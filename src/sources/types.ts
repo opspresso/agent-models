@@ -42,6 +42,35 @@ export function isPositiveInt(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
+/**
+ * `<alias>-<YYYYMMDD>` or `<alias>-<YYYY-MM-DD>` → `<alias>`; null when the id
+ * carries no dated suffix.
+ *
+ * A provider that lists only a dated snapshot still serves the undated alias
+ * its own docs name (`gpt-x-20260101` is `gpt-x`, `claude-haiku-4-5-20251001`
+ * is `claude-haiku-4-5`). Presence and discovery both have to credit that, and
+ * they have to credit the *same* thing: fold in one place and a route can no
+ * longer be counted alive by the retirement clock while discovery refuses to
+ * add it.
+ */
+export function snapshotAlias(id: string): string | null {
+  const alias = /^(.+)-(?:\d{8}|\d{4}-\d{2}-\d{2})$/.exec(id)?.[1];
+  return alias === undefined || alias === "" ? null : alias;
+}
+
+/** Every name a catalog listing stands for: the id itself and its undated alias. */
+export function catalogNames(ids: Iterable<string>): Set<string> {
+  const names = new Set<string>();
+  for (const id of ids) {
+    names.add(id);
+    const alias = snapshotAlias(id);
+    if (alias !== null) {
+      names.add(alias);
+    }
+  }
+  return names;
+}
+
 export function isExternalId(value: unknown): value is string {
   return typeof value === "string"
     && value.length > 0
