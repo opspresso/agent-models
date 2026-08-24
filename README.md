@@ -115,8 +115,9 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 Published ids first become `hidden` tombstones. After automation hides a model at the end of its
 lifecycle grace period, it merges the routine update and then opens a separate draft deletion PR.
 That PR carries an exact `{ id, reason, requestedAt }` entry in `models/removals.json`, requests
-its code owner and is not auto-merged by the workflow. CI rejects removals without a request,
-while the `main` ruleset rejects direct pushes.
+its code owner and is not auto-merged by the workflow. CI rejects a removal that no entry
+requests — on pull requests, which is where it is checked. `main` carries no ruleset, so a
+push straight to it is not checked at all.
 
 Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models` (public),
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
@@ -266,5 +267,5 @@ pnpm typecheck
 pnpm test
 ```
 
-Node 24+, pnpm 11. The scripts are TypeScript run by Node directly; the only dependency is
-`typescript` for the type check.
+Node 24+, pnpm 11. The scripts are TypeScript run by Node directly; nothing is installed to
+run them — `typescript` and `@types/node` are dev dependencies for the type check alone.
