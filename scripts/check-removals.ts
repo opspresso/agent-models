@@ -1,17 +1,24 @@
 import { execFileSync } from "node:child_process";
 import { assertRemovalPolicy, loadRemovalManifest } from "../src/removals.ts";
-import type { Catalog } from "../src/registry.ts";
-import { readCatalog } from "../src/registry.ts";
+import { parseCatalog, readCatalog } from "../src/registry.ts";
 import { CATALOG_PATH, ROOT } from "./_root.ts";
 
 const arguments_ = process.argv.slice(2).filter((argument) => argument !== "--");
 const pullRequest = arguments_.includes("--pull-request");
 const base = arguments_.find((argument) => !argument.startsWith("--")) ?? "HEAD^";
-let previous: Catalog;
+let text: string;
 try {
-  previous = JSON.parse(execFileSync("git", ["show", `${base}:docs/models.json`], { cwd: ROOT, encoding: "utf-8" })) as Catalog;
+  text = execFileSync("git", ["show", `${base}:docs/models.json`], { cwd: ROOT, encoding: "utf-8" });
 } catch (error) {
   console.error(`cannot read docs/models.json from ${base}: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
+// Parsed the same way as the current one: a base revision whose catalog is
+// unreadable must stop the check, not read as a catalog with no models and
+// accuse the pull request of deleting all of them.
+const previous = parseCatalog(text);
+if (previous === null) {
+  console.error(`docs/models.json at ${base} is not a readable catalog`);
   process.exit(1);
 }
 const current = readCatalog(CATALOG_PATH);

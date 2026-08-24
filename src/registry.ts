@@ -834,13 +834,35 @@ export function buildCatalog(registry: Registry, previous: Catalog | null, now: 
   };
 }
 
+/**
+ * A catalog from its JSON text, or null when the text is not one.
+ *
+ * Every reader of a *previous* catalog uses `models[].id`, and the removal
+ * tripwire compares those ids: an entry without one becomes an `undefined` in
+ * the previous list, absent from the next, and is reported as a published
+ * model being deleted. So the ids are checked here, not just the array around
+ * them — a truncated or half-written file has to read as "not a catalog"
+ * rather than as one that lost every model.
+ */
+export function parseCatalog(text: string): Catalog | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!isPlain(parsed) || !Array.isArray(parsed.models)) {
+    return null;
+  }
+  if (!parsed.models.every((model) => isPlain(model) && typeof model.id === "string" && model.id !== "")) {
+    return null;
+  }
+  return parsed as unknown as Catalog;
+}
+
 export function readCatalog(path: string): Catalog | null {
   if (!existsSync(path)) {
     return null;
   }
-  const parsed = readJson(path);
-  if (!isPlain(parsed) || !Array.isArray(parsed.models)) {
-    return null;
-  }
-  return parsed as unknown as Catalog;
+  return parseCatalog(readFileSync(path, "utf-8"));
 }

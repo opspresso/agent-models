@@ -8,6 +8,7 @@ import {
   buildCatalog,
   deriveModels,
   loadRegistry,
+  parseCatalog,
   validateRegistry,
   writeRegistry,
   type Catalog,
@@ -305,6 +306,23 @@ describe("writeRegistry", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe("parseCatalog", () => {
+  const one = { version: 1, updatedAt: "2026-08-20T00:00:00.000Z", source: "s", providers: [], makers: {}, models: [{ id: "openai/gpt-x" }] };
+  it("accepts a catalog whose models all name themselves", () => {
+    assert.equal(parseCatalog(JSON.stringify(one))?.models.length, 1);
+  });
+  it("refuses text that is not a catalog, so a corrupt file never reads as an empty one", () => {
+    // Each of these once reached the removal tripwire as "a catalog", where an
+    // id-less entry is an `undefined` that the next catalog does not have — a
+    // published model reported as deleted.
+    assert.equal(parseCatalog("{ truncated"), null);
+    assert.equal(parseCatalog("[]"), null);
+    assert.equal(parseCatalog(JSON.stringify({ ...one, models: "soon" })), null);
+    assert.equal(parseCatalog(JSON.stringify({ ...one, models: [{ provider: "openai" }] })), null);
+    assert.equal(parseCatalog(JSON.stringify({ ...one, models: [{ id: "" }] })), null);
   });
 });
 
