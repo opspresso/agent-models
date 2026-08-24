@@ -20,7 +20,7 @@ import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
 import { applyAnthropic, discoverAnthropic, undated } from "../src/sources/anthropic.ts";
 import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
-import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_DAYS } from "../src/sources/presence.ts";
+import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
 import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
 import { fetchJson, perMillion, type Change } from "../src/sources/types.ts";
 
@@ -192,7 +192,7 @@ describe("observePresence", () => {
     assert.equal(offering.missingSince, undefined);
     assert.equal(offering.note, "Kept. Hidden automatically on 2026-08-31: absent from OpenAI's catalog since 2026-08-20.");
     assert.match(notes.at(-1) ?? "", /hidden — Hidden automatically/);
-    assert.equal(RETIREMENT_GRACE_DAYS, 7);
+    assert.equal(RETIREMENT_GRACE_OBSERVATIONS, 7);
   });
 
   it("clears the clock the day the model is back", () => {

@@ -69,8 +69,9 @@ export function detectRegistryAnomalies(
     }
   }
 
+  const beforeById = new Map(before.offerings.map((offering) => [offeringId(offering), offering]));
   const newlyHidden = after.offerings.filter((offering) => {
-    const old = before.offerings.find((candidate) => offeringId(candidate) === offeringId(offering));
+    const old = beforeById.get(offeringId(offering));
     return old !== undefined && !old.hidden && offering.hidden && offering.hiddenReason !== "reset";
   }).length;
   if (newlyHidden >= 10) anomalies.push(`${newlyHidden} offerings would become hidden at once`);

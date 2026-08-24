@@ -16,7 +16,6 @@ import type { PlacedOffering } from "../registry.ts";
 import type { Change } from "./types.ts";
 
 export const RETIREMENT_GRACE_OBSERVATIONS = 7;
-export const RETIREMENT_GRACE_DAYS = RETIREMENT_GRACE_OBSERVATIONS;
 export const RANKING_GRACE_OBSERVATIONS = 14;
 
 /**

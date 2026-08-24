@@ -2,7 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { assertValid, formatJson, loadRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
+import { formatJson, loadRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
 import {
   applyRemovalCandidates,
   loadRemovalManifest,
@@ -26,7 +26,6 @@ const proposal = applyRemovalCandidates(
   loadRemovalManifest(ROOT),
   report.date,
 );
-assertValid(proposal.registry);
 writeRegistry(ROOT, proposal.registry);
 writeTextAtomic(join(ROOT, "models", "removals.json"), formatJson(proposal.requests));
 console.log(`proposed model removal(s): ${candidates.map(({ id }) => id).join(", ")}`);

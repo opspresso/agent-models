@@ -9,6 +9,8 @@ import { loadRemovalManifest } from "../src/removals.ts";
 import { ROOT } from "./_root.ts";
 
 const registry = loadRegistry(ROOT);
+// Read for its validation alone: removals.json is carried across the rewrite
+// untouched, and a malformed one should stop the run rather than survive it.
 loadRemovalManifest(ROOT);
 writeRegistry(ROOT, registry);
 console.log(`formatted ${Object.keys(registry.families).length} families, ${registry.offerings.length} offerings`);

@@ -65,13 +65,25 @@ export async function runUpdatePipeline(initial: Registry, sources: readonly Upd
   for (const entry of applyOrder) {
     try {
       run(entry.apply, entry.source.name);
-      states.set(entry.source.name, { kind: "applied", result: merged.get(entry.source.name) as SourceResult });
+      states.set(entry.source.name, {
+        kind: "applied",
+        result: merged.get(entry.source.name) ?? { source: entry.source.name, changes: [], notes: [] },
+      });
     } catch (error) {
       states.set(entry.source.name, { kind: "failed", source: entry.source.name, error: `apply: ${message(error)}` });
     }
   }
 
-  const outcomes = sources.map((source) => states.get(source.name) as SourceOutcome);
+  // Every source lands in `states` — skipped, failed, or applied. A gap would
+  // mean a name collision in `sources`, and an undefined outcome would only
+  // surface as a crash inside the report; say so here instead.
+  const outcomes = sources.map((source) => {
+    const outcome = states.get(source.name);
+    if (outcome === undefined) {
+      throw new Error(`update source "${source.name}" produced no outcome — are two sources named alike?`);
+    }
+    return outcome;
+  });
   return {
     registry,
     outcomes,
