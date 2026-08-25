@@ -416,7 +416,7 @@
       "reasoning": false
     },
     "contextWindow": 262144,
-    "maxTokens": 131072,
+    "maxTokens": 117964,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-03-12); numbers and flags are OpenRouter's."
   },
   "gemma-2-27b-it": {
@@ -451,7 +451,7 @@
       "imageGeneration": true
     },
     "contextWindow": 32768,
-    "maxTokens": 32768,
+    "maxTokens": 29491,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   },
   "gemini-3.1-flash-image-preview": {
@@ -469,7 +469,7 @@
       "imageGeneration": true
     },
     "contextWindow": 65536,
-    "maxTokens": 65536,
+    "maxTokens": 58982,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   },
   "gemini-3-pro-image-preview": {

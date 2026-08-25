@@ -14,7 +14,7 @@
       "imageGeneration": true
     },
     "contextWindow": 65536,
-    "maxTokens": 65536,
+    "maxTokens": 58982,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   },
   "krea-2-medium-turbo": {
@@ -32,7 +32,7 @@
       "imageGeneration": true
     },
     "contextWindow": 65536,
-    "maxTokens": 65536,
+    "maxTokens": 58982,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }
