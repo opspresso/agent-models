@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-24T22:29:41.970Z",
+  "updatedAt": "2026-08-25T22:30:30.063Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2286,9 +2286,10 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.966,
-        "outputPer1M": 3.036,
-        "cachedInputPer1M": 0.1932
+        "inputPer1M": 1.19,
+        "outputPer1M": 3.74,
+        "cachedInputPer1M": 0.221,
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -2297,7 +2298,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 262144,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -2360,7 +2361,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 256000,
+      "maxTokens": 230400,
       "wireId": "stepfun/step-3.7-flash"
     },
     {
@@ -2579,10 +2580,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.522,
-        "outputPer1M": 1.044,
-        "cachedInputPer1M": 0.0435,
-        "discount": 0.7
+        "inputPer1M": 0.55593,
+        "outputPer1M": 1.11186,
+        "cachedInputPer1M": 0.0463275,
+        "discount": 0.6805
       },
       "capabilities": {
         "tools": true,
@@ -2601,10 +2602,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.056,
-        "outputPer1M": 0.112,
-        "cachedInputPer1M": 0.0112,
-        "discount": 0.6
+        "inputPer1M": 0.077,
+        "outputPer1M": 0.154,
+        "cachedInputPer1M": 0.0154,
+        "discount": 0.45
       },
       "capabilities": {
         "tools": true,
@@ -2738,7 +2739,7 @@
         "reasoning": true
       },
       "contextWindow": 204800,
-      "maxTokens": 196608,
+      "maxTokens": 131072,
       "wireId": "minimax/minimax-m2.7"
     },
     {
@@ -3673,7 +3674,7 @@
         "reasoning": false
       },
       "contextWindow": 262144,
-      "maxTokens": 131072,
+      "maxTokens": 117964,
       "wireId": "google/gemma-3-27b-it"
     },
     {
@@ -3965,7 +3966,7 @@
         "imageGeneration": true
       },
       "contextWindow": 32768,
-      "maxTokens": 32768,
+      "maxTokens": 29491,
       "wireId": "google/gemini-2.5-flash-image"
     },
     {
@@ -4010,7 +4011,7 @@
         "imageGeneration": true
       },
       "contextWindow": 65536,
-      "maxTokens": 65536,
+      "maxTokens": 58982,
       "wireId": "google/gemini-3.1-flash-image-preview"
     },
     {
@@ -4125,7 +4126,7 @@
         "imageGeneration": true
       },
       "contextWindow": 4096,
-      "maxTokens": 4096,
+      "maxTokens": 3686,
       "wireId": "bytedance-seed/seedream-4.5"
     },
     {
@@ -4170,7 +4171,7 @@
         "imageGeneration": true
       },
       "contextWindow": 46864,
-      "maxTokens": 46864,
+      "maxTokens": 42177,
       "wireId": "black-forest-labs/flux.2-pro"
     },
     {
@@ -4237,7 +4238,7 @@
         "imageGeneration": true
       },
       "contextWindow": 40960,
-      "maxTokens": 40960,
+      "maxTokens": 36864,
       "wireId": "black-forest-labs/flux.2-klein-4b"
     },
     {
@@ -4281,7 +4282,7 @@
         "imageGeneration": true
       },
       "contextWindow": 65536,
-      "maxTokens": 65536,
+      "maxTokens": 58982,
       "wireId": "qwen/qwen-image-3"
     },
     {
@@ -4303,7 +4304,7 @@
         "imageGeneration": true
       },
       "contextWindow": 65536,
-      "maxTokens": 65536,
+      "maxTokens": 58982,
       "wireId": "krea/krea-2-medium"
     },
     {
@@ -4325,7 +4326,7 @@
         "imageGeneration": true
       },
       "contextWindow": 46864,
-      "maxTokens": 46864,
+      "maxTokens": 42177,
       "wireId": "black-forest-labs/flux.2-max"
     },
     {
@@ -4370,7 +4371,7 @@
         "imageGeneration": true
       },
       "contextWindow": 65536,
-      "maxTokens": 65536,
+      "maxTokens": 58982,
       "wireId": "krea/krea-2-medium-turbo"
     },
     {
@@ -4391,7 +4392,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 1048576,
+      "maxTokens": 943718,
       "wireId": "moonshotai/kimi-k3"
     },
     {
@@ -4412,7 +4413,7 @@
         "reasoning": true
       },
       "contextWindow": 512288,
-      "maxTokens": 202800,
+      "maxTokens": 461059,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     }
   ]

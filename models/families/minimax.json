@@ -46,7 +46,7 @@
       "reasoning": true
     },
     "contextWindow": 204800,
-    "maxTokens": 196608,
+    "maxTokens": 131072,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-03-18); numbers and flags are OpenRouter's."
   }
 }
