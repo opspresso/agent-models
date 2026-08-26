@@ -17,8 +17,8 @@ can use it the same way. A browsable view of the same file is at
 mirrors the console's own Models page (<https://studio.opspresso.com/models>): the same
 catalog header, filter row (search, provider, capabilities, sort) and one card per route,
 drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
-Icons). The studio's mark is re-hued warm for the favicon, so the two are recognisably
-siblings and never mistaken for each other.
+Icons). The studio's mark is re-hued green for this site's logo and favicon, so the two
+are recognisably siblings and never mistaken for each other.
 
 ## The catalog
 
