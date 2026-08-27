@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-25T22:30:30.063Z",
+  "updatedAt": "2026-08-27T03:00:11.027Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2580,10 +2580,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.55593,
-        "outputPer1M": 1.11186,
-        "cachedInputPer1M": 0.0463275,
-        "discount": 0.6805
+        "inputPer1M": 0.87,
+        "outputPer1M": 1.74,
+        "cachedInputPer1M": 0.0725,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2602,10 +2602,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.077,
-        "outputPer1M": 0.154,
-        "cachedInputPer1M": 0.0154,
-        "discount": 0.45
+        "inputPer1M": 0.07952,
+        "outputPer1M": 0.15904,
+        "cachedInputPer1M": 0.015904,
+        "discount": 0.432
       },
       "capabilities": {
         "tools": true,
@@ -2707,9 +2707,9 @@
       "maker": "google",
       "displayName": "Gemma 4 31B",
       "pricing": {
-        "inputPer1M": 0.1,
+        "inputPer1M": 0.09,
         "outputPer1M": 0.34,
-        "cachedInputPer1M": 0.1
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -4415,6 +4415,51 @@
       "contextWindow": 512288,
       "maxTokens": 461059,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
+    },
+    {
+      "id": "openrouter/gpt-image-1-mini",
+      "provider": "openrouter",
+      "family": "gpt-image-1-mini",
+      "maker": "openai",
+      "displayName": "GPT Image 1 Mini",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.25,
+        "imageOutputPer1M": 8
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 360000,
+      "wireId": "openai/gpt-image-1-mini"
+    },
+    {
+      "id": "openrouter/glm-5.3-flash",
+      "provider": "openrouter",
+      "family": "glm-5.3-flash",
+      "maker": "zhipu",
+      "displayName": "GLM 5.3 Flash",
+      "pricing": {
+        "inputPer1M": 0.075,
+        "outputPer1M": 0.25,
+        "cachedInputPer1M": 0.015,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1310720,
+      "maxTokens": 131072,
+      "wireId": "z-ai/glm-5.3-flash"
     }
   ]
 }

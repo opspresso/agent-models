@@ -875,5 +875,24 @@
     "contextWindow": 400000,
     "maxTokens": 128000,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-image-1-mini": {
+    "displayName": "GPT Image 1 Mini",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.25,
+      "imageOutputPer1M": 8
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 360000,
+    "note": "Added automatically on 2026-08-27 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }

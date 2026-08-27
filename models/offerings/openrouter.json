@@ -169,11 +169,19 @@
   },
   {
     "family": "gemma-4-31b-it",
-    "wireId": "google/gemma-4-31b-it"
+    "wireId": "google/gemma-4-31b-it",
+    "pricing": {
+      "inputPer1M": 0.09,
+      "outputPer1M": 0.34,
+      "cachedInputPer1M": 0.05
+    }
   },
   {
     "family": "minimax-m2.7",
-    "wireId": "minimax/minimax-m2.7"
+    "wireId": "minimax/minimax-m2.7",
+    "rankMissingSince": "2026-08-27",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-08-27"
   },
   {
     "family": "gpt-5.4-nano",
@@ -482,7 +490,10 @@
   },
   {
     "family": "gpt-5-image-mini",
-    "wireId": "openai/gpt-5-image-mini"
+    "wireId": "openai/gpt-5-image-mini",
+    "rankMissingSince": "2026-08-27",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-08-27"
   },
   {
     "family": "krea-2-medium-turbo",
@@ -495,5 +506,13 @@
   {
     "family": "nemotron-3-ultra-550b-a55b",
     "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
+  },
+  {
+    "family": "gpt-image-1-mini",
+    "wireId": "openai/gpt-image-1-mini"
+  },
+  {
+    "family": "glm-5.3-flash",
+    "wireId": "z-ai/glm-5.3-flash"
   }
 ]
