@@ -118,6 +118,8 @@ export interface ModelOffering {
   lastMissingAt?: string;
   /** Why automation hid the route. Absent means a deliberate/manual retirement. */
   hiddenReason?: "catalog" | "ranking" | "reset";
+  /** UTC date automation hid the route; permanent removal waits from this date. */
+  hiddenAt?: string;
   /** First successful ranking observation on which the route was ineligible. */
   rankMissingSince?: string;
   /** Successful ranking observations in the current ineligible streak. */
@@ -217,6 +219,7 @@ const OFFERING_KEYS = [
   "maxTokens",
   "hidden",
   "hiddenReason",
+  "hiddenAt",
   "missingSince",
   "missingObservations",
   "lastMissingAt",
@@ -707,6 +710,14 @@ export function validateRegistry(registry: Registry): string[] {
     if (offering.hiddenReason !== undefined) {
       if (!offering.hidden || !["catalog", "ranking", "reset"].includes(offering.hiddenReason)) {
         errors.push(`${where}: hiddenReason requires hidden and must be catalog, ranking, or reset`);
+      }
+    }
+    if (offering.hiddenAt !== undefined) {
+      if (!isUtcDate(offering.hiddenAt)) {
+        errors.push(`${where}: hiddenAt must be a valid UTC date in YYYY-MM-DD form`);
+      }
+      if (!offering.hidden || !["catalog", "ranking"].includes(offering.hiddenReason ?? "")) {
+        errors.push(`${where}: hiddenAt requires an automatically hidden catalog or ranking route`);
       }
     }
     if (offering.missingSince !== undefined) {

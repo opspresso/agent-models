@@ -176,9 +176,9 @@ const after = validateRegistry(registry);
 if (after.length > 0) {
   abort("Registry", `the update would leave the registry invalid; nothing written:\n  - ${after.join("\n  - ")}`);
 }
-const removalCandidates = findRemovalCandidates(registry, removalRequests);
+const removalCandidates = findRemovalCandidates(registry, removalRequests, today);
 
-const anomalies = detectRegistryAnomalies(baseline, registry, { allowPolicyBootstrap: resetOpenRouter });
+const anomalies = detectRegistryAnomalies(baseline, registry);
 const digest = anomalies.length > 0 ? anomalyDigest(anomalies) : null;
 const unapprovedAnomalies = digest !== null && anomalyApproval !== digest;
 const processingFailure = outcomes.some(

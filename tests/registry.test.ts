@@ -391,6 +391,21 @@ describe("retirement bookkeeping", () => {
     assert.match(validateRegistry(r).join("\n"), /valid UTC date/);
   });
 
+  it("accepts hiddenAt only on an automatically hidden route", () => {
+    const r = fixture();
+    Object.assign(r.offerings[0]!, {
+      hidden: true,
+      hiddenReason: "ranking",
+      hiddenAt: "2026-08-20",
+    });
+    assert.deepEqual(validateRegistry(r), []);
+    r.offerings[0]!.hiddenAt = "yesterday";
+    assert.match(validateRegistry(r).join("\n"), /hiddenAt must be a valid UTC date/);
+    r.offerings[0]!.hiddenAt = "2026-08-20";
+    r.offerings[0]!.hiddenReason = "reset";
+    assert.match(validateRegistry(r).join("\n"), /hiddenAt requires an automatically hidden/);
+  });
+
   it("accepts a discount as a fraction and nothing else", () => {
     const r = fixture();
     r.families["gpt-x"]!.pricing.discount = 0.5;

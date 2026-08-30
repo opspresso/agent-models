@@ -32,6 +32,11 @@
  *     20 and its endpoint states a price and limits (including explicit zero
  *     limits for image-only models). Its maker is adopted with it when the
  *     vendor is new to the registry.
+ *
+ * Retention is deliberately wider than admission: text stays through the
+ * weekly top 50 in its open/closed class, image through the top 30. A listing
+ * gets 90 days before ranking retirement starts, and a major-maker text route
+ * is ranked only when no live vendor route backs its family.
  */
 
 import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
@@ -41,6 +46,8 @@ import { fetchJson, isExternalId, isPositiveInt, perMillion, samePricing, type C
 
 /** How far back a first listing counts as new. Older listings are the backlog, which is a person's. */
 export const DISCOVERY_WINDOW_DAYS = 30;
+/** Fresh listings are not retired for low usage while adoption is still settling. */
+export const RANKING_RETIREMENT_MIN_AGE_DAYS = 90;
 /** An announced end further out than this is a placeholder, not a plan. */
 export const EXPIRATION_HORIZON_DAYS = 365;
 
@@ -255,10 +262,10 @@ export async function fetchOpenRouterCatalog(
     ? imageRankingsResult.data as OpenRouterImageRanking[]
     : null;
   const imageModels = images as OpenRouterImageModel[];
-  if (rankings !== null && leaderboardPermaslugs(models as OpenRouterModel[], rankings)?.size !== LEADERBOARD_LIMIT * 2) {
+  if (rankings !== null && leaderboardPermaslugs(models as OpenRouterModel[], rankings)?.size !== ADDITION_LEADERBOARD_LIMIT * 2) {
     rankings = null;
   }
-  if (imageRankings !== null && imageLeaderboardIds(imageModels, imageRankings)?.length !== LEADERBOARD_LIMIT) {
+  if (imageRankings !== null && imageLeaderboardIds(imageModels, imageRankings)?.length !== ADDITION_LEADERBOARD_LIMIT) {
     imageRankings = null;
   }
   const imageLeaderboard = imageLeaderboardIds(imageModels, imageRankings) ?? [];
@@ -368,7 +375,7 @@ function textMaxTokens(
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
   if (catalog.rankings === null || catalog.imageRankings === null) return false;
   const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
-  if (ids === null || ids.length !== LEADERBOARD_LIMIT) return false;
+  if (ids === null || ids.length !== ADDITION_LEADERBOARD_LIMIT) return false;
   return ids.every((id) => {
     const endpoint = standardImageEndpoint(catalog.endpoints[id]);
     const window = endpoint?.context_length;
@@ -570,17 +577,20 @@ function isVariant(slug: string): boolean {
 }
 
 const MAJOR_MODEL_MAKERS = new Set(["openai", "anthropic", "google", "xai"]);
-const LEADERBOARD_LIMIT = 20;
+const ADDITION_LEADERBOARD_LIMIT = 20;
+const TEXT_RETENTION_LEADERBOARD_LIMIT = 50;
+const IMAGE_RETENTION_LEADERBOARD_LIMIT = 30;
 
 function standardPermaslug(permaslug: string): string {
   const colon = permaslug.indexOf(":");
   return colon === -1 ? permaslug : permaslug.slice(0, colon);
 }
 
-/** The image leaderboard's weekly top 20, ordered by image-producing requests. */
+/** The image leaderboard, ordered by image-producing requests and folded to catalog ids. */
 function imageLeaderboardIds(
   models: OpenRouterImageModel[],
   rankings: OpenRouterImageRanking[] | null,
+  limit = ADDITION_LEADERBOARD_LIMIT,
 ): string[] | null {
   if (rankings === null) {
     return null;
@@ -592,23 +602,28 @@ function imageLeaderboardIds(
       (totals.get(row.variant_permaslug) ?? 0) + row.image_output_requests,
     );
   }
-  const top = [...totals]
+  const ranked = [...totals]
     .sort((left, right) => right[1] - left[1])
-    .slice(0, LEADERBOARD_LIMIT)
     .map(([permaslug]) => standardPermaslug(permaslug));
-  return top.flatMap((permaslug) => {
+  const ids: string[] = [];
+  for (const permaslug of ranked) {
     const model = models.find(({ id }) => {
       const suffix = permaslug.slice(id.length);
       return permaslug === id || permaslug.startsWith(id) && /^-\d{8}$/.test(suffix);
     });
-    return model === undefined ? [] : [model.id];
-  });
+    if (model !== undefined && !ids.includes(model.id)) {
+      ids.push(model.id);
+      if (ids.length === limit) break;
+    }
+  }
+  return ids;
 }
 
-/** The same weekly open/closed top-20 gate shown by OpenRouter's rankings table. */
+/** The weekly open/closed leaderboard, with serving variants folded to one model. */
 function leaderboardPermaslugs(
   models: OpenRouterModel[],
   rankings: OpenRouterRanking[] | null,
+  limit = ADDITION_LEADERBOARD_LIMIT,
 ): Set<string> | null {
   if (rankings === null) {
     return null;
@@ -644,15 +659,18 @@ function leaderboardPermaslugs(
     if (model === undefined || parts === null || parts.vendor === "stealth") {
       continue;
     }
+    if (eligible.has(permaslug)) {
+      continue;
+    }
     const isOpen = typeof model.hugging_face_id === "string" && model.hugging_face_id !== "";
-    if (isOpen && open < LEADERBOARD_LIMIT) {
+    if (isOpen && open < limit) {
       open += 1;
       eligible.add(permaslug);
-    } else if (!isOpen && closed < LEADERBOARD_LIMIT) {
+    } else if (!isOpen && closed < limit) {
       closed += 1;
       eligible.add(permaslug);
     }
-    if (open === LEADERBOARD_LIMIT && closed === LEADERBOARD_LIMIT) {
+    if (open === limit && closed === limit) {
       break;
     }
   }
@@ -704,6 +722,19 @@ function isRecent(model: OpenRouterModel, today: string): boolean {
   }
   const age = daysBetween(utcDate(new Date(model.created * 1000)), today);
   return age >= 0 && age <= DISCOVERY_WINDOW_DAYS;
+}
+
+function oldEnoughForRankingRetirement(created: number | undefined, today: string): boolean {
+  if (typeof created !== "number" || !Number.isFinite(created)) {
+    return false;
+  }
+  return daysBetween(utcDate(new Date(created * 1000)), today) > RANKING_RETIREMENT_MIN_AGE_DAYS;
+}
+
+function hasLiveVendorRoute(registry: Registry, family: string): boolean {
+  return registry.offerings.some(
+    (offering) => offering.family === family && offering.provider !== "openrouter" && !offering.hidden,
+  );
 }
 
 function isEligibleModel(
@@ -902,28 +933,56 @@ export function discoverOpenRouter(
   );
   const unknownVendors = new Map<string, string[]>();
   const rankedPermaslugs = leaderboardPermaslugs(catalog.models, catalog.rankings);
+  const textRetention = leaderboardPermaslugs(
+    catalog.models,
+    catalog.rankings,
+    TEXT_RETENTION_LEADERBOARD_LIMIT,
+  );
+  const retainedPermaslugs = textRetention?.size === TEXT_RETENTION_LEADERBOARD_LIMIT * 2
+    ? textRetention
+    : null;
   if (rankedPermaslugs === null) {
     notes.push("openrouter: weekly rankings could not be read; non-major models and routes were not added");
+  } else if (retainedPermaslugs === null) {
+    notes.push("openrouter: weekly rankings did not contain a complete open/closed Top 50; ranking retirement did not advance");
   }
   const rankedImageIds = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
+  const imageRetention = imageLeaderboardIds(
+    catalog.imageModels,
+    catalog.imageRankings,
+    IMAGE_RETENTION_LEADERBOARD_LIMIT,
+  );
+  const retainedImageIds = imageRetention?.length === IMAGE_RETENTION_LEADERBOARD_LIMIT
+    ? new Set(imageRetention)
+    : null;
+  if (rankedImageIds !== null && retainedImageIds === null) {
+    notes.push("openrouter: weekly image rankings did not contain a complete Top 30; ranking retirement did not advance");
+  }
   const textById = new Map(catalog.models.map((model) => [model.id, model]));
+  const imageById = new Map(catalog.imageModels.map((model) => [model.id, model]));
   for (const offering of next.offerings) {
     if (offering.provider !== "openrouter" || offering.wireId === undefined) continue;
     const family = next.families[offering.family];
     if (family?.capabilities.imageGeneration) {
-      if (rankedImageIds !== null) {
-        observeRankingEligibility(offering, rankedImageIds.includes(offering.wireId), today, changes, notes);
+      if (retainedImageIds !== null) {
+        const model = imageById.get(offering.wireId);
+        const eligible = model === undefined
+          || !oldEnoughForRankingRetirement(model.created, today)
+          || retainedImageIds.has(offering.wireId);
+        observeRankingEligibility(offering, eligible, today, changes, notes);
       }
       continue;
     }
-    if (family !== undefined && MAJOR_MODEL_MAKERS.has(family.maker)) {
+    if (family !== undefined && MAJOR_MODEL_MAKERS.has(family.maker) && hasLiveVendorRoute(next, offering.family)) {
       const eligible = offering.hiddenReason !== "reset" || textById.has(offering.wireId);
       observeRankingEligibility(offering, eligible, today, changes, notes);
       continue;
     }
-    if (rankedPermaslugs !== null) {
+    if (retainedPermaslugs !== null) {
       const model = textById.get(offering.wireId);
-      const eligible = typeof model?.canonical_slug === "string" && rankedPermaslugs.has(model.canonical_slug);
+      const eligible = model === undefined
+        || !oldEnoughForRankingRetirement(model.created, today)
+        || typeof model.canonical_slug === "string" && retainedPermaslugs.has(model.canonical_slug);
       observeRankingEligibility(offering, eligible, today, changes, notes);
     }
   }

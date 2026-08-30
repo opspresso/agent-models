@@ -14,16 +14,19 @@ const report = JSON.parse(readFileSync(REPORT_PATH, "utf-8")) as {
   date: string;
   removalCandidates?: RemovalCandidate[];
 };
-const candidates = report.removalCandidates ?? [];
+const registry = loadRegistry(ROOT);
+const requests = loadRemovalManifest(ROOT);
+const requested = new Set(requests.map(({ id }) => id));
+const candidates = (report.removalCandidates ?? []).filter(({ id }) => !requested.has(id));
 if (candidates.length === 0) {
   console.log("no lifecycle-qualified model removals to propose");
   process.exit(0);
 }
 
 const proposal = applyRemovalCandidates(
-  loadRegistry(ROOT),
+  registry,
   candidates,
-  loadRemovalManifest(ROOT),
+  requests,
   report.date,
 );
 writeRegistry(ROOT, proposal.registry);

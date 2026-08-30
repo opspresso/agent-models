@@ -1,6 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Registry } from "./registry.ts";
+import { daysBetween } from "./sources/presence.ts";
+
+export const REMOVAL_GRACE_DAYS = 30;
 
 export interface RemovalRequest {
   id: string;
@@ -80,16 +83,23 @@ export function assertRemovalPolicy(
 export function findRemovalCandidates(
   registry: Registry,
   requests: readonly RemovalRequest[],
+  today: string,
 ): RemovalCandidate[] {
+  if (!isUtcDate(today)) throw new Error("removal candidate date must be a valid UTC date");
   const requested = new Set(requests.map(({ id }) => id));
   return registry.offerings.flatMap((offering) => {
     const id = `${offering.provider}/${offering.family}`;
-    if (!offering.hidden || requested.has(id)) return [];
+    if (
+      !offering.hidden
+      || offering.hiddenAt === undefined
+      || daysBetween(offering.hiddenAt, today) < REMOVAL_GRACE_DAYS
+      || requested.has(id)
+    ) return [];
     if (offering.hiddenReason === "catalog") {
-      return [{ id, reason: "Absent from the provider catalog after its grace period" }];
+      return [{ id, reason: "Absent from the provider catalog through its observation and 30-day tombstone grace periods" }];
     }
     if (offering.hiddenReason === "ranking") {
-      return [{ id, reason: "Outside the OpenRouter ranking policy after its grace period" }];
+      return [{ id, reason: "Outside the OpenRouter ranking policy through its observation and 30-day tombstone grace periods" }];
     }
     return [];
   });
@@ -111,6 +121,9 @@ export function applyRemovalCandidates(
     const offering = registry.offerings.find(({ provider, family }) => `${provider}/${family}` === candidate.id);
     if (offering === undefined || !offering.hidden || !["catalog", "ranking"].includes(offering.hiddenReason ?? "")) {
       throw new Error(`${candidate.id} is not an automatically hidden offering`);
+    }
+    if (!isUtcDate(offering.hiddenAt) || daysBetween(offering.hiddenAt, requestedAt) < REMOVAL_GRACE_DAYS) {
+      throw new Error(`${candidate.id} has not stayed hidden for ${REMOVAL_GRACE_DAYS} days`);
     }
   }
   const offerings = registry.offerings.filter(({ provider, family }) => !candidateIds.has(`${provider}/${family}`));

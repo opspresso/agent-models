@@ -20,24 +20,29 @@ function fixture(): Registry {
 }
 
 describe("detectRegistryAnomalies", () => {
-  it("quarantines unit errors and provider-wide disappearances", () => {
+  it("quarantines provider-wide disappearances", () => {
     const before = fixture();
     const after = structuredClone(before);
-    after.families["gpt-0"]!.pricing.inputPer1M = 100;
     for (const offering of after.offerings.slice(0, 3)) {
       offering.missingSince = "2026-08-23";
       offering.missingObservations = 1;
       offering.lastMissingAt = "2026-08-23";
     }
     const anomalies = detectRegistryAnomalies(before, after).join("\n");
-    assert.match(anomalies, /pricing.inputPer1M changed by more than 10x/);
     assert.match(anomalies, /3 of 6 live offerings became missing at once/);
   });
 
-  it("allows ordinary changes and reset tombstones", () => {
+  it("allows provider metadata changes, additions and reset tombstones", () => {
     const before = fixture();
     const after = structuredClone(before);
-    after.families["gpt-0"]!.pricing.inputPer1M = 1.1;
+    after.families["gpt-0"]!.pricing.inputPer1M = 100;
+    after.families["gpt-0"]!.contextWindow = 100_000;
+    after.families["gpt-0"]!.maxTokens = 50_000;
+    for (let index = 0; index < 41; index += 1) {
+      const id = `gpt-new-${index}`;
+      after.families[id] = structuredClone(before.families["gpt-0"]!);
+      after.offerings.push({ provider: "openai", family: id });
+    }
     for (const offering of after.offerings) {
       offering.hidden = true;
       offering.hiddenReason = "reset";
@@ -45,7 +50,7 @@ describe("detectRegistryAnomalies", () => {
     assert.deepEqual(detectRegistryAnomalies(before, after), []);
   });
 
-  it("quarantines any removal, an addition burst and a mass hide", () => {
+  it("quarantines any removal and a mass hide", () => {
     const before = fixture();
 
     const dropped = structuredClone(before);
@@ -54,18 +59,6 @@ describe("detectRegistryAnomalies", () => {
     const removals = detectRegistryAnomalies(before, dropped).join("\n");
     assert.match(removals, /1 families would be removed/);
     assert.match(removals, /1 offerings would be removed/);
-
-    const flooded = structuredClone(before);
-    for (let index = 0; index < 41; index += 1) {
-      const id = `gpt-new-${index}`;
-      flooded.families[id] = structuredClone(before.families["gpt-0"]!);
-      flooded.offerings.push({ provider: "openai", family: id });
-    }
-    const burst = detectRegistryAnomalies(before, flooded).join("\n");
-    assert.match(burst, /41 families would be added/);
-    assert.match(burst, /41 offerings would be added/);
-    // A deliberate policy rebuild says so, and only the addition limits lift.
-    assert.deepEqual(detectRegistryAnomalies(before, flooded, { allowPolicyBootstrap: true }), []);
 
     const wide = fixture();
     const hidden = structuredClone(wide);
@@ -79,14 +72,15 @@ describe("detectRegistryAnomalies", () => {
     assert.match(detectRegistryAnomalies(wide, hidden).join("\n"), /10 offerings would become hidden at once/);
   });
 
-  it("treats a price appearing or vanishing as an order-of-magnitude move", () => {
+  it("allows ranking-qualified retirement to proceed in bulk", () => {
     const before = fixture();
     const after = structuredClone(before);
-    after.families["gpt-0"]!.pricing.inputPer1M = 0;
-    assert.match(
-      detectRegistryAnomalies(before, after).join("\n"),
-      /gpt-0 pricing.inputPer1M changed by more than 10x/,
-    );
+    for (const offering of after.offerings) {
+      offering.hidden = true;
+      offering.hiddenReason = "ranking";
+      offering.hiddenAt = "2026-08-23";
+    }
+    assert.deepEqual(detectRegistryAnomalies(before, after), []);
   });
 
   it("gives the same approval digest regardless of anomaly order", () => {

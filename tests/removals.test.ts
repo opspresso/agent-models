@@ -50,19 +50,29 @@ describe("removal manifest", () => {
 
   it("finds unrequested lifecycle-hidden models and turns them into removal requests", () => {
     const hidden = fixture();
-    Object.assign(hidden.offerings[0]!, { hidden: true, hiddenReason: "ranking" });
-    const candidates = findRemovalCandidates(hidden, []);
-    assert.deepEqual(candidates, [{ id: "openrouter/old", reason: "Outside the OpenRouter ranking policy after its grace period" }]);
-    assert.deepEqual(findRemovalCandidates(hidden, [{ ...candidates[0]!, requestedAt: "2026-08-22" }]), []);
+    Object.assign(hidden.offerings[0]!, { hidden: true, hiddenReason: "ranking", hiddenAt: "2026-07-23" });
+    assert.deepEqual(findRemovalCandidates(hidden, [], "2026-08-21"), []);
+    const candidates = findRemovalCandidates(hidden, [], "2026-08-22");
+    assert.deepEqual(candidates, [{ id: "openrouter/old", reason: "Outside the OpenRouter ranking policy through its observation and 30-day tombstone grace periods" }]);
+    assert.deepEqual(findRemovalCandidates(hidden, [{ ...candidates[0]!, requestedAt: "2026-08-22" }], "2026-08-22"), []);
     hidden.offerings[0]!.hiddenReason = "reset";
-    assert.deepEqual(findRemovalCandidates(hidden, []), []);
+    assert.deepEqual(findRemovalCandidates(hidden, [], "2026-08-22"), []);
     hidden.offerings[0]!.hiddenReason = "ranking";
 
     const proposal = applyRemovalCandidates(hidden, candidates, [], "2026-08-23");
     assert.deepEqual(proposal.registry.offerings, []);
     assert.deepEqual(proposal.registry.families, {});
     assert.deepEqual(proposal.requests, [{ ...candidates[0]!, requestedAt: "2026-08-23" }]);
-    assert.deepEqual(hidden.offerings, [{ provider: "openrouter", family: "old", wireId: "openai/old", hidden: true, hiddenReason: "ranking" }]);
+    assert.deepEqual(hidden.offerings, [{ provider: "openrouter", family: "old", wireId: "openai/old", hidden: true, hiddenReason: "ranking", hiddenAt: "2026-07-23" }]);
+  });
+
+  it("refuses a removal proposal before the hidden tombstone is 30 days old", () => {
+    const hidden = fixture();
+    Object.assign(hidden.offerings[0]!, { hidden: true, hiddenReason: "catalog", hiddenAt: "2026-08-01" });
+    assert.throws(
+      () => applyRemovalCandidates(hidden, [{ id: "openrouter/old", reason: "too soon" }], [], "2026-08-30"),
+      /has not stayed hidden for 30 days/,
+    );
   });
 
   it("refuses to remove a candidate that is live again", () => {

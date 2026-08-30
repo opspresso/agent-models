@@ -112,10 +112,10 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 3. `pnpm build` — regenerates `docs/models.json`. CI fails if the committed catalog does not
    match its sources, so commit both.
 
-Published ids first become `hidden` tombstones. After automation hides a model at the end of its
-lifecycle grace period, it merges the routine update and then opens a separate draft deletion PR.
-That PR carries an exact `{ id, reason, requestedAt }` entry in `models/removals.json`, requests
-its code owner and is not auto-merged by the workflow. CI rejects a removal that no entry
+Published ids first become `hidden` tombstones. After an automatically hidden route remains
+hidden for **30 days**, the workflow creates or updates one draft deletion PR. That PR
+accumulates an exact `{ id, reason, requestedAt }` entry in `models/removals.json` for each
+route, requests its code owner and is not auto-merged. CI rejects a removal that no entry
 requests — on pull requests, which is where it is checked. `main` carries no ruleset, so a
 push straight to it is not checked at all.
 
@@ -204,12 +204,21 @@ absent catalog observations** the route is set
 when and why. The lifecycle update itself never deletes; it preserves the tombstone until
 the separate draft deletion PR is reviewed.
 
-OpenRouter also watches automatic eligibility. Non-major text routes must remain in the
-weekly open/closed Top 20 and image routes in the weekly image Top 20. Leaving that policy
-for **14 successful ranking observations** hides the route; re-entry restores it
-automatically. Major text makers are exempt. A failed or incomplete ranking read does not
-advance this lifecycle. Routes hidden manually remain manual and are never restored by
-automation.
+OpenRouter uses separate admission and retention thresholds so models around the cutoff do
+not churn. Text enters through the weekly open- or closed-weight Top 20 and remains eligible
+through the corresponding **Top 50**; image enters through the weekly Top 20 and remains
+eligible through the **Top 30**. A listing is exempt from ranking retirement for its first
+**90 days**. Major-maker text routes with a live vendor route are also exempt, while an
+OpenRouter-only OpenAI, Anthropic, Google or xAI family follows the same retention policy as
+other OpenRouter-only families.
+
+After **30 successful ranking observations** outside the retention threshold, the route is
+hidden with a structured `hiddenAt` date. Re-entry during the tombstone period restores it
+automatically. A failed ranking read or a feed that cannot supply the complete Top 50/30
+retention set does not advance this lifecycle. Routes hidden manually remain manual and are
+never restored by automation. An automatically hidden route becomes a permanent-removal
+candidate only after its 30-day tombstone period; candidates accumulate in the existing
+draft removal PR until it is reviewed.
 
 A source read that fails is not observed at all — neither lifecycle advances — and an empty,
 partial or malformed catalog is treated as a failed read, not as everything retired.
@@ -217,11 +226,12 @@ Bedrock has no presence source, so its routes are retired by hand: set `hidden: 
 say why in `note`. OpenRouter's announced `expiration_date` (within a year) is reported ahead
 of time.
 
-Before anything is written, a safety gate quarantines suspicious bulk changes: removals,
-large addition bursts, provider-wide disappearance, order-of-magnitude price changes and
-large limit changes. The report is still produced for review, but `models/` remains
-unchanged. Network reads refuse redirects, time out after 30 seconds and cap JSON responses
-at 10 MiB. After reviewing the complete diff, a person may apply that exact anomaly set by
+Before anything is written, a safety gate quarantines destructive bulk changes: removals,
+provider-wide disappearance and mass catalog hiding. Ranking-qualified retirement, valid
+provider metadata changes and additions are applied automatically. The report is still
+produced for review, but `models/` remains unchanged when the gate trips. Network reads
+refuse redirects, time out after 30 seconds and cap JSON responses at 10 MiB. After reviewing
+the complete diff, a person may apply that exact anomaly set by
 rerunning with the digest-specific `--approve-anomaly=<digest>` printed in the report — from
 CI by dispatching **Update models** with the digest in the `approve_anomaly` input. The
 approval is the digest alone, so a set that has since changed is quarantined again with a new

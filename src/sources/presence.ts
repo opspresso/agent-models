@@ -6,8 +6,9 @@
  * So an absence is recorded first. Successful reads, at most once per UTC
  * date, advance its observation count. The day the model is back the state is
  * cleared. After `RETIREMENT_GRACE_OBSERVATIONS` absent observations the route is
- * hidden — never deleted, since a stored configuration may still name it and
- * past usage is priced by looking it up — and the note says when and why.
+ * hidden with a date — never immediately deleted, since a stored configuration
+ * may still name it and past usage is priced by looking it up — and the note
+ * says when and why.
  *
  * A source that could not be read does not count either way.
  */
@@ -16,7 +17,7 @@ import type { PlacedOffering } from "../registry.ts";
 import type { Change } from "./types.ts";
 
 export const RETIREMENT_GRACE_OBSERVATIONS = 7;
-export const RANKING_GRACE_OBSERVATIONS = 14;
+export const RANKING_GRACE_OBSERVATIONS = 30;
 
 /**
  * The spellings under which a provider's own catalog may list an offering:
@@ -73,6 +74,7 @@ export function observePresence(
       changes.push({ target, field: "hidden", from: true, to: undefined });
       delete offering.hidden;
       delete offering.hiddenReason;
+      delete offering.hiddenAt;
     }
     if (offering.missingSince !== undefined) {
       changes.push({ target, field: "missingSince", from: offering.missingSince, to: undefined });
@@ -80,6 +82,13 @@ export function observePresence(
     }
     delete offering.missingObservations;
     delete offering.lastMissingAt;
+    return;
+  }
+  if (offering.hiddenReason === "catalog") {
+    if (offering.hiddenAt === undefined) {
+      changes.push({ target, field: "hiddenAt", from: undefined, to: today });
+      offering.hiddenAt = today;
+    }
     return;
   }
 
@@ -106,6 +115,7 @@ export function observePresence(
   changes.push({ target, field: "missingSince", from: offering.missingSince, to: undefined });
   offering.hidden = true;
   offering.hiddenReason = "catalog";
+  offering.hiddenAt = today;
   delete offering.missingSince;
   delete offering.missingObservations;
   delete offering.lastMissingAt;
@@ -131,6 +141,7 @@ export function observeRankingEligibility(
       }
       delete offering.hidden;
       delete offering.hiddenReason;
+      delete offering.hiddenAt;
     }
     delete offering.rankMissingSince;
     delete offering.rankMissingObservations;
@@ -142,7 +153,14 @@ export function observeRankingEligibility(
     notes.push(`${id}: preserved as a hidden tombstone because it is outside the current OpenRouter ranking policy`);
     return;
   }
-  if (offering.hidden && offering.hiddenReason !== "ranking") return;
+  if (offering.hiddenReason === "ranking") {
+    if (offering.hiddenAt === undefined) {
+      changes.push({ target, field: "hiddenAt", from: undefined, to: today });
+      offering.hiddenAt = today;
+    }
+    return;
+  }
+  if (offering.hidden) return;
   if (offering.rankMissingSince === undefined) {
     offering.rankMissingSince = today;
     offering.rankMissingObservations = 1;
@@ -159,6 +177,7 @@ export function observeRankingEligibility(
   if (!offering.hidden) changes.push({ target, field: "hidden", from: undefined, to: true });
   offering.hidden = true;
   offering.hiddenReason = "ranking";
+  offering.hiddenAt = today;
   delete offering.rankMissingSince;
   delete offering.rankMissingObservations;
   delete offering.lastRankMissingAt;

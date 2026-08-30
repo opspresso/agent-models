@@ -189,6 +189,9 @@ describe("observePresence", () => {
     }
     assert.equal(offering.hidden, true);
     assert.equal(offering.hiddenReason, "catalog");
+    assert.equal(offering.hiddenAt, "2026-08-31");
+    observePresence(offering, false, "OpenAI", "2026-09-01", changes, notes);
+    assert.equal(offering.hiddenAt, "2026-08-31");
     assert.equal(offering.missingSince, undefined);
     assert.equal(offering.note, "Kept. Hidden automatically on 2026-08-31: absent from OpenAI's catalog since 2026-08-20.");
     assert.match(notes.at(-1) ?? "", /hidden — Hidden automatically/);
@@ -204,11 +207,12 @@ describe("observePresence", () => {
   });
 
   it("restores a route hidden automatically when it returns", () => {
-    const offering: PlacedOffering = { provider: "openai", family: "gpt-x", hidden: true, hiddenReason: "catalog" };
+    const offering: PlacedOffering = { provider: "openai", family: "gpt-x", hidden: true, hiddenReason: "catalog", hiddenAt: "2026-08-20" };
     const changes: Change[] = [];
     observePresence(offering, true, "OpenAI", "2026-08-25", changes, []);
     assert.equal(offering.hidden, undefined);
     assert.equal(offering.hiddenReason, undefined);
+    assert.equal(offering.hiddenAt, undefined);
     assert.deepEqual(changes.map((change) => change.field), ["hidden"]);
   });
 
@@ -220,7 +224,7 @@ describe("observePresence", () => {
     assert.equal(offering.missingSince, undefined);
   });
 
-  it("hides after 14 successful ranking misses and restores on re-entry", () => {
+  it("hides after 30 successful ranking misses and restores on re-entry", () => {
     const offering: PlacedOffering = { provider: "openrouter", family: "deepseek-z", wireId: "deepseek/deepseek-z" };
     const changes: Change[] = [];
     for (let day = 1; day <= RANKING_GRACE_OBSERVATIONS; day += 1) {
@@ -230,9 +234,33 @@ describe("observePresence", () => {
     }
     assert.equal(offering.hidden, true);
     assert.equal(offering.hiddenReason, "ranking");
-    observeRankingEligibility(offering, true, "2026-09-15", changes, []);
+    assert.equal(offering.hiddenAt, "2026-09-30");
+    observeRankingEligibility(offering, false, "2026-10-01", changes, []);
+    assert.equal(offering.hiddenAt, "2026-09-30");
+    observeRankingEligibility(offering, true, "2026-10-01", changes, []);
     assert.equal(offering.hidden, undefined);
     assert.equal(offering.hiddenReason, undefined);
+    assert.equal(offering.hiddenAt, undefined);
+  });
+
+  it("starts the deletion tombstone clock for legacy automatic hides", () => {
+    const catalog: PlacedOffering = {
+      provider: "openai",
+      family: "gpt-x",
+      hidden: true,
+      hiddenReason: "catalog",
+    };
+    observePresence(catalog, false, "OpenAI", TODAY, [], []);
+    assert.equal(catalog.hiddenAt, TODAY);
+
+    const ranking: PlacedOffering = {
+      provider: "openrouter",
+      family: "deepseek-z",
+      hidden: true,
+      hiddenReason: "ranking",
+    };
+    observeRankingEligibility(ranking, false, TODAY, [], []);
+    assert.equal(ranking.hiddenAt, TODAY);
   });
 });
 
@@ -547,6 +575,50 @@ const IMAGE_RANKING = {
   image_output_requests: 10_000,
 };
 
+function textRetentionCatalog(target: OpenRouterModel, targetRank: 50 | 51): OpenRouterCatalog {
+  const ranked = (kind: "open" | "closed", rank: number): OpenRouterModel => ({
+    ...NEW_TEXT,
+    id: `deepseek/${kind}-${rank}`,
+    canonical_slug: `deepseek/${kind}-${rank}-20260110`,
+    hugging_face_id: kind === "open" ? `deepseek-ai/${kind}-${rank}` : null,
+    created: OLD,
+  });
+  const open = Array.from({ length: 50 }, (_, index) => ranked("open", index + 1));
+  const closed = Array.from({ length: targetRank - 1 }, (_, index) => ranked("closed", index + 1));
+  const models = [...open, ...closed, target];
+  const rankings = models.map((model) => {
+    const targetModel = model === target;
+    const rank = targetModel
+      ? targetRank
+      : Number(model.id.slice(model.id.lastIndexOf("-") + 1));
+    return {
+      model_permaslug: model.canonical_slug as string,
+      variant_permaslug: model.canonical_slug as string,
+      total_completion_tokens: 0,
+      total_prompt_tokens: 10_000 - rank,
+    };
+  });
+  return orCatalog(models, { rankings });
+}
+
+function imageRetentionCatalog(targetRank: 30 | 31, created = OLD): OpenRouterCatalog {
+  const higher = Array.from({ length: targetRank - 1 }, (_, index) => ({
+    id: `other/image-${index + 1}`,
+    created: OLD,
+  }));
+  const target = { id: "openai/draw-1", created };
+  const models = [...higher, target];
+  return orCatalog([], {
+    imageIds: models.map(({ id }) => id),
+    imageModels: models,
+    imageRankings: models.map((model, index) => ({
+      model_permaslug: model.id,
+      variant_permaslug: model.id,
+      image_output_requests: 10_000 - index,
+    })),
+  });
+}
+
 describe("undiscounted / promoteFamily", () => {
   it("puts the list price back and drops the discount", () => {
     assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
@@ -652,11 +724,12 @@ describe("discoverOpenRouter", () => {
       variant_permaslug: `other/image-${index}`,
       image_output_requests: 100 - index,
     }));
+    const higherModels = higher.map((ranking) => ({ id: ranking.model_permaslug }));
     const { registry } = discoverOpenRouter(
       fixture(),
       orCatalog([], {
-        imageIds: [IMAGE_MODEL.id],
-        imageModels: [IMAGE_MODEL],
+        imageIds: [...higherModels.map(({ id }) => id), IMAGE_MODEL.id],
+        imageModels: [...higherModels, IMAGE_MODEL],
         imageRankings: [...higher, { ...IMAGE_RANKING, image_output_requests: 1 }],
         endpoints: {
           [IMAGE_MODEL.id]: [{
@@ -669,6 +742,54 @@ describe("discoverOpenRouter", () => {
     );
     assert.equal(registry.families["krea-2-medium"], undefined);
     assert.equal(registry.makers.krea, undefined);
+  });
+
+  it("retains text through rank 50, exempts fresh listings, and watches OpenRouter-only major models", () => {
+    const deepseek = {
+      ...DEEPSEEK_Z_LISTED,
+      canonical_slug: "deepseek/deepseek-z-20260110",
+      hugging_face_id: "deepseek-ai/deepseek-z",
+      created: OLD,
+    };
+    const retained = discoverOpenRouter(fixture(), textRetentionCatalog(deepseek, 50), TODAY).registry;
+    assert.equal(retained.offerings.find((offering) => offering.family === "deepseek-z")?.rankMissingSince, undefined);
+
+    const outside = discoverOpenRouter(fixture(), textRetentionCatalog(deepseek, 51), TODAY).registry;
+    assert.equal(outside.offerings.find((offering) => offering.family === "deepseek-z")?.rankMissingSince, TODAY);
+
+    const fresh = { ...deepseek, created: RECENT };
+    const protectedRegistry = discoverOpenRouter(fixture(), textRetentionCatalog(fresh, 51), TODAY).registry;
+    assert.equal(protectedRegistry.offerings.find((offering) => offering.family === "deepseek-z")?.rankMissingSince, undefined);
+
+    const majorOnly = fixture();
+    majorOnly.offerings = majorOnly.offerings.filter((offering) => offering.family !== "grok-q");
+    majorOnly.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" });
+    const grok = {
+      ...NEW_TEXT,
+      id: "x-ai/grok-q",
+      canonical_slug: "x-ai/grok-q-20260110",
+      hugging_face_id: null,
+      created: OLD,
+      context_length: 500_000,
+    };
+    const watched = discoverOpenRouter(majorOnly, textRetentionCatalog(grok, 51), TODAY).registry;
+    assert.equal(watched.offerings.find((offering) => offering.family === "grok-q")?.rankMissingSince, TODAY);
+
+    const vendorBacked = fixture();
+    vendorBacked.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" });
+    const exempt = discoverOpenRouter(vendorBacked, textRetentionCatalog(grok, 51), TODAY).registry;
+    assert.equal(exempt.offerings.find((offering) => offering.family === "grok-q" && offering.provider === "openrouter")?.rankMissingSince, undefined);
+  });
+
+  it("retains images through rank 30 and exempts fresh listings", () => {
+    const retained = discoverOpenRouter(fixture(), imageRetentionCatalog(30), TODAY).registry;
+    assert.equal(retained.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.rankMissingSince, undefined);
+
+    const outside = discoverOpenRouter(fixture(), imageRetentionCatalog(31), TODAY).registry;
+    assert.equal(outside.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.rankMissingSince, TODAY);
+
+    const fresh = discoverOpenRouter(fixture(), imageRetentionCatalog(31, RECENT), TODAY).registry;
+    assert.equal(fresh.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.rankMissingSince, undefined);
   });
 
   it("resets only OpenRouter offerings as recoverable tombstones", () => {
@@ -771,7 +892,7 @@ describe("discoverOpenRouter", () => {
     );
     assert.deepEqual(Object.keys(registry.families), Object.keys(fixture().families));
     assert.deepEqual(result.changes, []);
-    assert.match(result.notes.join("\n"), /outside the OpenRouter ranking policy/);
+    assert.match(result.notes.join("\n"), /ranking retirement did not advance/);
   });
 
   it("reports what it will not add: an unknown maker and a listing without an output cap", () => {
@@ -833,7 +954,7 @@ describe("discoverOpenRouter", () => {
     }
   });
 
-  it("adds only the first 20 open and first 20 closed ranking rows from other makers", () => {
+  it("adds only the first 20 open and first 20 closed models after folding serving variants", () => {
     const models = Array.from({ length: 42 }, (_, index) => {
       const open = index < 21;
       const number = index % 21 + 1;
@@ -851,6 +972,11 @@ describe("discoverOpenRouter", () => {
       total_completion_tokens: 0,
       total_prompt_tokens: 21 - index % 21,
     }));
+    rankings.unshift({
+      ...rankings[0]!,
+      variant_permaslug: `${rankings[0]!.variant_permaslug}:free`,
+      total_prompt_tokens: 1_000,
+    });
     const { registry } = discoverOpenRouter(fixture(), orCatalog(models, { rankings }), TODAY);
     assert.equal(registry.offerings.filter((offering) => offering.family.startsWith("open-")).length, 20);
     assert.equal(registry.offerings.filter((offering) => offering.family.startsWith("closed-")).length, 20);
