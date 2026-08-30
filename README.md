@@ -115,9 +115,10 @@ retired route is priced the way it is. It is for people; the catalog does not ca
 Published ids first become `hidden` tombstones. After an automatically hidden route remains
 hidden for **30 days**, the workflow creates or updates one draft deletion PR. That PR
 accumulates an exact `{ id, reason, requestedAt }` entry in `models/removals.json` for each
-route, requests its code owner and is not auto-merged. CI rejects a removal that no entry
-requests — on pull requests, which is where it is checked. `main` carries no ruleset, so a
-push straight to it is not checked at all.
+route, requests its reviewer when first opened (`removals.json`'s code owner) and is not
+auto-merged. Removals are checked twice: the update workflow refuses to commit one at all,
+and CI rejects, on pull requests, a removal that no entry requests. A push straight to
+`main` skips only that removal check — the type check, tests and `build:check` still run.
 
 Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models` (public),
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
@@ -134,9 +135,12 @@ independent of the others:
 
 1. **fetch** — each source reads its catalog; one failing is reported and the rest go on;
 2. **discover** — what the catalogs list that the registry does not: new families and new
-   routes (below);
-3. **apply** — numbers, discounts, presence and retirement for every route the registry
+   routes (below), plus OpenRouter's ranking lifecycle;
+3. **apply** — numbers, discounts and catalog presence for every route the registry
    now has, the ones just added included.
+
+Only fetch failures are isolated that way: an error thrown while any source discovers or
+applies stops the run from writing `models/` at all.
 
 | Source | Needs | May change | May add |
 |---|---|---|---|
@@ -144,7 +148,7 @@ independent of the others:
 | xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
 | Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
 | OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
-| Google `/v1beta/models` | `GOOGLE_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `google/` routes |
+| Google `/v1beta/models` | `GOOGLE_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published; a cap that exceeds the family's window is noted, not applied) | `google/` routes |
 
 A key that is not set skips its source and says so. Bedrock has no source here: its routes
 are added and retired by hand, with numbers from the AWS Pricing API.
@@ -152,9 +156,10 @@ are added and retired by hand, with numbers from the AWS Pricing API.
 ### Additions
 
 **A new family** is created from OpenRouter's catalog when a listing is filed under a maker's
-`openrouterVendor` in `makers.json`; is a priced text model (not `:free`/`:batch`/`:nitro`
-variants or a `-20250929`/`-0813` dated snapshot); and states a context window plus a usable
-max output in the aggregate model or at least one endpoint. It must also be either from
+`openrouterVendor` in `makers.json`; is a priced text model (not a `:suffix` variant —
+`:free`, `:nitro`, `:thinking` and the rest — or a `-20250929`/`-0813` dated snapshot);
+and states a context window plus a usable max output in the aggregate model or at least
+one endpoint. It must also be either from
 OpenAI, Anthropic, Google or xAI and first
 listed within the last **30 days**, or present in the weekly usage leaderboard's first
 **20 open-weight** or first **20 closed-weight** rows. Ranked models are eligible regardless
@@ -165,17 +170,20 @@ qualifies its standard model family.
 
 The text family gets OpenRouter's numbers and flags (`tools`, `structured_outputs`, image
 input, `reasoning`), a `note` saying when and where it came from, and an OpenRouter route.
-The aggregate max output is preferred; when it is absent, the largest valid endpoint cap is
-used because OpenRouter routes a `max_tokens` request only to endpoints that support it.
+The aggregate max output is preferred when it is a positive integer that fits the window;
+otherwise the largest valid endpoint cap is used because OpenRouter routes a `max_tokens`
+request only to endpoints that support it.
 An eligible text model from a maker this registry does not know and an eligible listing
 without any output cap go to the *needs a look* list instead. Unranked non-major text models
-are ignored. If the public text rankings feed fails or changes shape, the run still updates
-existing routes and major-maker additions but adds no text family from another maker. Older
+are ignored. If the public text rankings feed fails, changes shape or cannot
+fill both weekly Top 20s, it is discarded whole — the run still updates existing routes
+and major-maker additions but adds no text family from another maker. Older
 unranked listings are the backlog, which is a person's — the window keeps a first run from
 importing a major vendor's whole history.
 
-**An image family** is created when it appears in the weekly image leaderboard's first
-**20 rows**, ordered by image-producing request count as on `openrouter.ai/rankings/image`.
+**An image family** is created when it is among the first **20 ranked models the image
+catalog can resolve**, ordered by image-producing request count as on
+`openrouter.ai/rankings/image`.
 The image catalog supplies its name and modalities; `/models/{id}/endpoints` supplies the
 normalized image-token price, context window and output cap. Explicit zero limits are retained
 for image-only models when OpenRouter publishes them. A previously unknown maker is added from
@@ -184,9 +192,10 @@ endpoint price/limits fails closed for image additions without blocking text upd
 
 **A new route** is added when a catalog serves a family the registry already has: OpenRouter
 under `<vendor>/<family>`, a vendor under the family id (Anthropic's hyphenated spelling
-becomes the `wireId`). OpenRouter applies the same major-maker or leaderboard eligibility
-gate to routes and families. Two further guards: a family every route of which is hidden is
-never routed again — it was retired on purpose — and an OpenRouter listing is routed only
+becomes the `wireId`). OpenRouter applies the major-maker or leaderboard eligibility
+gate to routes too, though without the 30-day listing window — a major maker's older
+listing can gain a route while founding no family. Two further guards: a family every
+route of which is hidden is never routed again — it was retired on purpose — and an OpenRouter listing is routed only
 when its context window equals the family's, the one cheap identity check there is
 (`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
 Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
@@ -220,11 +229,12 @@ never restored by automation. An automatically hidden route becomes a permanent-
 candidate only after its 30-day tombstone period; candidates accumulate in the existing
 draft removal PR until it is reviewed.
 
-A source read that fails is not observed at all — neither lifecycle advances — and an empty,
-partial or malformed catalog is treated as a failed read, not as everything retired.
+A source read that fails is not observed at all — neither lifecycle advances — and an empty
+or malformed catalog is treated as a failed read, not as everything retired (only
+OpenRouter's text catalog can also detect a truncated listing).
 Bedrock has no presence source, so its routes are retired by hand: set `hidden: true` and
-say why in `note`. OpenRouter's announced `expiration_date` (within a year) is reported ahead
-of time.
+say why in `note`. OpenRouter's announced `expiration_date` is reported while it is at most a
+year out — a date already past included.
 
 Before anything is written, a safety gate quarantines destructive bulk changes: removals,
 provider-wide disappearance and mass catalog hiding. Ranking-qualified retirement, valid
@@ -239,7 +249,7 @@ one rather than waved through.
 
 ### Notifications
 
-Two channels with two jobs, both optional and run even when a later build or test fails
+Two channels with two roles, both optional and run even when a later build or test fails
 (`scripts/notify.ts`):
 
 - **Slack** (`SLACK_WEBHOOK_URL`) carries *events*: a message per run that changed
@@ -257,8 +267,10 @@ a table of what changed and the *needs a look* list.
 
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
 read from the same environment variable names. `--reset-openrouter` first preserves every
-OpenRouter route as a hidden reset tombstone, then restores or adds the routes allowed by the
-current major-maker and Top 20 policies. The reset is not written unless both rankings are
+OpenRouter route as a hidden reset tombstone, then restores what the retention sets (text
+Top 50, image Top 30) and major-maker policies still allow and adds what the admission
+policies admit — with the 30-day listing window switched off, so a major maker's whole
+history is eligible. The reset is not written unless both rankings are
 complete and every image Top 20 endpoint has usable standard-tier price and limits.
 
 ## Commands
