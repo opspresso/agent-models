@@ -60,7 +60,7 @@
       "imageInput": false,
       "reasoning": true
     },
-    "contextWindow": 1048576,
+    "contextWindow": 1310720,
     "maxTokens": 131072,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-08-18); numbers and flags are OpenRouter's."
   },
@@ -87,8 +87,7 @@
     "pricing": {
       "inputPer1M": 0.075,
       "outputPer1M": 0.25,
-      "cachedInputPer1M": 0.015,
-      "discount": 0.5
+      "cachedInputPer1M": 0.015
     },
     "capabilities": {
       "tools": true,

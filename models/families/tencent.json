@@ -15,5 +15,22 @@
     "contextWindow": 262144,
     "maxTokens": 128000,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-06); numbers and flags are OpenRouter's."
+  },
+  "hy4-preview": {
+    "displayName": "Hy4 preview",
+    "pricing": {
+      "inputPer1M": 0.834,
+      "outputPer1M": 2.501,
+      "cachedInputPer1M": 0.042
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": false,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 64000,
+    "note": "Added automatically on 2026-08-30 from OpenRouter's catalog (listed 2026-08-28); numbers and flags are OpenRouter's."
   }
 }

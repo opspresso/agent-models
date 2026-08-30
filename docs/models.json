@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-27T03:00:11.027Z",
+  "updatedAt": "2026-08-30T01:46:39.784Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1890,7 +1890,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 1048576,
+      "contextWindow": 1310720,
       "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3"
     },
@@ -1901,10 +1901,10 @@
       "maker": "google",
       "displayName": "Gemini 3.7 Flash",
       "pricing": {
-        "inputPer1M": 0.375,
-        "outputPer1M": 1.875,
-        "cachedInputPer1M": 0.0375,
-        "discount": 0.75
+        "inputPer1M": 0.75,
+        "outputPer1M": 3.75,
+        "cachedInputPer1M": 0.075,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2580,10 +2580,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.87,
-        "outputPer1M": 1.74,
-        "cachedInputPer1M": 0.0725,
-        "discount": 0.5
+        "inputPer1M": 0.508428,
+        "outputPer1M": 1.016856,
+        "cachedInputPer1M": 0.042369,
+        "discount": 0.7078
       },
       "capabilities": {
         "tools": true,
@@ -2602,10 +2602,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07952,
-        "outputPer1M": 0.15904,
-        "cachedInputPer1M": 0.015904,
-        "discount": 0.432
+        "inputPer1M": 0.08092,
+        "outputPer1M": 0.16184,
+        "cachedInputPer1M": 0.016184,
+        "discount": 0.422
       },
       "capabilities": {
         "tools": true,
@@ -3584,7 +3584,7 @@
       "pricing": {
         "inputPer1M": 0.1,
         "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.025
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3673,7 +3673,7 @@
         "imageInput": true,
         "reasoning": false
       },
-      "contextWindow": 262144,
+      "contextWindow": 131072,
       "maxTokens": 117964,
       "wireId": "google/gemma-3-27b-it"
     },
@@ -4402,9 +4402,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 3.6,
-        "cachedInputPer1M": 0.2
+        "inputPer1M": 0.5,
+        "outputPer1M": 2.2,
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -4412,8 +4412,8 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 512288,
-      "maxTokens": 461059,
+      "contextWindow": 262144,
+      "maxTokens": 16384,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
@@ -4448,8 +4448,7 @@
       "pricing": {
         "inputPer1M": 0.075,
         "outputPer1M": 0.25,
-        "cachedInputPer1M": 0.015,
-        "discount": 0.5
+        "cachedInputPer1M": 0.015
       },
       "capabilities": {
         "tools": true,
@@ -4460,6 +4459,49 @@
       "contextWindow": 1310720,
       "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3-flash"
+    },
+    {
+      "id": "openrouter/seedream-5-0-lite",
+      "provider": "openrouter",
+      "family": "seedream-5-0-lite",
+      "maker": "bytedance-seed",
+      "displayName": "Seedream 5.0 Lite",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 8.38323353
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "bytedance-seed/seedream-5-0-lite"
+    },
+    {
+      "id": "openrouter/hy4-preview",
+      "provider": "openrouter",
+      "family": "hy4-preview",
+      "maker": "tencent",
+      "displayName": "Hy4 preview",
+      "pricing": {
+        "inputPer1M": 0.834,
+        "outputPer1M": 2.501,
+        "cachedInputPer1M": 0.042
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 64000,
+      "wireId": "tencent/hy4-preview"
     }
   ]
 }

@@ -51,9 +51,9 @@
   "nemotron-3-ultra-550b-a55b": {
     "displayName": "Nemotron 3 Ultra",
     "pricing": {
-      "inputPer1M": 0.6,
-      "outputPer1M": 3.6,
-      "cachedInputPer1M": 0.2
+      "inputPer1M": 0.5,
+      "outputPer1M": 2.2,
+      "cachedInputPer1M": 0.1
     },
     "capabilities": {
       "tools": true,
@@ -61,8 +61,8 @@
       "imageInput": false,
       "reasoning": true
     },
-    "contextWindow": 512288,
-    "maxTokens": 461059,
+    "contextWindow": 262144,
+    "maxTokens": 16384,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-06-04); numbers and flags are OpenRouter's."
   }
 }
