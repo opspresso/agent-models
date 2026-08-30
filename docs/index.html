@@ -299,7 +299,7 @@
   const roundTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : `${n}`;
   const contextWindowLabel = (m) => `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
   const otherRoutes = (m) => catalog.models.filter((o) => o.family === m.family && o.provider !== m.provider && !o.hidden).map((o) => o.provider);
-  const primaryPrice = (m) => m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.inputPer1M;
+  const primaryPrice = (m) => m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M;
 
   // ---- header ----
   const live = catalog.models.filter((m) => !m.hidden);
