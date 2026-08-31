@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-30T01:46:39.784Z",
+  "updatedAt": "2026-08-31T00:16:17.421Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2580,10 +2580,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.508428,
-        "outputPer1M": 1.016856,
-        "cachedInputPer1M": 0.042369,
-        "discount": 0.7078
+        "inputPer1M": 1.6,
+        "outputPer1M": 3.2,
+        "cachedInputPer1M": 0.135
       },
       "capabilities": {
         "tools": true,
@@ -2592,7 +2591,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 393216,
       "wireId": "deepseek/deepseek-v4-pro"
     },
     {
@@ -2602,10 +2601,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.08092,
-        "outputPer1M": 0.16184,
-        "cachedInputPer1M": 0.016184,
-        "discount": 0.422
+        "inputPer1M": 0.089866,
+        "outputPer1M": 0.179732,
+        "cachedInputPer1M": 0.0179732,
+        "discount": 0.3581
       },
       "capabilities": {
         "tools": true,
@@ -3122,9 +3121,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V3.2",
       "pricing": {
-        "inputPer1M": 0.26,
-        "outputPer1M": 0.38,
-        "cachedInputPer1M": 0.13
+        "inputPer1M": 0.269,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.1345
       },
       "capabilities": {
         "tools": true,
@@ -3584,7 +3583,7 @@
       "pricing": {
         "inputPer1M": 0.1,
         "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.025
       },
       "capabilities": {
         "tools": true,
@@ -4381,9 +4380,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 3,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.3
+        "inputPer1M": 2.85,
+        "outputPer1M": 14.25,
+        "cachedInputPer1M": 0.285
       },
       "capabilities": {
         "tools": true,
@@ -4448,7 +4447,8 @@
       "pricing": {
         "inputPer1M": 0.075,
         "outputPer1M": 0.25,
-        "cachedInputPer1M": 0.015
+        "cachedInputPer1M": 0.015,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
