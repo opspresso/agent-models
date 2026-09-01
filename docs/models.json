@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-31T00:16:17.421Z",
+  "updatedAt": "2026-09-01T01:04:39.722Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2601,10 +2601,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.089866,
-        "outputPer1M": 0.179732,
-        "cachedInputPer1M": 0.0179732,
-        "discount": 0.3581
+        "inputPer1M": 0.08092,
+        "outputPer1M": 0.16184,
+        "cachedInputPer1M": 0.016184,
+        "discount": 0.422
       },
       "capabilities": {
         "tools": true,
@@ -4380,9 +4380,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 2.85,
-        "outputPer1M": 14.25,
-        "cachedInputPer1M": 0.285
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
       },
       "capabilities": {
         "tools": true,
