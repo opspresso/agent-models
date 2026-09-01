@@ -490,5 +490,56 @@
     "contextWindow": 65536,
     "maxTokens": 32768,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-embedding-2": {
+    "displayName": "Gemini Embedding 2",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-embedding-001": {
+    "displayName": "Gemini Embedding 001",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 20000,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-embedding-2-preview": {
+    "displayName": "Gemini Embedding 2 Preview",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
   }
 }

@@ -1,0 +1,19 @@
+{
+  "multilingual-e5-large": {
+    "displayName": "Multilingual-E5-Large",
+    "pricing": {
+      "inputPer1M": 0.01,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 512,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  }
+}

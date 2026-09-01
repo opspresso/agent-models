@@ -5,8 +5,8 @@
  * Read when `GOOGLE_API_KEY` is set; without it Google's routes are not
  * watched, which README says.
  *
- * Names are `models/<id>`; the registry's family id is the `<id>`. Only a
- * model that answers `generateContent` is one a run can use.
+ * Names are `models/<id>`; the registry's family id is the `<id>`. Text/image
+ * models answer `generateContent`; embedding models answer `embedContent`.
  */
 
 import type { Registry } from "../registry.ts";
@@ -63,7 +63,7 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
 
 function usable(model: GoogleModel): boolean {
   const methods = model.supportedGenerationMethods ?? [];
-  return methods.includes("generateContent") || methods.includes("predict");
+  return methods.includes("generateContent") || methods.includes("embedContent") || methods.includes("predict");
 }
 
 function byFamilyId(catalog: GoogleModel[]): Map<string, GoogleModel> {
@@ -106,7 +106,7 @@ export function applyGoogle(
       changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
       family.contextWindow = window;
     }
-    if (isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
+    if (!family.capabilities.embedding && isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
       if (maxOut > family.contextWindow) {
         notes.push(`google/${offering.family}: Google states outputTokenLimit ${maxOut} above the ${family.contextWindow} window; left alone`);
       } else {
@@ -118,7 +118,7 @@ export function applyGoogle(
   return { registry: next, result: { source: "Google", changes, notes } };
 }
 
-/** A `google/` route for every live Google-made text family the API serves under the family's id. */
+/** A `google/` route for every live Google-made text or embedding family the API serves. */
 export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];

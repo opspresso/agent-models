@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { validateRegistry, type PlacedOffering, type Registry } from "../src/registry.ts";
 import {
   DISCOVERY_WINDOW_DAYS,
+  OPENROUTER_EMBEDDING_MODELS_URL,
+  OPENROUTER_EMBEDDING_RANKINGS_URL,
   OPENROUTER_IMAGE_MODELS_URL,
   OPENROUTER_IMAGE_RANKINGS_URL,
   OPENROUTER_MODELS_URL,
@@ -12,6 +14,7 @@ import {
   discoverOpenRouter,
   discoveryEndpointIds,
   fetchOpenRouterCatalog,
+  openRouterResetReady,
   resetOpenRouterRegistry,
   type OpenRouterCatalog,
   type OpenRouterModel,
@@ -113,7 +116,17 @@ function fixture(): Registry {
 
 /** An OpenRouter catalog with no endpoints read — the discount stays whatever it was. */
 function orCatalog(models: OpenRouterModel[], extra: Partial<OpenRouterCatalog> = {}): OpenRouterCatalog {
-  return { models, imageIds: [], imageModels: [], endpoints: {}, rankings: [], imageRankings: [], ...extra };
+  return {
+    models,
+    imageIds: [],
+    imageModels: [],
+    embeddingModels: [],
+    endpoints: {},
+    rankings: [],
+    imageRankings: [],
+    embeddingRankings: [],
+    ...extra,
+  };
 }
 
 const GPT_X_LISTED: OpenRouterModel = {
@@ -443,6 +456,31 @@ describe("applyOpenRouter", () => {
     assert.deepEqual(result.changes.filter((c) => c.target.includes("draw-1")), []);
   });
 
+  it("updates a router-only embedding family from the embeddings catalog", () => {
+    const input = fixture();
+    input.families["embed-1"] = {
+      maker: "openai",
+      displayName: "Embed 1",
+      pricing: { inputPer1M: 0.01, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, embedding: true },
+      contextWindow: 4096,
+      maxTokens: 0,
+    };
+    input.offerings.push({ provider: "openrouter", family: "embed-1", wireId: "openai/embed-1" });
+    const model: OpenRouterModel = {
+      id: "openai/embed-1",
+      context_length: 8192,
+      pricing: { prompt: "0.00000002", completion: "0" },
+      architecture: { input_modalities: ["text"], output_modalities: ["embeddings"] },
+    };
+    const { registry } = applyOpenRouter(input, orCatalog([], {
+      embeddingModels: [model],
+    }), TODAY);
+    assert.deepEqual(registry.families["embed-1"]!.pricing, { inputPer1M: 0.02, outputPer1M: 0 });
+    assert.equal(registry.families["embed-1"]!.contextWindow, 8192);
+    assert.equal(registry.families["embed-1"]!.maxTokens, 0);
+  });
+
   it("does not mutate the registry it was given", () => {
     const input = fixture();
     applyOpenRouter(input, orCatalog([]), TODAY);
@@ -575,6 +613,22 @@ const IMAGE_RANKING = {
   image_output_requests: 10_000,
 };
 
+const EMBEDDING_MODEL: OpenRouterModel = {
+  id: "voyageai/voyage-4-lite",
+  canonical_slug: "voyageai/voyage-4-lite-20260727",
+  name: "Voyage AI: Voyage 4 Lite",
+  created: OLD,
+  context_length: 32_000,
+  pricing: { prompt: "0.00000002", completion: "0" },
+  architecture: { input_modalities: ["text"], output_modalities: ["embeddings"] },
+};
+
+const EMBEDDING_RANKING = {
+  model_permaslug: "voyageai/voyage-4-lite-20260727",
+  variant_permaslug: "voyageai/voyage-4-lite-20260727",
+  count: 10_000,
+};
+
 function textRetentionCatalog(target: OpenRouterModel, targetRank: 50 | 51): OpenRouterCatalog {
   const ranked = (kind: "open" | "closed", rank: number): OpenRouterModel => ({
     ...NEW_TEXT,
@@ -619,6 +673,24 @@ function imageRetentionCatalog(targetRank: 30 | 31, created = OLD): OpenRouterCa
   });
 }
 
+function embeddingRetentionCatalog(targetRank: 30 | 31, created = OLD): OpenRouterCatalog {
+  const higher = Array.from({ length: targetRank - 1 }, (_, index) => ({
+    ...EMBEDDING_MODEL,
+    id: `other/embed-${index + 1}`,
+    canonical_slug: `other/embed-${index + 1}-20260110`,
+  }));
+  const target = { ...EMBEDDING_MODEL, id: "openai/embed-1", canonical_slug: "openai/embed-1-20260110", created };
+  const models = [...higher, target];
+  return orCatalog([], {
+    embeddingModels: models,
+    embeddingRankings: models.map((model, index) => ({
+      model_permaslug: model.canonical_slug as string,
+      variant_permaslug: model.canonical_slug as string,
+      count: 10_000 - index,
+    })),
+  });
+}
+
 describe("undiscounted / promoteFamily", () => {
   it("puts the list price back and drops the discount", () => {
     assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
@@ -654,6 +726,34 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("adds a weekly top-20 embedding model, its maker, and its route", () => {
+    const { registry } = discoverOpenRouter(
+      fixture(),
+      orCatalog([], {
+        embeddingModels: [EMBEDDING_MODEL],
+        embeddingRankings: [EMBEDDING_RANKING],
+      }),
+      TODAY,
+    );
+    assert.deepEqual(registry.makers.voyageai, { displayName: "Voyage AI", openrouterVendor: "voyageai" });
+    assert.deepEqual(registry.families["voyage-4-lite"], {
+      maker: "voyageai",
+      displayName: "Voyage 4 Lite",
+      pricing: { inputPer1M: 0.02, outputPer1M: 0 },
+      capabilities: {
+        tools: false,
+        structuredOutput: false,
+        imageInput: false,
+        reasoning: false,
+        embedding: true,
+      },
+      contextWindow: 32_000,
+      maxTokens: 0,
+      note: "Added automatically on 2026-08-20 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's.",
+    });
+    assert.ok(registry.offerings.some((offering) => offering.wireId === EMBEDDING_MODEL.id));
+  });
+
   it("adds a weekly top-20 image model, its maker, and its route from endpoint metadata", () => {
     const { registry } = discoverOpenRouter(
       fixture(),
@@ -792,6 +892,28 @@ describe("discoverOpenRouter", () => {
     assert.equal(fresh.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.rankMissingSince, undefined);
   });
 
+  it("retains embeddings through rank 30 and exempts fresh listings", () => {
+    const input = fixture();
+    input.families["embed-1"] = {
+      maker: "openai",
+      displayName: "Embed 1",
+      pricing: { inputPer1M: 0.02, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, embedding: true },
+      contextWindow: 8192,
+      maxTokens: 0,
+    };
+    input.offerings.push({ provider: "openrouter", family: "embed-1", wireId: "openai/embed-1" });
+
+    const retained = discoverOpenRouter(input, embeddingRetentionCatalog(30), TODAY).registry;
+    assert.equal(retained.offerings.find((offering) => offering.family === "embed-1")?.rankMissingSince, undefined);
+
+    const outside = discoverOpenRouter(input, embeddingRetentionCatalog(31), TODAY).registry;
+    assert.equal(outside.offerings.find((offering) => offering.family === "embed-1")?.rankMissingSince, TODAY);
+
+    const fresh = discoverOpenRouter(input, embeddingRetentionCatalog(31, RECENT), TODAY).registry;
+    assert.equal(fresh.offerings.find((offering) => offering.family === "embed-1")?.rankMissingSince, undefined);
+  });
+
   it("resets only OpenRouter offerings as recoverable tombstones", () => {
     const { registry, deactivatedOfferings } = resetOpenRouterRegistry(fixture());
     assert.equal(deactivatedOfferings, 3);
@@ -801,6 +923,29 @@ describe("discoverOpenRouter", () => {
     assert.ok(registry.families["deepseek-z"]);
     assert.ok(registry.families["gpt-x"]);
     assert.ok(registry.families["draw-1"]);
+  });
+
+  it("allows a reset with complete embeddings rankings that include free models", () => {
+    const imageModels = Array.from({ length: 20 }, (_, index) => ({ id: `image/m-${index}` }));
+    const endpoints = Object.fromEntries(imageModels.map((model) => [model.id, [{
+      context_length: 1024,
+      max_completion_tokens: 1024,
+      pricing: { image_output: "0.00001" },
+    }]]));
+    const freeEmbedding = { ...EMBEDDING_MODEL, pricing: { prompt: "0", completion: "0" } };
+    const catalog = orCatalog([], {
+      rankings: [],
+      imageModels,
+      imageRankings: imageModels.map((model, index) => ({
+        model_permaslug: model.id,
+        variant_permaslug: model.id,
+        image_output_requests: 20 - index,
+      })),
+      embeddingModels: [freeEmbedding],
+      embeddingRankings: [EMBEDDING_RANKING],
+      endpoints,
+    });
+    assert.equal(openRouterResetReady(catalog), true);
   });
 
   it("bootstraps an older ranked model after an OpenRouter reset", () => {
@@ -1084,13 +1229,23 @@ describe("vendor route discovery", () => {
     assert.deepEqual(registry.offerings.find((o) => o.provider === "anthropic"), { provider: "anthropic", family: "claude-y.1", wireId: "claude-y-1" });
   });
 
-  it("OpenAI: routes a text family the catalog lists, not an image one", () => {
+  it("OpenAI: routes text and embedding families the catalog lists, not an image one", () => {
     const r = fixture();
     r.offerings = r.offerings.filter((o) => o.provider !== "openai");
     r.offerings.push({ provider: "openrouter", family: "draw-1", wireId: "openai/draw-1" });
-    const { registry } = discoverOpenAi(r, ["gpt-x", "draw-1"]);
+    r.families["embed-1"] = {
+      maker: "openai",
+      displayName: "Embed 1",
+      pricing: { inputPer1M: 0.02, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, embedding: true },
+      contextWindow: 8192,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openrouter", family: "embed-1", wireId: "openai/embed-1" });
+    const { registry } = discoverOpenAi(r, ["gpt-x", "draw-1", "embed-1"]);
     // gpt-x still has its openrouter route, so it is live and gets the vendor route back.
     assert.ok(registry.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"));
+    assert.ok(registry.offerings.some((o) => o.provider === "openai" && o.family === "embed-1"));
     assert.ok(!registry.offerings.some((o) => o.provider === "openai" && o.family === "draw-1"));
   });
 
@@ -1105,16 +1260,30 @@ describe("vendor route discovery", () => {
       maxTokens: 65_536,
     };
     r.offerings.push({ provider: "openrouter", family: "gemini-z", wireId: "google/gemini-z" });
+    r.families["embedding-z"] = {
+      maker: "google",
+      displayName: "Embedding Z",
+      pricing: { inputPer1M: 0.15, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, embedding: true },
+      contextWindow: 1024,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openrouter", family: "embedding-z", wireId: "google/embedding-z" });
     const catalog = [
       { name: "models/gemini-z", inputTokenLimit: 1_048_576, outputTokenLimit: 65_536, supportedGenerationMethods: ["generateContent"] },
       { name: "models/embedding-z", inputTokenLimit: 2048, supportedGenerationMethods: ["embedContent"] },
     ];
     const discovered = discoverGoogle(r, catalog);
-    assert.deepEqual(discovered.registry.offerings.find((o) => o.provider === "google"), { provider: "google", family: "gemini-z" });
+    assert.deepEqual(
+      discovered.registry.offerings.filter((o) => o.provider === "google").map((o) => o.family),
+      ["gemini-z", "embedding-z"],
+    );
     const applied = applyGoogle(discovered.registry, catalog, TODAY);
     assert.equal(applied.registry.families["gemini-z"]!.contextWindow, 1_048_576);
+    assert.equal(applied.registry.families["embedding-z"]!.contextWindow, 2048);
+    assert.equal(applied.registry.families["embedding-z"]!.maxTokens, 0);
     const missing = applyGoogle(discovered.registry, [], TODAY);
-    assert.equal(missing.registry.offerings.find((o) => o.provider === "google")?.missingSince, TODAY);
+    assert.ok(missing.registry.offerings.filter((o) => o.provider === "google").every((o) => o.missingSince === TODAY));
   });
 
   it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {
@@ -1127,12 +1296,35 @@ describe("vendor route discovery", () => {
       json: async () =>
         String(url).includes("/images/models")
           ? { data: [] }
+          : String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+            ? { data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } }
           : String(url) === OPENROUTER_MODELS_URL
             ? { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x" }] },
     })) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
+      assert.ok(error.message.includes("empty catalog"));
+      return true;
+    });
+  });
+
+  it("OpenRouter: an empty embeddings catalog is a failed read, not a mass retirement", async () => {
+    const fetchFn = (async (url: string | URL | Request) => ({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      json: async () =>
+        String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+          ? { data: [], total_count: 0, links: { next: null } }
+          : String(url).includes("/images/models")
+            ? { data: [{ id: "openai/gpt-image-2" }] }
+            : String(url) === OPENROUTER_MODELS_URL
+              ? { data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } }
+              : { data: [] },
+    })) as unknown as typeof fetch;
+    await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
+      assert.ok(error.message.includes(OPENROUTER_EMBEDDING_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
       return true;
     });
@@ -1170,6 +1362,8 @@ describe("fetch guards and snapshot folding", () => {
       jsonResponse(
         String(url).includes("/images/models")
           ? { data: [{ id: "openai/gpt-image-2" }] }
+          : String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+            ? { data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } }
           : String(url) === OPENROUTER_MODELS_URL
             ? { data: [{ slug: "renamed-field" }], total_count: 1, links: { next: null } }
             : { data: [{ slug: "renamed-field" }] },
@@ -1186,9 +1380,14 @@ describe("fetch guards and snapshot folding", () => {
       if (target === OPENROUTER_IMAGE_RANKINGS_URL) {
         return jsonResponse({ data: [IMAGE_RANKING] });
       }
+      if (target === OPENROUTER_EMBEDDING_RANKINGS_URL) {
+        return jsonResponse({ data: [EMBEDDING_RANKING] });
+      }
       return jsonResponse(
         target.includes("/images/models")
           ? { data: [{ id: "openai/gpt-image-2" }] }
+          : target === OPENROUTER_EMBEDDING_MODELS_URL
+            ? { data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } }
           : target === OPENROUTER_MODELS_URL
             ? { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
@@ -1206,6 +1405,9 @@ describe("fetch guards and snapshot folding", () => {
       if (target === OPENROUTER_MODELS_URL) {
         return jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 2, links: { next: "next" } });
       }
+      if (target === OPENROUTER_EMBEDDING_MODELS_URL) {
+        return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
+      }
       return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
     }) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], partialFetch), /partial catalog/);
@@ -1214,6 +1416,9 @@ describe("fetch guards and snapshot folding", () => {
       const target = String(url);
       if (target.endsWith("/endpoints")) return jsonResponse({ data: {} });
       if (target.includes("/images/models")) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
+      if (target === OPENROUTER_EMBEDDING_MODELS_URL) {
+        return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
+      }
       return target === OPENROUTER_MODELS_URL
         ? jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } })
         : jsonResponse({ data: [{ id: "openai/gpt-x" }] });
@@ -1232,10 +1437,12 @@ describe("fetch guards and snapshot folding", () => {
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /image-generation-models.*no usable entries/);
   });
 
-  it("Google: raw entries none of which are usable is a failed read, not a catalog", async () => {
+  it("Google: accepts an embedContent-only catalog", async () => {
     const fetchFn = (async () =>
       jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as unknown as typeof fetch;
-    await assert.rejects(fetchGoogleModels("key", fetchFn), /no usable entries/);
+    assert.deepEqual(await fetchGoogleModels("key", fetchFn), [
+      { name: "models/embed-x", supportedGenerationMethods: ["embedContent"] },
+    ]);
   });
 
   it("xAI: language entries that carry no id are the same failed read", async () => {

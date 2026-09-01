@@ -567,5 +567,77 @@
   {
     "family": "hy4-preview",
     "wireId": "tencent/hy4-preview"
+  },
+  {
+    "family": "text-embedding-3-small",
+    "wireId": "openai/text-embedding-3-small"
+  },
+  {
+    "family": "qwen3-embedding-8b",
+    "wireId": "qwen/qwen3-embedding-8b"
+  },
+  {
+    "family": "gemini-embedding-2",
+    "wireId": "google/gemini-embedding-2"
+  },
+  {
+    "family": "text-embedding-3-large",
+    "wireId": "openai/text-embedding-3-large"
+  },
+  {
+    "family": "bge-m3",
+    "wireId": "baai/bge-m3"
+  },
+  {
+    "family": "gemini-embedding-001",
+    "wireId": "google/gemini-embedding-001"
+  },
+  {
+    "family": "pplx-embed-v1-0.6b",
+    "wireId": "perplexity/pplx-embed-v1-0.6b"
+  },
+  {
+    "family": "all-minilm-l12-v2",
+    "wireId": "sentence-transformers/all-minilm-l12-v2"
+  },
+  {
+    "family": "text-embedding-ada-002",
+    "wireId": "openai/text-embedding-ada-002"
+  },
+  {
+    "family": "qwen3-embedding-4b",
+    "wireId": "qwen/qwen3-embedding-4b"
+  },
+  {
+    "family": "gemini-embedding-2-preview",
+    "wireId": "google/gemini-embedding-2-preview"
+  },
+  {
+    "family": "pplx-embed-v1-4b",
+    "wireId": "perplexity/pplx-embed-v1-4b"
+  },
+  {
+    "family": "mistral-embed-2312",
+    "wireId": "mistralai/mistral-embed-2312"
+  },
+  {
+    "family": "voyage-4-large",
+    "wireId": "voyageai/voyage-4-large"
+  },
+  {
+    "family": "all-minilm-l6-v2",
+    "wireId": "sentence-transformers/all-minilm-l6-v2"
+  },
+  {
+    "family": "multilingual-e5-large",
+    "wireId": "intfloat/multilingual-e5-large"
+  },
+  {
+    "family": "bge-base-en-v1.5",
+    "wireId": "baai/bge-base-en-v1.5"
+  },
+  {
+    "family": "voyage-4-lite",
+    "wireId": "voyageai/voyage-4-lite"
   }
 ]

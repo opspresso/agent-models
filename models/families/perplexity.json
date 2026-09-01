@@ -1,0 +1,36 @@
+{
+  "pplx-embed-v1-0.6b": {
+    "displayName": "Embed V1 0.6B",
+    "pricing": {
+      "inputPer1M": 0.004,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 32000,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "pplx-embed-v1-4b": {
+    "displayName": "Embed V1 4B",
+    "pricing": {
+      "inputPer1M": 0.03,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 32000,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  }
+}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Models</title>
-<meta name="description" content="The model registry behind Agent Studio — prices, limits and capability flags for every model it can run, refreshed from the providers every day.">
+<meta name="description" content="A daily-refreshed registry of text, image, and embedding models with prices, limits, capabilities, makers, and provider routes.">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -185,6 +185,9 @@
   .badge.outline { background: transparent; border: 1px solid var(--border-strong); color: var(--ink-2); }
   .badge.neutral { background: var(--gray-bg); color: var(--gray-ink); }
   .badge.promo { background: var(--green-bg); color: var(--green-ink); cursor: help; }
+  .badge.type-text { background: var(--gray-bg); color: var(--gray-ink); }
+  .badge.type-image { background: var(--light-bg); color: var(--light-ink); }
+  .badge.type-embedding { background: var(--green-bg); color: var(--green-ink); }
   .price { margin-top: 12px; font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
   .ctx { margin-top: 2px; font-size: 12px; color: var(--dimmed); }
   .also { margin-top: 4px; font-size: 12px; color: var(--dimmed); }
@@ -214,7 +217,7 @@
       <div>
         <div class="eyebrow">Model registry</div>
         <h1>Models</h1>
-        <p>Every model <a href="https://studio.opspresso.com/">Agent Studio</a> can run — what each costs, how much it can hold, what it can do — one card per route, refreshed from the providers every day.</p>
+        <p>Text, image, and embedding models — what each costs, how much it can hold, what it can do — one card per provider route, refreshed every day.</p>
       </div>
     </div>
     <div class="aside">
@@ -247,11 +250,16 @@
       <select class="input" id="provider" aria-label="Provider">
         <option value="">All providers</option>
       </select>
+      <select class="input" id="type" aria-label="Model type">
+        <option value="">All types</option>
+        <option value="text">Text</option>
+        <option value="image">Image</option>
+        <option value="embedding">Embedding</option>
+      </select>
       <div class="checks" role="group" aria-label="Capabilities">
         <label class="check"><input type="checkbox" data-cap="tools"> Tools</label>
         <label class="check"><input type="checkbox" data-cap="imageInput"> Vision</label>
         <label class="check"><input type="checkbox" data-cap="reasoning"> Reasoning</label>
-        <label class="check"><input type="checkbox" data-cap="imageGeneration"> Image</label>
       </div>
       <label class="check"><input type="checkbox" id="retired"> Retired</label>
     </div>
@@ -268,7 +276,7 @@
   <main class="grid" id="grid" aria-live="polite"></main>
 
   <footer class="foot">
-    <span>Prices in USD per 1M tokens; image models per image or per 1M image tokens.</span>
+    <span>Prices in USD per 1M tokens; embeddings charge input only, image models per image or per 1M image tokens.</span>
     <span>−n% is a promotional rate at the route's default endpoint, already applied.</span>
     <span>Brand marks identify the model's maker and remain their owners' property.</span>
   </footer>
@@ -279,7 +287,10 @@
   const $ = (id) => document.getElementById(id);
   const catalog = await (await fetch("models.json", { cache: "no-cache" })).json();
   const ROUTERS = new Set(["bedrock", "openrouter"]);
-  const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"], ["imageGeneration", "Image"]];
+  const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"]];
+  const MODEL_TYPES = new Set(["text", "image", "embedding"]);
+  const modelType = (m) => m.capabilities.embedding ? "embedding" : m.capabilities.imageGeneration ? "image" : "text";
+  const typeLabel = (type) => type === "embedding" ? "Embedding" : type === "image" ? "Image" : "Text";
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const initials = (s) => String(s).slice(0, 2).toUpperCase();
   const makerLabel = (id) => catalog.makers[id] ?? id;
@@ -290,16 +301,22 @@
     const d = digits ?? (v !== 0 && Math.abs(v) < 0.01 ? 4 : 2);
     return `$${v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
   };
-  const modelPriceLabel = (p) => {
+  const modelPriceLabel = (m) => {
+    const p = m.pricing;
     const { inputPer1M, outputPer1M, imageOutputPer1M, perImage } = p;
+    if (m.capabilities.embedding) return `${formatUsd(inputPer1M)} in per 1M`;
     if (imageOutputPer1M === undefined && perImage === undefined) return `${formatUsd(inputPer1M)} in · ${formatUsd(outputPer1M)} out per 1M`;
     const image = perImage !== undefined ? `${imageOutputPer1M ? "≈" : ""}${formatUsd(perImage)} / image` : `${formatUsd(imageOutputPer1M ?? 0)} image out per 1M`;
     return inputPer1M > 0 ? `${image} · ${formatUsd(inputPer1M)} in per 1M` : image;
   };
   const roundTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : `${n}`;
-  const contextWindowLabel = (m) => `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
+  const contextWindowLabel = (m) => m.capabilities.embedding
+    ? `Context ${roundTokens(m.contextWindow)}`
+    : `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
   const otherRoutes = (m) => catalog.models.filter((o) => o.family === m.family && o.provider !== m.provider && !o.hidden).map((o) => o.provider);
-  const primaryPrice = (m) => m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M;
+  const primaryPrice = (m) => m.capabilities.embedding
+    ? m.pricing.inputPer1M
+    : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M;
 
   // ---- header ----
   const live = catalog.models.filter((m) => !m.hidden);
@@ -324,11 +341,12 @@
   const STORAGE_KEY = "agent-models.viewer-state.v1";
   const CAPS = new Set(CAPABILITY_COLUMNS.map(([k]) => k));
   const SORT_KEYS = new Set(["provider", "name", "price"]);
-  const state = { provider: "", capabilities: new Set(), sortKey: "provider", direction: "asc", filter: "", retired: false };
+  const state = { provider: "", type: "", capabilities: new Set(), sortKey: "provider", direction: "asc", filter: "", retired: false };
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     if (stored && typeof stored === "object") {
       if (typeof stored.provider === "string" && catalog.providers.includes(stored.provider)) state.provider = stored.provider;
+      if (typeof stored.type === "string" && MODEL_TYPES.has(stored.type)) state.type = stored.type;
       if (Array.isArray(stored.capabilities)) for (const c of stored.capabilities) if (CAPS.has(c)) state.capabilities.add(c);
       if (SORT_KEYS.has(stored.sortKey)) state.sortKey = stored.sortKey;
       if (stored.direction === "desc") state.direction = "desc";
@@ -338,12 +356,13 @@
   function persist() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        provider: state.provider, capabilities: [...state.capabilities], sortKey: state.sortKey, direction: state.direction, retired: state.retired,
+        provider: state.provider, type: state.type, capabilities: [...state.capabilities], sortKey: state.sortKey, direction: state.direction, retired: state.retired,
       }));
     } catch {}
   }
   // Reflect the restored state in the controls.
   $("provider").value = state.provider;
+  $("type").value = state.type;
   $("retired").checked = state.retired;
   for (const c of document.querySelectorAll("input[data-cap]")) c.checked = state.capabilities.has(c.dataset.cap);
   const sortButtons = [...$("sort").querySelectorAll("button")];
@@ -369,6 +388,7 @@
     const rows = catalog.models.filter((m) =>
       (state.retired || !m.hidden) &&
       (state.provider === "" || m.provider === state.provider) &&
+      (state.type === "" || modelType(m) === state.type) &&
       [...state.capabilities].every((c) => m.capabilities[c] === true) &&
       (needle === "" || [m.id, m.displayName, m.provider, makerLabel(m.maker), m.wireId ?? ""].some((f) => f.toLowerCase().includes(needle))),
     );
@@ -392,9 +412,15 @@
     const providerBadge = m.hidden
       ? `<span class="badge neutral">${esc(m.provider)} · retired</span>`
       : `<span class="badge ${ROUTERS.has(m.provider) ? "router" : "on"}">${esc(m.provider)}${ROUTERS.has(m.provider) ? " · router" : ""}</span>`;
+    const type = modelType(m);
+    const typeBadge = `<span class="badge type-${type}">${typeLabel(type)}</span>`;
     const caps = CAPABILITY_COLUMNS.filter(([k]) => m.capabilities[k]).map(([, l]) => `<span class="badge outline">${l}</span>`).join("");
     const d = m.pricing.discount;
-    const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${formatUsd(m.pricing.inputPer1M / (1 - d))} in · ${formatUsd((m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M) / (1 - d))} out per 1M">−${Math.round(d * 100)}%</span>` : "";
+    const listDivisor = 1 - (d ?? 0);
+    const promoList = m.capabilities.embedding
+      ? `${formatUsd(m.pricing.inputPer1M / listDivisor)} in per 1M`
+      : `${formatUsd(m.pricing.inputPer1M / listDivisor)} in · ${formatUsd((m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M) / listDivisor)} out per 1M`;
+    const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${promoList}">−${Math.round(d * 100)}%</span>` : "";
     const routes = otherRoutes(m);
     const cached = m.pricing.cachedInputPer1M !== undefined && !m.capabilities.imageGeneration ? `cached ${formatUsd(m.pricing.cachedInputPer1M)}` : "";
     const wire = m.wireId ? `<code title="Sent to ${esc(m.provider)} as ${esc(m.wireId)}">${esc(m.wireId)}</code>` : "<span></span>";
@@ -407,8 +433,8 @@
             <div class="id" title="${esc(m.id)}">${esc(m.id)}</div>
           </div>
         </div>
-        <div class="badges">${providerBadge}${caps}</div>
-        <div class="price"><span>${esc(modelPriceLabel(m.pricing))}</span>${promo}</div>
+        <div class="badges">${providerBadge}${typeBadge}${caps}</div>
+        <div class="price"><span>${esc(modelPriceLabel(m))}</span>${promo}</div>
         <div class="ctx">${esc(contextWindowLabel(m))}${cached ? ` · ${cached}` : ""}</div>
         ${routes.length ? `<div class="also">also via ${routes.map(esc).join(", ")}</div>` : ""}
       </div>
@@ -428,12 +454,13 @@
 
   function render() {
     const rows = visibleRows();
-    $("grid").innerHTML = rows.length ? rows.map(card).join("") : `<div class="empty" style="grid-column:1/-1">No model matches — clear the filter or widen the provider.</div>`;
+    $("grid").innerHTML = rows.length ? rows.map(card).join("") : `<div class="empty" style="grid-column:1/-1">No model matches — clear the filters or widen the selection.</div>`;
     $("count").textContent = `${rows.length} ${rows.length === 1 ? "model" : "models"}`;
   }
 
   $("q").addEventListener("input", (e) => { state.filter = e.target.value; render(); });
   $("provider").addEventListener("change", (e) => { state.provider = e.target.value; persist(); render(); });
+  $("type").addEventListener("change", (e) => { state.type = e.target.value; persist(); render(); });
   $("retired").addEventListener("change", (e) => { state.retired = e.target.checked; persist(); render(); });
   for (const c of document.querySelectorAll("input[data-cap]")) c.addEventListener("change", (e) => {
     if (e.target.checked) state.capabilities.add(e.target.dataset.cap); else state.capabilities.delete(e.target.dataset.cap);

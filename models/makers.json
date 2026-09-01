@@ -70,5 +70,29 @@
   "krea": {
     "displayName": "Krea",
     "openrouterVendor": "krea"
+  },
+  "baai": {
+    "displayName": "BAAI",
+    "openrouterVendor": "baai"
+  },
+  "perplexity": {
+    "displayName": "Perplexity",
+    "openrouterVendor": "perplexity"
+  },
+  "sentence-transformers": {
+    "displayName": "Sentence Transformers",
+    "openrouterVendor": "sentence-transformers"
+  },
+  "mistralai": {
+    "displayName": "Mistral",
+    "openrouterVendor": "mistralai"
+  },
+  "voyageai": {
+    "displayName": "VoyageAI by MongoDB",
+    "openrouterVendor": "voyageai"
+  },
+  "intfloat": {
+    "displayName": "Intfloat",
+    "openrouterVendor": "intfloat"
   }
 }
