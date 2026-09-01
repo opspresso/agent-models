@@ -1284,6 +1284,19 @@ describe("vendor route discovery", () => {
     assert.equal(applied.registry.families["embedding-z"]!.maxTokens, 0);
     const missing = applyGoogle(discovered.registry, [], TODAY);
     assert.ok(missing.registry.offerings.filter((o) => o.provider === "google").every((o) => o.missingSince === TODAY));
+
+    const generationOnly = [{ name: "models/embedding-z", supportedGenerationMethods: ["generateContent"] }];
+    assert.ok(!discoverGoogle(r, generationOnly).registry.offerings.some(
+      (o) => o.provider === "google" && o.family === "embedding-z",
+    ));
+    const withNativeEmbedding = structuredClone(r);
+    withNativeEmbedding.offerings.push({ provider: "google", family: "embedding-z" });
+    assert.equal(
+      applyGoogle(withNativeEmbedding, generationOnly, TODAY).registry.offerings.find(
+        (o) => o.provider === "google" && o.family === "embedding-z",
+      )?.missingSince,
+      TODAY,
+    );
   });
 
   it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {

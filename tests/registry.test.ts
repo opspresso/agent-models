@@ -239,9 +239,23 @@ describe("validateRegistry", () => {
       maxTokens: 0,
     };
     r.offerings.push({ provider: "openai", family: "embed" });
-    assert.match(validateRegistry(r).join("\n"), /embedding model needs an input price above zero/);
+    assert.match(validateRegistry(r).join("\n"), /embedding model needs an input price above zero and an output price of zero/);
     r.families["embed"]!.pricing.inputPer1M = 0.02;
     assert.deepEqual(validateRegistry(r), []);
+
+    r.families["embed"]!.pricing.outputPer1M = 1;
+    assert.match(validateRegistry(r).join("\n"), /output price of zero/);
+    r.families["embed"]!.pricing.outputPer1M = 0;
+    r.offerings.at(-1)!.pricing = { outputPer1M: 1 };
+    assert.match(validateRegistry(r).join("\n"), /output price of zero/);
+    delete r.offerings.at(-1)!.pricing;
+
+    r.families["embed"]!.maxTokens = 128;
+    assert.match(validateRegistry(r).join("\n"), /maxTokens must be zero for an embedding model/);
+    r.families["embed"]!.maxTokens = 0;
+    r.offerings.at(-1)!.maxTokens = 128;
+    assert.match(validateRegistry(r).join("\n"), /maxTokens must be zero for an embedding model/);
+    delete r.offerings.at(-1)!.maxTokens;
 
     r.families["embed"]!.capabilities.imageGeneration = true;
     assert.match(validateRegistry(r).join("\n"), /may not be both imageGeneration and embedding/);

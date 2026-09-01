@@ -62,8 +62,14 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
 }
 
 function usable(model: GoogleModel): boolean {
+  return supports(model, false) || supports(model, true);
+}
+
+function supports(model: GoogleModel, embedding: boolean): boolean {
   const methods = model.supportedGenerationMethods ?? [];
-  return methods.includes("generateContent") || methods.includes("embedContent") || methods.includes("predict");
+  return embedding
+    ? methods.includes("embedContent")
+    : methods.includes("generateContent") || methods.includes("predict");
 }
 
 function byFamilyId(catalog: GoogleModel[]): Map<string, GoogleModel> {
@@ -95,7 +101,7 @@ export function applyGoogle(
     }
     const entry = offeringNames(offering)
       .map((name) => byId.get(name))
-      .find((candidate) => candidate !== undefined);
+      .find((candidate) => candidate !== undefined && supports(candidate, family.capabilities.embedding === true));
     observePresence(offering, entry !== undefined, "Google", today, changes, notes);
     if (entry === undefined || family.capabilities.imageGeneration) {
       continue;
@@ -127,7 +133,13 @@ export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { re
     if (family.maker !== "google" || family.capabilities.imageGeneration) {
       continue;
     }
-    if (familyHasRoute(next, id, "google") || !familyIsLive(next, id) || !byId.has(id)) {
+    const entry = byId.get(id);
+    if (
+      familyHasRoute(next, id, "google")
+      || !familyIsLive(next, id)
+      || entry === undefined
+      || !supports(entry, family.capabilities.embedding === true)
+    ) {
       continue;
     }
     addRoute(next, { provider: "google", family: id }, changes);

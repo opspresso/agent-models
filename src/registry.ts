@@ -666,8 +666,8 @@ export function validateRegistry(registry: Registry): string[] {
     if (!isModelCount(family.contextWindow, imageGeneration)) {
       errors.push(`${where}: contextWindow must be a positive integer, or zero for an image model`);
     }
-    if (!isModelCount(family.maxTokens, imageGeneration || embedding)) {
-      errors.push(`${where}: maxTokens must be a positive integer, or zero for an image or embedding model`);
+    if (embedding ? family.maxTokens !== 0 : !isModelCount(family.maxTokens, imageGeneration)) {
+      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer or zero for an image model`);
     }
     if (family.note !== undefined && typeof family.note !== "string") {
       errors.push(`${where}: note must be a string`);
@@ -714,8 +714,11 @@ export function validateRegistry(registry: Registry): string[] {
         errors.push(`${where}: a route may not change embedding`);
       }
     }
-    if (offering.maxTokens !== undefined && !isCount(offering.maxTokens)) {
-      errors.push(`${where}: maxTokens must be a positive integer`);
+    if (
+      offering.maxTokens !== undefined
+      && (family.capabilities.embedding ? offering.maxTokens !== 0 : !isCount(offering.maxTokens))
+    ) {
+      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer`);
     }
     if (offering.hidden !== undefined && offering.hidden !== true) {
       errors.push(`${where}: hidden is either true or absent`);
@@ -803,8 +806,8 @@ export function validateRegistry(registry: Registry): string[] {
         errors.push(`${where}: an image model needs imageOutputPer1M or perImage`);
       }
     } else if (capabilities.embedding) {
-      if (!(pricing.inputPer1M > 0)) {
-        errors.push(`${where}: an embedding model needs an input price above zero`);
+      if (!(pricing.inputPer1M > 0) || pricing.outputPer1M !== 0) {
+        errors.push(`${where}: an embedding model needs an input price above zero and an output price of zero`);
       }
     } else if (!(pricing.inputPer1M > 0 && pricing.outputPer1M > 0)) {
       errors.push(`${where}: a text model needs input and output prices above zero`);
