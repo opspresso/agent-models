@@ -36,5 +36,9 @@
   {
     "family": "claude-sonnet-4.5",
     "wireId": "claude-sonnet-4-5"
+  },
+  {
+    "family": "claude-fable-5.1",
+    "wireId": "claude-fable-5-1"
   }
 ]
