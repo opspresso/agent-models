@@ -1,0 +1,36 @@
+{
+  "bge-m3": {
+    "displayName": "bge-m3",
+    "pricing": {
+      "inputPer1M": 0.01,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8194,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "bge-base-en-v1.5": {
+    "displayName": "bge-base-en-v1.5",
+    "pricing": {
+      "inputPer1M": 0.005,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 512,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  }
+}

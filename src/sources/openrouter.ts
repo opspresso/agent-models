@@ -16,6 +16,8 @@
  *     rate differs from the family's, and loses it the day they agree again.
  *   - An image family whose only route is OpenRouter follows the image
  *     endpoint's normalized token price, window and output cap.
+ *   - An embedding family whose only route is OpenRouter follows the
+ *     embeddings catalog's input-token price and context window.
  *   - A live route the catalogs no longer list is recorded as missing and
  *     hidden after the grace period (`presence.ts`) — never deleted.
  *
@@ -32,11 +34,14 @@
  *     20 and its endpoint states a price and limits (including explicit zero
  *     limits for image-only models). Its maker is adopted with it when the
  *     vendor is new to the registry.
+ *   - An embedding family and route when the model ranks in the weekly
+ *     embeddings top 20 and states an input price and context window.
  *
  * Retention is deliberately wider than admission: text stays through the
- * weekly top 50 in its open/closed class, image through the top 30. A listing
- * gets 90 days before ranking retirement starts, and a major-maker text route
- * is ranked only when no live vendor route backs its family.
+ * weekly top 50 in its open/closed class, image and embeddings through their
+ * top 30. A listing gets 90 days before ranking retirement starts, and a
+ * major-maker text route is ranked only when no live vendor route backs its
+ * family.
  */
 
 import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
@@ -54,12 +59,15 @@ export const EXPIRATION_HORIZON_DAYS = 365;
 export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 export const OPENROUTER_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/models?view=week";
 export const OPENROUTER_IMAGE_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=image&view=week";
+export const OPENROUTER_EMBEDDING_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=embeddings&view=week";
 /**
  * The dedicated drawing models live in a second catalog and not in `/models`:
  * `openai/gpt-image-2` and the Grok image models appear only here. Read for
  * discovery and presence. Price and limits come from the model endpoints API.
  */
 export const OPENROUTER_IMAGE_MODELS_URL = "https://openrouter.ai/api/v1/images/models";
+/** The complete embeddings catalog; `/models` defaults to text output only. */
+export const OPENROUTER_EMBEDDING_MODELS_URL = "https://openrouter.ai/api/v1/embeddings/models";
 
 export function openRouterEndpointsUrl(id: string): string {
   return `${OPENROUTER_MODELS_URL}/${id}/endpoints`;
@@ -131,17 +139,27 @@ export interface OpenRouterImageRanking {
   image_output_requests: number;
 }
 
+export interface OpenRouterEmbeddingRanking {
+  model_permaslug: string;
+  variant_permaslug: string;
+  count: number;
+}
+
 export interface OpenRouterCatalog {
   models: OpenRouterModel[];
   /** Ids the image catalog lists. */
   imageIds: string[];
   imageModels: OpenRouterImageModel[];
+  /** Entries the dedicated embeddings catalog lists. */
+  embeddingModels: OpenRouterModel[];
   /** Per model id, its endpoints — or null when that one request failed. */
   endpoints: Record<string, OpenRouterEndpoint[] | null>;
   /** Null when the public rankings feed failed or changed shape. */
   rankings: OpenRouterRanking[] | null;
   /** Null when the public image rankings feed failed or changed shape. */
   imageRankings: OpenRouterImageRanking[] | null;
+  /** Null when the public embeddings rankings feed failed or changed shape. */
+  embeddingRankings: OpenRouterEmbeddingRanking[] | null;
 }
 
 export interface OpenRouterDiscoveryOptions {
@@ -201,6 +219,18 @@ function isImageRanking(entry: unknown): entry is OpenRouterImageRanking {
     && row.image_output_requests >= 0;
 }
 
+function isEmbeddingRanking(entry: unknown): entry is OpenRouterEmbeddingRanking {
+  if (typeof entry !== "object" || entry === null) {
+    return false;
+  }
+  const row = entry as Partial<OpenRouterEmbeddingRanking>;
+  return typeof row.model_permaslug === "string"
+    && typeof row.variant_permaslug === "string"
+    && typeof row.count === "number"
+    && Number.isFinite(row.count)
+    && row.count >= 0;
+}
+
 /** How many endpoint requests are in flight at once — polite, and fast enough for ~40 routes. */
 const ENDPOINT_CONCURRENCY = 4;
 
@@ -229,11 +259,17 @@ export async function fetchOpenRouterCatalog(
     (data) => ({ ok: true as const, data }),
     () => ({ ok: false as const }),
   );
-  const [models, images, rankingsResult, imageRankingsResult] = await Promise.all([
+  const embeddingRankingsRequest = fetchData(OPENROUTER_EMBEDDING_RANKINGS_URL, fetchFn).then(
+    (data) => ({ ok: true as const, data }),
+    () => ({ ok: false as const }),
+  );
+  const [models, images, embeddings, rankingsResult, imageRankingsResult, embeddingRankingsResult] = await Promise.all([
     fetchData(OPENROUTER_MODELS_URL, fetchFn, true),
     fetchData(OPENROUTER_IMAGE_MODELS_URL, fetchFn),
+    fetchData(OPENROUTER_EMBEDDING_MODELS_URL, fetchFn, true),
     rankingsRequest,
     imageRankingsRequest,
+    embeddingRankingsRequest,
   ]);
   if (models.length === 0) {
     throw new Error(`GET ${OPENROUTER_MODELS_URL} → empty catalog`);
@@ -244,6 +280,9 @@ export async function fetchOpenRouterCatalog(
   if (images.length === 0) {
     throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → empty catalog`);
   }
+  if (embeddings.length === 0) {
+    throw new Error(`GET ${OPENROUTER_EMBEDDING_MODELS_URL} → empty catalog`);
+  }
   // The empty guards catch a missing list; these catch a renamed id field —
   // raw entries none of which carry an id would read as a catalog that
   // retired everything at once.
@@ -253,6 +292,9 @@ export async function fetchOpenRouterCatalog(
   if (!images.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
     throw new Error(`GET ${OPENROUTER_IMAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
   }
+  if (!embeddings.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENROUTER_EMBEDDING_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
   let rankings = rankingsResult.ok && rankingsResult.data.length > 0 && rankingsResult.data.every(isRanking)
     ? rankingsResult.data as OpenRouterRanking[]
     : null;
@@ -261,19 +303,30 @@ export async function fetchOpenRouterCatalog(
       && imageRankingsResult.data.every(isImageRanking)
     ? imageRankingsResult.data as OpenRouterImageRanking[]
     : null;
+  let embeddingRankings = embeddingRankingsResult.ok
+      && embeddingRankingsResult.data.length > 0
+      && embeddingRankingsResult.data.every(isEmbeddingRanking)
+    ? embeddingRankingsResult.data as OpenRouterEmbeddingRanking[]
+    : null;
   const imageModels = images as OpenRouterImageModel[];
+  const embeddingModels = embeddings as OpenRouterModel[];
   if (rankings !== null && leaderboardPermaslugs(models as OpenRouterModel[], rankings)?.size !== ADDITION_LEADERBOARD_LIMIT * 2) {
     rankings = null;
   }
   if (imageRankings !== null && imageLeaderboardIds(imageModels, imageRankings)?.length !== ADDITION_LEADERBOARD_LIMIT) {
     imageRankings = null;
   }
+  if (embeddingRankings !== null && embeddingLeaderboardIds(embeddingModels, embeddingRankings)?.length !== ADDITION_LEADERBOARD_LIMIT) {
+    embeddingRankings = null;
+  }
   const imageLeaderboard = imageLeaderboardIds(imageModels, imageRankings) ?? [];
-  const listed = new Set([...idsOf(models), ...idsOf(images)]);
+  const embeddingLeaderboard = embeddingLeaderboardIds(embeddingModels, embeddingRankings) ?? [];
+  const listed = new Set([...idsOf(models), ...idsOf(images), ...idsOf(embeddings)]);
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
   const queue = [...new Set([
     ...selectEndpointIds(models as OpenRouterModel[], rankings),
     ...imageLeaderboard,
+    ...embeddingLeaderboard,
   ])].filter((id) =>
     listed.has(id));
   await Promise.all(
@@ -297,9 +350,11 @@ export async function fetchOpenRouterCatalog(
     models: models as OpenRouterModel[],
     imageIds: idsOf(images),
     imageModels,
+    embeddingModels,
     endpoints,
     rankings,
     imageRankings,
+    embeddingRankings,
   };
 }
 
@@ -316,6 +371,20 @@ function tokenPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | 
   return {
     inputPer1M: perMillion(prompt),
     outputPer1M: perMillion(completion),
+    ...(cached > 0 ? { cachedInputPer1M: perMillion(cached) } : {}),
+  };
+}
+
+/** An embeddings route charges only for input tokens; output vectors are not tokens. */
+function embeddingPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | null {
+  const prompt = Number(model.pricing?.prompt);
+  if (!(prompt > 0)) {
+    return null;
+  }
+  const cached = Number(model.pricing?.input_cache_read);
+  return {
+    inputPer1M: perMillion(prompt),
+    outputPer1M: 0,
     ...(cached > 0 ? { cachedInputPer1M: perMillion(cached) } : {}),
   };
 }
@@ -371,12 +440,12 @@ function textMaxTokens(
   return usable.length > 0 ? Math.max(...usable) : null;
 }
 
-/** A reset may only proceed when every policy input and ranked image endpoint is usable. */
+/** A reset may only proceed when every policy input and ranked modality model is usable. */
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
-  if (catalog.rankings === null || catalog.imageRankings === null) return false;
+  if (catalog.rankings === null || catalog.imageRankings === null || catalog.embeddingRankings === null) return false;
   const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
   if (ids === null || ids.length !== ADDITION_LEADERBOARD_LIMIT) return false;
-  return ids.every((id) => {
+  const imagesReady = ids.every((id) => {
     const endpoint = standardImageEndpoint(catalog.endpoints[id]);
     const window = endpoint?.context_length;
     const maxOut = endpoint?.max_completion_tokens ?? window;
@@ -385,6 +454,7 @@ export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
       && isImageLimit(maxOut)
       && maxOut <= window;
   });
+  return imagesReady;
 }
 
 /**
@@ -438,6 +508,7 @@ export function applyOpenRouter(
   const next = structuredClone(registry);
   const byId = new Map(catalog.models.map((model) => [model.id, model]));
   const byImageId = new Map(catalog.imageModels.map((model) => [model.id, model]));
+  const byEmbeddingId = new Map(catalog.embeddingModels.map((model) => [model.id, model]));
   const drawn = new Set(catalog.imageIds);
   const changes: Change[] = [];
   const notes: string[] = [];
@@ -451,7 +522,9 @@ export function applyOpenRouter(
     if (family === undefined) {
       continue;
     }
-    const entry = byId.get(offering.wireId);
+    const entry = family.capabilities.embedding
+      ? byEmbeddingId.get(offering.wireId)
+      : byId.get(offering.wireId);
 
     if (family.capabilities.imageGeneration) {
       const image = byImageId.get(offering.wireId);
@@ -497,7 +570,7 @@ export function applyOpenRouter(
         notes.push(`${id}: OpenRouter has announced this listing ends ${ends}`);
       }
     }
-    const routerPrice = tokenPricing(entry);
+    const routerPrice = family.capabilities.embedding ? embeddingPricing(entry) : tokenPricing(entry);
     if (routerPrice === null) {
       notes.push(`${id}: OpenRouter lists no token price`);
       continue;
@@ -523,13 +596,15 @@ export function applyOpenRouter(
         changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
         family.contextWindow = window;
       }
-      const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
-      const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
-      if (maxOut !== null && maxOut !== family.maxTokens) {
-        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-        family.maxTokens = maxOut;
-      } else if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
-        notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${family.contextWindow} window; left alone`);
+      if (!family.capabilities.embedding) {
+        const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
+        const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
+        if (maxOut !== null && maxOut !== family.maxTokens) {
+          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
+          family.maxTokens = maxOut;
+        } else if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
+          notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${family.contextWindow} window; left alone`);
+        }
       }
       if (offering.pricing !== undefined) {
         changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: undefined });
@@ -580,6 +655,7 @@ const MAJOR_MODEL_MAKERS = new Set(["openai", "anthropic", "google", "xai"]);
 const ADDITION_LEADERBOARD_LIMIT = 20;
 const TEXT_RETENTION_LEADERBOARD_LIMIT = 50;
 const IMAGE_RETENTION_LEADERBOARD_LIMIT = 30;
+const EMBEDDING_RETENTION_LEADERBOARD_LIMIT = 30;
 
 function standardPermaslug(permaslug: string): string {
   const colon = permaslug.indexOf(":");
@@ -610,6 +686,39 @@ function imageLeaderboardIds(
     const model = models.find(({ id }) => {
       const suffix = permaslug.slice(id.length);
       return permaslug === id || permaslug.startsWith(id) && /^-\d{8}$/.test(suffix);
+    });
+    if (model !== undefined && !ids.includes(model.id)) {
+      ids.push(model.id);
+      if (ids.length === limit) break;
+    }
+  }
+  return ids;
+}
+
+/** The embeddings leaderboard, ordered by requests and folded to catalog ids. */
+function embeddingLeaderboardIds(
+  models: OpenRouterModel[],
+  rankings: OpenRouterEmbeddingRanking[] | null,
+  limit = ADDITION_LEADERBOARD_LIMIT,
+): string[] | null {
+  if (rankings === null) {
+    return null;
+  }
+  const totals = new Map<string, number>();
+  for (const row of rankings) {
+    totals.set(row.variant_permaslug, (totals.get(row.variant_permaslug) ?? 0) + row.count);
+  }
+  const ranked = [...totals]
+    .sort((left, right) => right[1] - left[1])
+    .map(([permaslug]) => standardPermaslug(permaslug));
+  const candidates = [...models].sort(
+    (left, right) => Number(isVariant(splitId(left.id)?.slug ?? "")) - Number(isVariant(splitId(right.id)?.slug ?? "")),
+  );
+  const ids: string[] = [];
+  for (const permaslug of ranked) {
+    const model = candidates.find(({ id, canonical_slug: canonical }) => {
+      const suffix = permaslug.slice(id.length);
+      return permaslug === canonical || permaslug === id || permaslug.startsWith(id) && /^-\d{8}$/.test(suffix);
     });
     if (model !== undefined && !ids.includes(model.id)) {
       ids.push(model.id);
@@ -756,6 +865,16 @@ function imageCapabilitiesOf(model: OpenRouterImageModel): ModelCapabilities {
   };
 }
 
+function embeddingCapabilitiesOf(model: OpenRouterModel): ModelCapabilities {
+  return {
+    tools: false,
+    structuredOutput: false,
+    imageInput: (model.architecture?.input_modalities ?? []).includes("image"),
+    reasoning: false,
+    embedding: true,
+  };
+}
+
 function discoverRankedImages(
   registry: Registry,
   catalog: OpenRouterCatalog,
@@ -843,6 +962,97 @@ function discoverRankedImages(
       contextWindow: window,
       maxTokens: maxOut,
       note: `Added automatically on ${today} from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's.`,
+    };
+    registry.families[slug] = created;
+    registry.offerings.push({ provider: "openrouter", family: slug, wireId: id });
+    routed.add(id);
+    changes.push({
+      target: `family ${slug}`,
+      field: "added",
+      from: undefined,
+      to: `${created.displayName} via openrouter (${id})`,
+    });
+  }
+}
+
+function discoverRankedEmbeddings(
+  registry: Registry,
+  catalog: OpenRouterCatalog,
+  today: string,
+  changes: Change[],
+  notes: string[],
+  makerOfVendor: Map<string, string>,
+  routed: Set<string | undefined>,
+): void {
+  const rankedIds = embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings);
+  if (rankedIds === null) {
+    notes.push("openrouter: weekly embeddings rankings could not be read; embedding models and routes were not added");
+    return;
+  }
+  const byId = new Map(catalog.embeddingModels.map((model) => [model.id, model]));
+  for (const id of rankedIds) {
+    if (routed.has(id)) {
+      continue;
+    }
+    const model = byId.get(id);
+    const parts = splitId(id);
+    if (model === undefined || parts === null || isVariant(parts.slug)) {
+      continue;
+    }
+    const { vendor, slug } = parts;
+    let maker = makerOfVendor.get(vendor);
+    const family = registry.families[slug];
+    if (family !== undefined) {
+      if (maker === undefined || family.maker !== maker) {
+        notes.push(`openrouter: ranked embedding ${id} names family "${slug}" under another maker; left alone`);
+        continue;
+      }
+      if (!family.capabilities.embedding || !familyIsLive(registry, slug)) {
+        continue;
+      }
+      if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
+        routed.add(id);
+      }
+      continue;
+    }
+
+    if (!isSafeSlug(slug)) {
+      notes.push(`openrouter: ranked embedding ${id} cannot be a family id; add it by hand under a name this registry can use`);
+      continue;
+    }
+    const price = embeddingPricing(model);
+    const window = model.context_length;
+    if (price === null || !isPositiveInt(window)) {
+      notes.push(`openrouter: ranked embedding ${id} has no usable input price or context window; left alone`);
+      continue;
+    }
+    if (maker === undefined) {
+      if (!isSafeSlug(vendor)) {
+        notes.push(`openrouter: ranked embedding ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
+        continue;
+      }
+      maker = vendor;
+      registry.makers[maker] = {
+        displayName: makerDisplayNameOf(model, vendor),
+        openrouterVendor: vendor,
+      };
+      makerOfVendor.set(vendor, maker);
+      changes.push({
+        target: `maker ${maker}`,
+        field: "added",
+        from: undefined,
+        to: registry.makers[maker]!.displayName,
+      });
+    }
+    const discount = catalogDiscount(model, catalog.endpoints[id]);
+    const created: ModelFamily & { maker: string } = {
+      maker,
+      displayName: displayNameOf(model, slug),
+      pricing: { ...price, ...(typeof discount === "number" ? { discount } : {}) },
+      capabilities: embeddingCapabilitiesOf(model),
+      contextWindow: window,
+      maxTokens: 0,
+      note: `Added automatically on ${today} from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's.`,
     };
     registry.families[slug] = created;
     registry.offerings.push({ provider: "openrouter", family: slug, wireId: id });
@@ -958,8 +1168,21 @@ export function discoverOpenRouter(
   if (rankedImageIds !== null && retainedImageIds === null) {
     notes.push("openrouter: weekly image rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
+  const rankedEmbeddingIds = embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings);
+  const embeddingRetention = embeddingLeaderboardIds(
+    catalog.embeddingModels,
+    catalog.embeddingRankings,
+    EMBEDDING_RETENTION_LEADERBOARD_LIMIT,
+  );
+  const retainedEmbeddingIds = embeddingRetention?.length === EMBEDDING_RETENTION_LEADERBOARD_LIMIT
+    ? new Set(embeddingRetention)
+    : null;
+  if (rankedEmbeddingIds !== null && retainedEmbeddingIds === null) {
+    notes.push("openrouter: weekly embeddings rankings did not contain a complete Top 30; ranking retirement did not advance");
+  }
   const textById = new Map(catalog.models.map((model) => [model.id, model]));
   const imageById = new Map(catalog.imageModels.map((model) => [model.id, model]));
+  const embeddingById = new Map(catalog.embeddingModels.map((model) => [model.id, model]));
   for (const offering of next.offerings) {
     if (offering.provider !== "openrouter" || offering.wireId === undefined) continue;
     const family = next.families[offering.family];
@@ -969,6 +1192,16 @@ export function discoverOpenRouter(
         const eligible = model === undefined
           || !oldEnoughForRankingRetirement(model.created, today)
           || retainedImageIds.has(offering.wireId);
+        observeRankingEligibility(offering, eligible, today, changes, notes);
+      }
+      continue;
+    }
+    if (family?.capabilities.embedding) {
+      if (retainedEmbeddingIds !== null) {
+        const model = embeddingById.get(offering.wireId);
+        const eligible = model === undefined
+          || !oldEnoughForRankingRetirement(model.created, today)
+          || retainedEmbeddingIds.has(offering.wireId);
         observeRankingEligibility(offering, eligible, today, changes, notes);
       }
       continue;
@@ -991,6 +1224,7 @@ export function discoverOpenRouter(
   // under — `upstage/solar-pro4` is `solar-pro-4` here, not a second family.
   const routed = new Set(next.offerings.filter((o) => o.provider === "openrouter").map((o) => o.wireId));
   discoverRankedImages(next, catalog, today, changes, notes, makerOfVendor, routed);
+  discoverRankedEmbeddings(next, catalog, today, changes, notes, makerOfVendor, routed);
 
   for (const model of catalog.models) {
     const parts = splitId(model.id);

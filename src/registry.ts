@@ -16,9 +16,9 @@
  *   models/families/<maker>.json   { "<family>": ModelFamily } — the file is the maker
  *   models/offerings/<provider>.json [ModelOffering] — the file is the provider
  *
- * Every shape here mirrors `src/domain/llm/models.ts` in Agent Studio, which is
- * the consumer the catalog exists for; a field is added here only when that
- * registry can read it.
+ * Text and image shapes mirror `src/domain/llm/models.ts` in Agent Studio, the
+ * original consumer. Embedding entries are additive: older consumers skip
+ * their input-only pricing until they understand `capabilities.embedding`.
  */
 
 import {
@@ -69,6 +69,8 @@ export interface ModelCapabilities {
   imageInput: boolean;
   reasoning: boolean;
   imageGeneration?: boolean;
+  /** Produces vectors through an embeddings endpoint rather than generated tokens. */
+  embedding?: boolean;
   /**
    * False when the provider rejects `tools` together with `reasoning_effort`
    * on chat/completions. Absent means the combination is allowed.
@@ -199,6 +201,7 @@ const CAPABILITY_KEYS = [
   "imageInput",
   "reasoning",
   "imageGeneration",
+  "embedding",
   "reasoningWithTools",
 ] as const;
 
@@ -577,8 +580,8 @@ function isCount(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
-function isImageCount(value: unknown, imageGeneration: boolean): value is number {
-  return isCount(value) || (imageGeneration && value === 0);
+function isModelCount(value: unknown, zeroAllowed: boolean): value is number {
+  return isCount(value) || (zeroAllowed && value === 0);
 }
 
 /** Every problem with the registry, or an empty list. Never throws on bad data — it reports it. */
@@ -656,11 +659,15 @@ export function validateRegistry(registry: Registry): string[] {
     checkPricing(where, family.pricing, false, errors);
     checkCapabilities(where, family.capabilities, false, errors);
     const imageGeneration = family.capabilities?.imageGeneration === true;
-    if (!isImageCount(family.contextWindow, imageGeneration)) {
+    const embedding = family.capabilities?.embedding === true;
+    if (imageGeneration && embedding) {
+      errors.push(`${where}: a model may not be both imageGeneration and embedding`);
+    }
+    if (!isModelCount(family.contextWindow, imageGeneration)) {
       errors.push(`${where}: contextWindow must be a positive integer, or zero for an image model`);
     }
-    if (!isImageCount(family.maxTokens, imageGeneration)) {
-      errors.push(`${where}: maxTokens must be a positive integer, or zero for an image model`);
+    if (embedding ? family.maxTokens !== 0 : !isModelCount(family.maxTokens, imageGeneration)) {
+      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer or zero for an image model`);
     }
     if (family.note !== undefined && typeof family.note !== "string") {
       errors.push(`${where}: note must be a string`);
@@ -700,9 +707,18 @@ export function validateRegistry(registry: Registry): string[] {
       ) {
         errors.push(`${where}: a route may not change imageGeneration`);
       }
+      if (
+        offering.capabilities.embedding !== undefined &&
+        offering.capabilities.embedding !== (family.capabilities.embedding ?? false)
+      ) {
+        errors.push(`${where}: a route may not change embedding`);
+      }
     }
-    if (offering.maxTokens !== undefined && !isCount(offering.maxTokens)) {
-      errors.push(`${where}: maxTokens must be a positive integer`);
+    if (
+      offering.maxTokens !== undefined
+      && (family.capabilities.embedding ? offering.maxTokens !== 0 : !isCount(offering.maxTokens))
+    ) {
+      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer`);
     }
     if (offering.hidden !== undefined && offering.hidden !== true) {
       errors.push(`${where}: hidden is either true or absent`);
@@ -788,6 +804,10 @@ export function validateRegistry(registry: Registry): string[] {
     if (capabilities.imageGeneration) {
       if (!((pricing.imageOutputPer1M ?? 0) > 0 || (pricing.perImage ?? 0) > 0)) {
         errors.push(`${where}: an image model needs imageOutputPer1M or perImage`);
+      }
+    } else if (capabilities.embedding) {
+      if (!(pricing.inputPer1M > 0) || pricing.outputPer1M !== 0) {
+        errors.push(`${where}: an embedding model needs an input price above zero and an output price of zero`);
       }
     } else if (!(pricing.inputPer1M > 0 && pricing.outputPer1M > 0)) {
       errors.push(`${where}: a text model needs input and output prices above zero`);

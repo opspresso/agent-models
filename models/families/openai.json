@@ -894,5 +894,56 @@
     "contextWindow": 400000,
     "maxTokens": 360000,
     "note": "Added automatically on 2026-08-27 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "text-embedding-3-small": {
+    "displayName": "Text Embedding 3 Small",
+    "pricing": {
+      "inputPer1M": 0.02,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "text-embedding-3-large": {
+    "displayName": "Text Embedding 3 Large",
+    "pricing": {
+      "inputPer1M": 0.13,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "text-embedding-ada-002": {
+    "displayName": "Text Embedding Ada 002",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
   }
 }

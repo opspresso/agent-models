@@ -2,7 +2,7 @@
   "name": "agent-models",
   "version": "0.1.0",
   "private": true,
-  "description": "Curated LLM model registry — pricing, limits and capability flags — published as a static JSON",
+  "description": "Curated AI model registry — pricing, limits and capability flags — published as a static JSON",
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "engines": {

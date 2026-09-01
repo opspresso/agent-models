@@ -5,8 +5,8 @@
  * Read when `GOOGLE_API_KEY` is set; without it Google's routes are not
  * watched, which README says.
  *
- * Names are `models/<id>`; the registry's family id is the `<id>`. Only a
- * model that answers `generateContent` is one a run can use.
+ * Names are `models/<id>`; the registry's family id is the `<id>`. Text/image
+ * models answer `generateContent`; embedding models answer `embedContent`.
  */
 
 import type { Registry } from "../registry.ts";
@@ -62,8 +62,14 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
 }
 
 function usable(model: GoogleModel): boolean {
+  return supports(model, false) || supports(model, true);
+}
+
+function supports(model: GoogleModel, embedding: boolean): boolean {
   const methods = model.supportedGenerationMethods ?? [];
-  return methods.includes("generateContent") || methods.includes("predict");
+  return embedding
+    ? methods.includes("embedContent")
+    : methods.includes("generateContent") || methods.includes("predict");
 }
 
 function byFamilyId(catalog: GoogleModel[]): Map<string, GoogleModel> {
@@ -95,7 +101,7 @@ export function applyGoogle(
     }
     const entry = offeringNames(offering)
       .map((name) => byId.get(name))
-      .find((candidate) => candidate !== undefined);
+      .find((candidate) => candidate !== undefined && supports(candidate, family.capabilities.embedding === true));
     observePresence(offering, entry !== undefined, "Google", today, changes, notes);
     if (entry === undefined || family.capabilities.imageGeneration) {
       continue;
@@ -106,7 +112,7 @@ export function applyGoogle(
       changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
       family.contextWindow = window;
     }
-    if (isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
+    if (!family.capabilities.embedding && isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
       if (maxOut > family.contextWindow) {
         notes.push(`google/${offering.family}: Google states outputTokenLimit ${maxOut} above the ${family.contextWindow} window; left alone`);
       } else {
@@ -118,7 +124,7 @@ export function applyGoogle(
   return { registry: next, result: { source: "Google", changes, notes } };
 }
 
-/** A `google/` route for every live Google-made text family the API serves under the family's id. */
+/** A `google/` route for every live Google-made text or embedding family the API serves. */
 export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
@@ -127,7 +133,13 @@ export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { re
     if (family.maker !== "google" || family.capabilities.imageGeneration) {
       continue;
     }
-    if (familyHasRoute(next, id, "google") || !familyIsLive(next, id) || !byId.has(id)) {
+    const entry = byId.get(id);
+    if (
+      familyHasRoute(next, id, "google")
+      || !familyIsLive(next, id)
+      || entry === undefined
+      || !supports(entry, family.capabilities.embedding === true)
+    ) {
       continue;
     }
     addRoute(next, { provider: "google", family: id }, changes);

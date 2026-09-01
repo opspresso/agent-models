@@ -54,9 +54,9 @@ export function applyOpenAi(
 }
 
 /**
- * An `openai/` route for every live OpenAI-made text family the catalog serves
- * under the family's own id and this registry does not yet route there. Dated
- * snapshots fold to their alias exactly as they do for presence: a route the
+ * An `openai/` route for every live OpenAI-made text or embedding family the
+ * catalog serves under the family's own id and this registry does not yet
+ * route there. Dated snapshots fold to their alias exactly as they do for presence: a route the
  * retirement clock counts as alive is one discovery must be willing to add.
  * The family's price is then the list price (`promoteFamily`), which is what
  * OpenAI charges and what OpenRouter's listing was discounting from.

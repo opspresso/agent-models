@@ -46,6 +46,11 @@ describe("the committed registry", () => {
           first?.capabilities.imageGeneration ?? false,
           `${family}: routes disagree on kind`,
         );
+        assert.equal(
+          route.capabilities.embedding ?? false,
+          first?.capabilities.embedding ?? false,
+          `${family}: routes disagree on kind`,
+        );
       }
     }
   });
@@ -59,6 +64,13 @@ describe("the committed registry", () => {
   it("keeps each maker's display name and OpenRouter vendor together", () => {
     assert.deepEqual(registry.makers.openai, { displayName: "OpenAI", openrouterVendor: "openai" });
     assert.deepEqual(registry.makers.xai, { displayName: "xAI", openrouterVendor: "x-ai" });
+  });
+
+  it("publishes ranked embedding models with input-only pricing", () => {
+    const embeddings = deriveModels(registry).filter((model) => model.capabilities.embedding);
+    assert.ok(embeddings.length > 0);
+    assert.ok(embeddings.every((model) =>
+      model.pricing.inputPer1M > 0 && model.pricing.outputPer1M === 0 && model.maxTokens === 0));
   });
 });
 
@@ -216,7 +228,40 @@ describe("validateRegistry", () => {
     assert.deepEqual(validateRegistry(r), []);
   });
 
-  it("allows explicit zero limits only for image models", () => {
+  it("prices an embedding model on input and allows no generated-token cap", () => {
+    const r = fixture();
+    r.families["embed"] = {
+      maker: "openai",
+      displayName: "Embed",
+      pricing: { inputPer1M: 0, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, embedding: true },
+      contextWindow: 8192,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openai", family: "embed" });
+    assert.match(validateRegistry(r).join("\n"), /embedding model needs an input price above zero and an output price of zero/);
+    r.families["embed"]!.pricing.inputPer1M = 0.02;
+    assert.deepEqual(validateRegistry(r), []);
+
+    r.families["embed"]!.pricing.outputPer1M = 1;
+    assert.match(validateRegistry(r).join("\n"), /output price of zero/);
+    r.families["embed"]!.pricing.outputPer1M = 0;
+    r.offerings.at(-1)!.pricing = { outputPer1M: 1 };
+    assert.match(validateRegistry(r).join("\n"), /output price of zero/);
+    delete r.offerings.at(-1)!.pricing;
+
+    r.families["embed"]!.maxTokens = 128;
+    assert.match(validateRegistry(r).join("\n"), /maxTokens must be zero for an embedding model/);
+    r.families["embed"]!.maxTokens = 0;
+    r.offerings.at(-1)!.maxTokens = 128;
+    assert.match(validateRegistry(r).join("\n"), /maxTokens must be zero for an embedding model/);
+    delete r.offerings.at(-1)!.maxTokens;
+
+    r.families["embed"]!.capabilities.imageGeneration = true;
+    assert.match(validateRegistry(r).join("\n"), /may not be both imageGeneration and embedding/);
+  });
+
+  it("allows explicit zero output limits for image and embedding models", () => {
     const r = fixture();
     r.families["draw"] = {
       maker: "openai",
@@ -238,6 +283,8 @@ describe("validateRegistry", () => {
     const r = fixture();
     r.offerings[2]!.capabilities = { imageGeneration: true };
     assert.match(validateRegistry(r).join("\n"), /may not change imageGeneration/);
+    r.offerings[2]!.capabilities = { embedding: true };
+    assert.match(validateRegistry(r).join("\n"), /may not change embedding/);
   });
 });
 
