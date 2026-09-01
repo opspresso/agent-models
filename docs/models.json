@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-01T09:48:23.618Z",
+  "updatedAt": "2026-09-01T23:52:28.687Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1080,6 +1080,27 @@
       "contextWindow": 1000000,
       "maxTokens": 64000,
       "wireId": "claude-sonnet-4-5"
+    },
+    {
+      "id": "anthropic/claude-fable-5.1",
+      "provider": "anthropic",
+      "family": "claude-fable-5.1",
+      "maker": "anthropic",
+      "displayName": "Claude Fable 5.1",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 0.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "claude-fable-5-1"
     },
     {
       "id": "google/gemini-3.1-pro",
@@ -2370,9 +2391,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.132,
-        "outputPer1M": 0.528,
-        "cachedInputPer1M": 0.033
+        "inputPer1M": 0.0825,
+        "outputPer1M": 0.33,
+        "cachedInputPer1M": 0.020625
       },
       "capabilities": {
         "tools": true,
@@ -2706,9 +2727,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 1.6,
-        "outputPer1M": 3.2,
-        "cachedInputPer1M": 0.135
+        "inputPer1M": 1.024164,
+        "outputPer1M": 2.048328,
+        "cachedInputPer1M": 0.085347,
+        "discount": 0.4114
       },
       "capabilities": {
         "tools": true,
@@ -2717,7 +2739,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216,
+      "maxTokens": 384000,
       "wireId": "deepseek/deepseek-v4-pro"
     },
     {
@@ -2727,10 +2749,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.08092,
-        "outputPer1M": 0.16184,
-        "cachedInputPer1M": 0.016184,
-        "discount": 0.422
+        "inputPer1M": 0.07014,
+        "outputPer1M": 0.14028,
+        "cachedInputPer1M": 0.014028,
+        "discount": 0.499
       },
       "capabilities": {
         "tools": true,
@@ -5006,6 +5028,27 @@
       "contextWindow": 32000,
       "maxTokens": 0,
       "wireId": "voyageai/voyage-4-lite"
+    },
+    {
+      "id": "openrouter/claude-fable-5.1",
+      "provider": "openrouter",
+      "family": "claude-fable-5.1",
+      "maker": "anthropic",
+      "displayName": "Claude Fable 5.1",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 0.25
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-fable-5.1"
     }
   ]
 }

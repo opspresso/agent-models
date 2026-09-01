@@ -282,5 +282,22 @@
     "contextWindow": 200000,
     "maxTokens": 4096,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-03-13); numbers and flags are OpenRouter's."
+  },
+  "claude-fable-5.1": {
+    "displayName": "Claude Fable 5.1",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 50,
+      "cachedInputPer1M": 0.25
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-01 from OpenRouter's catalog (listed 2026-09-01); numbers and flags are OpenRouter's."
   }
 }

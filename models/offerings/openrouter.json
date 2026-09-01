@@ -31,7 +31,10 @@
   },
   {
     "family": "claude-opus-5-fast",
-    "wireId": "anthropic/claude-opus-5-fast"
+    "wireId": "anthropic/claude-opus-5-fast",
+    "missingSince": "2026-09-01",
+    "missingObservations": 1,
+    "lastMissingAt": "2026-09-01"
   },
   {
     "family": "claude-opus-5",
@@ -106,9 +109,9 @@
   {
     "family": "claude-opus-4.8-fast",
     "wireId": "anthropic/claude-opus-4.8-fast",
-    "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-09-01"
+    "missingSince": "2026-09-01",
+    "missingObservations": 1,
+    "lastMissingAt": "2026-09-01"
   },
   {
     "family": "claude-opus-4.8",
@@ -125,9 +128,9 @@
   {
     "family": "claude-opus-4.7-fast",
     "wireId": "anthropic/claude-opus-4.7-fast",
-    "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-09-01"
+    "missingSince": "2026-09-01",
+    "missingObservations": 1,
+    "lastMissingAt": "2026-09-01"
   },
   {
     "family": "gemini-3.1-flash-lite",
@@ -639,5 +642,9 @@
   {
     "family": "voyage-4-lite",
     "wireId": "voyageai/voyage-4-lite"
+  },
+  {
+    "family": "claude-fable-5.1",
+    "wireId": "anthropic/claude-fable-5.1"
   }
 ]
