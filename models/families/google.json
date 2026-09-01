@@ -521,7 +521,7 @@
       "reasoning": false,
       "embedding": true
     },
-    "contextWindow": 20000,
+    "contextWindow": 2048,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
   },

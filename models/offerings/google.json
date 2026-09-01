@@ -68,5 +68,14 @@
   },
   {
     "family": "gemini-2.5-pro"
+  },
+  {
+    "family": "gemini-embedding-2"
+  },
+  {
+    "family": "gemini-embedding-001"
+  },
+  {
+    "family": "gemini-embedding-2-preview"
   }
 ]
