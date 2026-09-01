@@ -117,5 +117,14 @@
   },
   {
     "family": "gpt-4"
+  },
+  {
+    "family": "text-embedding-3-small"
+  },
+  {
+    "family": "text-embedding-3-large"
+  },
+  {
+    "family": "text-embedding-ada-002"
   }
 ]

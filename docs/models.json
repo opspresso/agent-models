@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-01T09:00:02.656Z",
+  "updatedAt": "2026-09-01T09:48:23.618Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -814,6 +814,66 @@
       "maxTokens": 4096
     },
     {
+      "id": "openai/text-embedding-3-small",
+      "provider": "openai",
+      "family": "text-embedding-3-small",
+      "maker": "openai",
+      "displayName": "Text Embedding 3 Small",
+      "pricing": {
+        "inputPer1M": 0.02,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 0
+    },
+    {
+      "id": "openai/text-embedding-3-large",
+      "provider": "openai",
+      "family": "text-embedding-3-large",
+      "maker": "openai",
+      "displayName": "Text Embedding 3 Large",
+      "pricing": {
+        "inputPer1M": 0.13,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 0
+    },
+    {
+      "id": "openai/text-embedding-ada-002",
+      "provider": "openai",
+      "family": "text-embedding-ada-002",
+      "maker": "openai",
+      "displayName": "Text Embedding Ada 002",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 0
+    },
+    {
       "id": "anthropic/claude-fable-5",
       "provider": "anthropic",
       "family": "claude-fable-5",
@@ -1430,6 +1490,66 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 65536
+    },
+    {
+      "id": "google/gemini-embedding-2",
+      "provider": "google",
+      "family": "gemini-embedding-2",
+      "maker": "google",
+      "displayName": "Gemini Embedding 2",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 0
+    },
+    {
+      "id": "google/gemini-embedding-001",
+      "provider": "google",
+      "family": "gemini-embedding-001",
+      "maker": "google",
+      "displayName": "Gemini Embedding 001",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 2048,
+      "maxTokens": 0
+    },
+    {
+      "id": "google/gemini-embedding-2-preview",
+      "provider": "google",
+      "family": "gemini-embedding-2-preview",
+      "maker": "google",
+      "displayName": "Gemini Embedding 2 Preview",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 0
     },
     {
       "id": "xai/grok-4.6",
@@ -4631,7 +4751,7 @@
         "reasoning": false,
         "embedding": true
       },
-      "contextWindow": 20000,
+      "contextWindow": 2048,
       "maxTokens": 0,
       "wireId": "google/gemini-embedding-001"
     },
