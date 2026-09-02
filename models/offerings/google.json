@@ -77,5 +77,8 @@
   },
   {
     "family": "gemini-embedding-2-preview"
+  },
+  {
+    "family": "gemini-3.8-flash"
   }
 ]

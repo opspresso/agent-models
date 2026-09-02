@@ -541,5 +541,22 @@
     "contextWindow": 8192,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "gemini-3.8-flash": {
+    "displayName": "Gemini 3.8 Flash",
+    "pricing": {
+      "inputPer1M": 1.5,
+      "outputPer1M": 7.5,
+      "cachedInputPer1M": 0.15
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 65536,
+    "note": "Added automatically on 2026-09-02 from OpenRouter's catalog (listed 2026-09-02); numbers and flags are OpenRouter's."
   }
 }
