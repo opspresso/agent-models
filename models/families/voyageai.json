@@ -32,5 +32,22 @@
     "contextWindow": 32000,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "voyage-4": {
+    "displayName": "voyage-4",
+    "pricing": {
+      "inputPer1M": 0.06,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "embedding": true
+    },
+    "contextWindow": 32000,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-02 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
   }
 }

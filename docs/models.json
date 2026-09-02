@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-01T23:52:28.687Z",
+  "updatedAt": "2026-09-02T23:54:57.855Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1573,6 +1573,26 @@
       "maxTokens": 0
     },
     {
+      "id": "google/gemini-3.8-flash",
+      "provider": "google",
+      "family": "gemini-3.8-flash",
+      "maker": "google",
+      "displayName": "Gemini 3.8 Flash",
+      "pricing": {
+        "inputPer1M": 1.5,
+        "outputPer1M": 7.5,
+        "cachedInputPer1M": 0.15
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536
+    },
+    {
       "id": "xai/grok-4.6",
       "provider": "xai",
       "family": "grok-4.6",
@@ -2433,10 +2453,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 1.19,
-        "outputPer1M": 3.74,
-        "cachedInputPer1M": 0.221,
-        "discount": 0.15
+        "inputPer1M": 0.966,
+        "outputPer1M": 3.036,
+        "cachedInputPer1M": 0.1932
       },
       "capabilities": {
         "tools": true,
@@ -2445,7 +2464,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 262144,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -2727,10 +2746,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 1.024164,
-        "outputPer1M": 2.048328,
-        "cachedInputPer1M": 0.085347,
-        "discount": 0.4114
+        "inputPer1M": 0.87,
+        "outputPer1M": 1.74,
+        "cachedInputPer1M": 0.0725,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2749,10 +2768,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07014,
-        "outputPer1M": 0.14028,
-        "cachedInputPer1M": 0.014028,
-        "discount": 0.499
+        "inputPer1M": 0.07784,
+        "outputPer1M": 0.15568,
+        "cachedInputPer1M": 0.015568,
+        "discount": 0.444
       },
       "capabilities": {
         "tools": true,
@@ -4549,9 +4568,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.5,
-        "outputPer1M": 2.2,
-        "cachedInputPer1M": 0.1
+        "inputPer1M": 0.6,
+        "outputPer1M": 2.4,
+        "cachedInputPer1M": 0.12
       },
       "capabilities": {
         "tools": true,
@@ -4560,7 +4579,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 16384,
+      "maxTokens": 182520,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
@@ -5049,6 +5068,49 @@
       "contextWindow": 1000000,
       "maxTokens": 128000,
       "wireId": "anthropic/claude-fable-5.1"
+    },
+    {
+      "id": "openrouter/voyage-4",
+      "provider": "openrouter",
+      "family": "voyage-4",
+      "maker": "voyageai",
+      "displayName": "voyage-4",
+      "pricing": {
+        "inputPer1M": 0.06,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/voyage-4"
+    },
+    {
+      "id": "openrouter/gemini-3.8-flash",
+      "provider": "openrouter",
+      "family": "gemini-3.8-flash",
+      "maker": "google",
+      "displayName": "Gemini 3.8 Flash",
+      "pricing": {
+        "inputPer1M": 0.75,
+        "outputPer1M": 3.75,
+        "cachedInputPer1M": 0.075,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 65536,
+      "wireId": "google/gemini-3.8-flash"
     }
   ]
 }
