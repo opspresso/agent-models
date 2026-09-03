@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-03T14:01:46.619Z",
+  "updatedAt": "2026-09-03T23:52:57.778Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -875,6 +875,88 @@
       },
       "contextWindow": 8192,
       "maxTokens": 0
+    },
+    {
+      "id": "openai/gpt-4o-mini-transcribe",
+      "provider": "openai",
+      "family": "gpt-4o-mini-transcribe",
+      "maker": "openai",
+      "displayName": "GPT-4o Mini Transcribe",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 128000,
+      "maxTokens": 115200
+    },
+    {
+      "id": "openai/whisper-1",
+      "provider": "openai",
+      "family": "whisper-1",
+      "maker": "openai",
+      "displayName": "Whisper 1",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.006
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0
+    },
+    {
+      "id": "openai/gpt-transcribe",
+      "provider": "openai",
+      "family": "gpt-transcribe",
+      "maker": "openai",
+      "displayName": "GPT Transcribe",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0045
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0
+    },
+    {
+      "id": "openai/gpt-4o-transcribe",
+      "provider": "openai",
+      "family": "gpt-4o-transcribe",
+      "maker": "openai",
+      "displayName": "GPT-4o Transcribe",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 128000,
+      "maxTokens": 115200
     },
     {
       "id": "anthropic/claude-fable-5",
@@ -2052,7 +2134,7 @@
       "pricing": {
         "inputPer1M": 1.4,
         "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
+        "cachedInputPer1M": 0.14
       },
       "capabilities": {
         "tools": true,
@@ -2061,7 +2143,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 131072,
+      "maxTokens": 262144,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2500,7 +2582,8 @@
       "pricing": {
         "inputPer1M": 0.3,
         "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.06
+        "cachedInputPer1M": 0.06,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2749,10 +2832,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.87,
-        "outputPer1M": 1.74,
-        "cachedInputPer1M": 0.0725,
-        "discount": 0.5
+        "inputPer1M": 1.022424,
+        "outputPer1M": 2.044848,
+        "cachedInputPer1M": 0.085202,
+        "discount": 0.4124
       },
       "capabilities": {
         "tools": true,
