@@ -1,0 +1,56 @@
+{
+  "rerank-4-fast": {
+    "displayName": "Rerank 4 Fast",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perSearch": 0.002
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "rerank": true
+    },
+    "contextWindow": 32768,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly rerank top 20; numbers and flags are OpenRouter's."
+  },
+  "rerank-v3.5": {
+    "displayName": "Rerank v3.5",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perSearch": 0.001
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "rerank": true
+    },
+    "contextWindow": 4096,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly rerank top 20; numbers and flags are OpenRouter's."
+  },
+  "rerank-4-pro": {
+    "displayName": "Rerank 4 Pro",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perSearch": 0.0025
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "rerank": true
+    },
+    "contextWindow": 32768,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly rerank top 20; numbers and flags are OpenRouter's."
+  }
+}

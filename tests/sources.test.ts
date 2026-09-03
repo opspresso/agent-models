@@ -9,6 +9,10 @@ import {
   OPENROUTER_IMAGE_RANKINGS_URL,
   OPENROUTER_MODELS_URL,
   OPENROUTER_RANKINGS_URL,
+  OPENROUTER_RERANK_MODELS_URL,
+  OPENROUTER_RERANK_RANKINGS_URL,
+  OPENROUTER_TRANSCRIPTION_MODELS_URL,
+  OPENROUTER_TRANSCRIPTION_RANKINGS_URL,
   applyOpenRouter,
   catalogDiscount,
   discoverOpenRouter,
@@ -121,10 +125,14 @@ function orCatalog(models: OpenRouterModel[], extra: Partial<OpenRouterCatalog> 
     imageIds: [],
     imageModels: [],
     embeddingModels: [],
+    rerankModels: [],
+    transcriptionModels: [],
     endpoints: {},
     rankings: [],
     imageRankings: [],
     embeddingRankings: [],
+    rerankRankings: [],
+    transcriptionRankings: [],
     ...extra,
   };
 }
@@ -481,6 +489,44 @@ describe("applyOpenRouter", () => {
     assert.equal(registry.families["embed-1"]!.maxTokens, 0);
   });
 
+  it("updates router-only rerank and transcription families in their native billing units", () => {
+    const input = fixture();
+    input.makers.cohere = { displayName: "Cohere", openrouterVendor: "cohere" };
+    input.families["rerank-v3.5"] = {
+      maker: "cohere",
+      displayName: "Rerank v3.5",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perSearch: 0.002 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, rerank: true },
+      contextWindow: 2048,
+      maxTokens: 0,
+    };
+    input.families["whisper-1"] = {
+      maker: "openai",
+      displayName: "Whisper 1",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.01 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, transcription: true },
+      contextWindow: 0,
+      maxTokens: 0,
+    };
+    input.offerings.push({ provider: "openrouter", family: "rerank-v3.5", wireId: RERANK_MODEL.id });
+    input.offerings.push({ provider: "openrouter", family: "whisper-1", wireId: TRANSCRIPTION_MODEL.id });
+    const { registry } = applyOpenRouter(input, orCatalog([], {
+      rerankModels: [RERANK_MODEL],
+      transcriptionModels: [TRANSCRIPTION_MODEL],
+    }), TODAY);
+    assert.deepEqual(registry.families["rerank-v3.5"]!.pricing, {
+      inputPer1M: 0,
+      outputPer1M: 0,
+      perSearch: 0.001,
+    });
+    assert.equal(registry.families["rerank-v3.5"]!.contextWindow, 4096);
+    assert.deepEqual(registry.families["whisper-1"]!.pricing, {
+      inputPer1M: 0,
+      outputPer1M: 0,
+      perAudioMinute: 0.006,
+    });
+  });
+
   it("does not mutate the registry it was given", () => {
     const input = fixture();
     applyOpenRouter(input, orCatalog([]), TODAY);
@@ -629,6 +675,49 @@ const EMBEDDING_RANKING = {
   count: 10_000,
 };
 
+const RERANK_MODEL: OpenRouterModel = {
+  id: "cohere/rerank-v3.5",
+  canonical_slug: "cohere/rerank-v3.5",
+  name: "Cohere: Rerank v3.5",
+  created: OLD,
+  context_length: 4096,
+  pricing: { prompt: "0", completion: "0", rerank_search: "0.001" },
+  architecture: { input_modalities: ["text"], output_modalities: ["rerank"] },
+};
+
+const RERANK_RANKING = {
+  model_permaslug: RERANK_MODEL.canonical_slug as string,
+  variant_permaslug: RERANK_MODEL.canonical_slug as string,
+  count: 10_000,
+};
+
+const TRANSCRIPTION_MODEL: OpenRouterModel = {
+  id: "openai/whisper-1",
+  canonical_slug: "openai/whisper-1",
+  name: "OpenAI: Whisper 1",
+  created: OLD,
+  context_length: 0,
+  pricing: { prompt: "0.006", completion: "0", transcription_minute: "0.006" },
+  top_provider: { max_completion_tokens: 0 },
+  architecture: { input_modalities: ["audio"], output_modalities: ["transcription"] },
+};
+
+const TRANSCRIPTION_RANKING = {
+  model_permaslug: TRANSCRIPTION_MODEL.canonical_slug as string,
+  variant_permaslug: TRANSCRIPTION_MODEL.canonical_slug as string,
+  count: 20_000,
+};
+
+function specializedCatalogBody(url: string): unknown | null {
+  if (url === OPENROUTER_RERANK_MODELS_URL) {
+    return { data: [RERANK_MODEL], total_count: 1, links: { next: null } };
+  }
+  if (url === OPENROUTER_TRANSCRIPTION_MODELS_URL) {
+    return { data: [TRANSCRIPTION_MODEL], total_count: 1, links: { next: null } };
+  }
+  return null;
+}
+
 function textRetentionCatalog(target: OpenRouterModel, targetRank: 50 | 51): OpenRouterCatalog {
   const ranked = (kind: "open" | "closed", rank: number): OpenRouterModel => ({
     ...NEW_TEXT,
@@ -726,6 +815,51 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("adds ranked rerank and transcription models from complete short leaderboards", () => {
+    const { registry } = discoverOpenRouter(
+      fixture(),
+      orCatalog([], {
+        rerankModels: [RERANK_MODEL],
+        transcriptionModels: [TRANSCRIPTION_MODEL],
+        rerankRankings: [RERANK_RANKING],
+        transcriptionRankings: [TRANSCRIPTION_RANKING],
+      }),
+      TODAY,
+    );
+    assert.deepEqual(registry.families["rerank-v3.5"], {
+      maker: "cohere",
+      displayName: "Rerank v3.5",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perSearch: 0.001 },
+      capabilities: {
+        tools: false,
+        structuredOutput: false,
+        imageInput: false,
+        reasoning: false,
+        rerank: true,
+      },
+      contextWindow: 4096,
+      maxTokens: 0,
+      note: "Added automatically on 2026-08-20 from OpenRouter's weekly rerank top 20; numbers and flags are OpenRouter's.",
+    });
+    assert.deepEqual(registry.families["whisper-1"], {
+      maker: "openai",
+      displayName: "Whisper 1",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.006 },
+      capabilities: {
+        tools: false,
+        structuredOutput: false,
+        imageInput: false,
+        reasoning: false,
+        transcription: true,
+      },
+      contextWindow: 0,
+      maxTokens: 0,
+      note: "Added automatically on 2026-08-20 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's.",
+    });
+    assert.ok(registry.offerings.some((offering) => offering.wireId === RERANK_MODEL.id));
+    assert.ok(registry.offerings.some((offering) => offering.wireId === TRANSCRIPTION_MODEL.id));
+  });
+
   it("adds a weekly top-20 embedding model, its maker, and its route", () => {
     const { registry } = discoverOpenRouter(
       fixture(),
@@ -1302,19 +1436,24 @@ describe("vendor route discovery", () => {
   it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {
     // Six image routes live only in /images/models; an empty answer read as
     // data would start the retirement clock on all of them at once.
-    const fetchFn = (async (url: string | URL | Request) => ({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      json: async () =>
-        String(url).includes("/images/models")
+    const fetchFn = (async (url: string | URL | Request) => {
+      const target = String(url);
+      const specialized = specializedCatalogBody(target);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => specialized ?? (
+          target.includes("/images/models")
           ? { data: [] }
-          : String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+          : target === OPENROUTER_EMBEDDING_MODELS_URL
             ? { data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } }
-          : String(url) === OPENROUTER_MODELS_URL
+          : target === OPENROUTER_MODELS_URL
             ? { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }], total_count: 1, links: { next: null } }
-            : { data: [{ id: "openai/gpt-x" }] },
-    })) as unknown as typeof fetch;
+            : { data: [{ id: "openai/gpt-x" }] }
+        ),
+      };
+    }) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1323,19 +1462,24 @@ describe("vendor route discovery", () => {
   });
 
   it("OpenRouter: an empty embeddings catalog is a failed read, not a mass retirement", async () => {
-    const fetchFn = (async (url: string | URL | Request) => ({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      json: async () =>
-        String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+    const fetchFn = (async (url: string | URL | Request) => {
+      const target = String(url);
+      const specialized = specializedCatalogBody(target);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => specialized ?? (
+          target === OPENROUTER_EMBEDDING_MODELS_URL
           ? { data: [], total_count: 0, links: { next: null } }
-          : String(url).includes("/images/models")
+          : target.includes("/images/models")
             ? { data: [{ id: "openai/gpt-image-2" }] }
-            : String(url) === OPENROUTER_MODELS_URL
+            : target === OPENROUTER_MODELS_URL
               ? { data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } }
-              : { data: [] },
-    })) as unknown as typeof fetch;
+              : { data: [] }
+        ),
+      };
+    }) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_EMBEDDING_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1370,17 +1514,53 @@ describe("fetch guards and snapshot folding", () => {
   const jsonResponse = (body: unknown) =>
     ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
 
+  it("OpenRouter: enriches specialized prices from the public model page", async () => {
+    const fetchFn = (async (url: string | URL | Request) => {
+      const target = String(url);
+      if (target === OPENROUTER_RERANK_MODELS_URL) {
+        const { rerank_search: _price, ...pricing } = RERANK_MODEL.pricing!;
+        return jsonResponse({ data: [{ ...RERANK_MODEL, pricing }], total_count: 1, links: { next: null } });
+      }
+      if (target === OPENROUTER_TRANSCRIPTION_MODELS_URL) {
+        const { transcription_minute: _price, ...pricing } = TRANSCRIPTION_MODEL.pricing!;
+        return jsonResponse({ data: [{ ...TRANSCRIPTION_MODEL, pricing }], total_count: 1, links: { next: null } });
+      }
+      if (target === OPENROUTER_RERANK_RANKINGS_URL) return jsonResponse({ data: [RERANK_RANKING] });
+      if (target === OPENROUTER_TRANSCRIPTION_RANKINGS_URL) return jsonResponse({ data: [TRANSCRIPTION_RANKING] });
+      if (target === `https://openrouter.ai/${RERANK_MODEL.id}`) {
+        return new Response(String.raw`displayPricing\":[{\"kind\":\"unit\",\"sku_label\":\"Search units\",\"price\":\"0.001\"}]`);
+      }
+      if (target === `https://openrouter.ai/${TRANSCRIPTION_MODEL.id}`) {
+        return new Response(String.raw`displayPricing\":[{\"kind\":\"unit\",\"sku_label\":\"Audio Seconds\",\"price\":\"0.0001\"}] displayPricing\":[{\"kind\":\"unit\",\"sku_label\":\"Audio Minutes\",\"price\":\"9\"}]`);
+      }
+      if (target.endsWith("/endpoints")) return jsonResponse({ data: { endpoints: [] } });
+      if (target === OPENROUTER_MODELS_URL) {
+        return jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } });
+      }
+      if (target === OPENROUTER_EMBEDDING_MODELS_URL) {
+        return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
+      }
+      if (target === OPENROUTER_IMAGE_MODELS_URL) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
+      return jsonResponse({ data: [] });
+    }) as unknown as typeof fetch;
+    const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
+    assert.equal(catalog.rerankModels[0]?.pricing?.rerank_search, "0.001");
+    assert.equal(catalog.transcriptionModels[0]?.pricing?.transcription_minute, "0.006");
+  });
+
   it("OpenRouter: entries that carry no id are the same failed read", async () => {
-    const fetchFn = (async (url: string | URL | Request) =>
-      jsonResponse(
-        String(url).includes("/images/models")
+    const fetchFn = (async (url: string | URL | Request) => {
+      const target = String(url);
+      return jsonResponse(
+        specializedCatalogBody(target) ?? (target.includes("/images/models")
           ? { data: [{ id: "openai/gpt-image-2" }] }
-          : String(url) === OPENROUTER_EMBEDDING_MODELS_URL
+          : target === OPENROUTER_EMBEDDING_MODELS_URL
             ? { data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } }
-          : String(url) === OPENROUTER_MODELS_URL
+          : target === OPENROUTER_MODELS_URL
             ? { data: [{ slug: "renamed-field" }], total_count: 1, links: { next: null } }
-            : { data: [{ slug: "renamed-field" }] },
-      )) as unknown as typeof fetch;
+            : { data: [{ slug: "renamed-field" }] }),
+      );
+    }) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
   });
 
@@ -1395,6 +1575,10 @@ describe("fetch guards and snapshot folding", () => {
       }
       if (target === OPENROUTER_EMBEDDING_RANKINGS_URL) {
         return jsonResponse({ data: [EMBEDDING_RANKING] });
+      }
+      const specialized = specializedCatalogBody(target);
+      if (specialized !== null) {
+        return jsonResponse(specialized);
       }
       return jsonResponse(
         target.includes("/images/models")
@@ -1415,6 +1599,10 @@ describe("fetch guards and snapshot folding", () => {
   it("OpenRouter: rejects catalog truncation and marks a malformed endpoint response unreadable", async () => {
     const partialFetch = (async (url: string | URL | Request) => {
       const target = String(url);
+      const specialized = specializedCatalogBody(target);
+      if (specialized !== null) {
+        return jsonResponse(specialized);
+      }
       if (target === OPENROUTER_MODELS_URL) {
         return jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 2, links: { next: "next" } });
       }
@@ -1428,6 +1616,10 @@ describe("fetch guards and snapshot folding", () => {
     const malformedEndpoint = (async (url: string | URL | Request) => {
       const target = String(url);
       if (target.endsWith("/endpoints")) return jsonResponse({ data: {} });
+      const specialized = specializedCatalogBody(target);
+      if (specialized !== null) {
+        return jsonResponse(specialized);
+      }
       if (target.includes("/images/models")) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
       if (target === OPENROUTER_EMBEDDING_MODELS_URL) {
         return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });

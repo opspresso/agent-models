@@ -99,5 +99,76 @@
     "contextWindow": 32768,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "qwen3-reranker-8b": {
+    "displayName": "Qwen3 Reranker 8B",
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "rerank": true
+    },
+    "contextWindow": 40960,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly rerank top 20; numbers and flags are OpenRouter's."
+  },
+  "qwen3-asr-flash-2026-02-10": {
+    "displayName": "Qwen3 ASR Flash",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0021
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "qwen3-asr-1.7b": {
+    "displayName": "Qwen3 ASR 1.7B",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.00045
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "qwen3-asr-0.6b": {
+    "displayName": "Qwen3 ASR 0.6B",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0001998
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   }
 }

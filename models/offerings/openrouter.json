@@ -660,5 +660,105 @@
       "cachedInputPer1M": 0.075,
       "discount": 0.5
     }
+  },
+  {
+    "family": "rerank-2.5",
+    "wireId": "voyageai/rerank-2.5"
+  },
+  {
+    "family": "rerank-4-fast",
+    "wireId": "cohere/rerank-4-fast"
+  },
+  {
+    "family": "rerank-v3.5",
+    "wireId": "cohere/rerank-v3.5"
+  },
+  {
+    "family": "rerank-2.5-lite",
+    "wireId": "voyageai/rerank-2.5-lite"
+  },
+  {
+    "family": "rerank-4-pro",
+    "wireId": "cohere/rerank-4-pro"
+  },
+  {
+    "family": "qwen3-reranker-8b",
+    "wireId": "qwen/qwen3-reranker-8b"
+  },
+  {
+    "family": "whisper-large-v3",
+    "wireId": "openai/whisper-large-v3"
+  },
+  {
+    "family": "whisper-large-v3-turbo",
+    "wireId": "openai/whisper-large-v3-turbo"
+  },
+  {
+    "family": "gpt-4o-mini-transcribe",
+    "wireId": "openai/gpt-4o-mini-transcribe"
+  },
+  {
+    "family": "parakeet-tdt-0.6b-v3",
+    "wireId": "nvidia/parakeet-tdt-0.6b-v3"
+  },
+  {
+    "family": "qwen3-asr-flash-2026-02-10",
+    "wireId": "qwen/qwen3-asr-flash-2026-02-10"
+  },
+  {
+    "family": "voxtral-mini-transcribe",
+    "wireId": "mistralai/voxtral-mini-transcribe"
+  },
+  {
+    "family": "whisper-1",
+    "wireId": "openai/whisper-1"
+  },
+  {
+    "family": "qwen3-asr-1.7b",
+    "wireId": "qwen/qwen3-asr-1.7b"
+  },
+  {
+    "family": "gpt-transcribe",
+    "wireId": "openai/gpt-transcribe"
+  },
+  {
+    "family": "qwen3-asr-0.6b",
+    "wireId": "qwen/qwen3-asr-0.6b"
+  },
+  {
+    "family": "grok-stt-1.0",
+    "wireId": "x-ai/grok-stt-1.0"
+  },
+  {
+    "family": "gpt-4o-transcribe",
+    "wireId": "openai/gpt-4o-transcribe"
+  },
+  {
+    "family": "mai-transcribe-1.5",
+    "wireId": "microsoft/mai-transcribe-1.5"
+  },
+  {
+    "family": "nemotron-3.5-asr-streaming-multilingual-0.6b",
+    "wireId": "nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b"
+  },
+  {
+    "family": "nova-3",
+    "wireId": "deepgram/nova-3"
+  },
+  {
+    "family": "chirp-3",
+    "wireId": "google/chirp-3"
+  },
+  {
+    "family": "transcribe-1",
+    "wireId": "fish-audio/transcribe-1"
+  },
+  {
+    "family": "voxtral-mini-3b-2507",
+    "wireId": "mistralai/voxtral-mini-3b-2507"
+  },
+  {
+    "family": "voxtral-small-24b-2507-stt",
+    "wireId": "mistralai/voxtral-small-24b-2507-stt"
   }
 ]

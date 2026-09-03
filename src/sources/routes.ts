@@ -47,6 +47,8 @@ export function undiscounted(pricing: ModelPricing): ModelPricing {
     inputPer1M: up(rest.inputPer1M) as number,
     outputPer1M: up(rest.outputPer1M) as number,
     ...(rest.cachedInputPer1M !== undefined ? { cachedInputPer1M: up(rest.cachedInputPer1M) as number } : {}),
+    ...(rest.perSearch !== undefined ? { perSearch: up(rest.perSearch) as number } : {}),
+    ...(rest.perAudioMinute !== undefined ? { perAudioMinute: up(rest.perAudioMinute) as number } : {}),
   };
 }
 

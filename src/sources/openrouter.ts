@@ -16,8 +16,8 @@
  *     rate differs from the family's, and loses it the day they agree again.
  *   - An image family whose only route is OpenRouter follows the image
  *     endpoint's normalized token price, window and output cap.
- *   - An embedding family whose only route is OpenRouter follows the
- *     embeddings catalog's input-token price and context window.
+ *   - Embedding, rerank and transcription families whose only route is
+ *     OpenRouter follow their dedicated catalogs and native billing units.
  *   - A live route the catalogs no longer list is recorded as missing and
  *     hidden after the grace period (`presence.ts`) — never deleted.
  *
@@ -34,11 +34,11 @@
  *     20 and its endpoint states a price and limits (including explicit zero
  *     limits for image-only models). Its maker is adopted with it when the
  *     vendor is new to the registry.
- *   - An embedding family and route when the model ranks in the weekly
- *     embeddings top 20 and states an input price and context window.
+ *   - Embedding, rerank and transcription families and routes when the model
+ *     ranks in the corresponding weekly top 20 and states usable metadata.
  *
  * Retention is deliberately wider than admission: text stays through the
- * weekly top 50 in its open/closed class, image and embeddings through their
+ * weekly top 50 in its open/closed class, specialized models through their
  * top 30. A listing gets 90 days before ranking retirement starts, and a
  * major-maker text route is ranked only when no live vendor route backs its
  * family.
@@ -60,6 +60,8 @@ export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 export const OPENROUTER_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/models?view=week";
 export const OPENROUTER_IMAGE_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=image&view=week";
 export const OPENROUTER_EMBEDDING_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=embeddings&view=week";
+export const OPENROUTER_RERANK_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=rerank&view=week";
+export const OPENROUTER_TRANSCRIPTION_RANKINGS_URL = "https://openrouter.ai/api/frontend/v1/rankings/modality-models?routeSegment=transcription&view=week";
 /**
  * The dedicated drawing models live in a second catalog and not in `/models`:
  * `openai/gpt-image-2` and the Grok image models appear only here. Read for
@@ -68,6 +70,8 @@ export const OPENROUTER_EMBEDDING_RANKINGS_URL = "https://openrouter.ai/api/fron
 export const OPENROUTER_IMAGE_MODELS_URL = "https://openrouter.ai/api/v1/images/models";
 /** The complete embeddings catalog; `/models` defaults to text output only. */
 export const OPENROUTER_EMBEDDING_MODELS_URL = "https://openrouter.ai/api/v1/embeddings/models";
+export const OPENROUTER_RERANK_MODELS_URL = `${OPENROUTER_MODELS_URL}?output_modalities=rerank`;
+export const OPENROUTER_TRANSCRIPTION_MODELS_URL = `${OPENROUTER_MODELS_URL}?output_modalities=transcription`;
 
 export function openRouterEndpointsUrl(id: string): string {
   return `${OPENROUTER_MODELS_URL}/${id}/endpoints`;
@@ -88,6 +92,12 @@ export interface OpenRouterModel {
     completion?: string;
     input_cache_read?: string;
     image_output?: string;
+    /** Enriched from the public model page because the Models API omits rerank SKUs. */
+    rerank_input?: string;
+    rerank_search?: string;
+    transcription_input?: string;
+    transcription_output?: string;
+    transcription_minute?: string;
   };
   top_provider?: {
     max_completion_tokens?: number | null;
@@ -152,6 +162,8 @@ export interface OpenRouterCatalog {
   imageModels: OpenRouterImageModel[];
   /** Entries the dedicated embeddings catalog lists. */
   embeddingModels: OpenRouterModel[];
+  rerankModels: OpenRouterModel[];
+  transcriptionModels: OpenRouterModel[];
   /** Per model id, its endpoints — or null when that one request failed. */
   endpoints: Record<string, OpenRouterEndpoint[] | null>;
   /** Null when the public rankings feed failed or changed shape. */
@@ -160,6 +172,10 @@ export interface OpenRouterCatalog {
   imageRankings: OpenRouterImageRanking[] | null;
   /** Null when the public embeddings rankings feed failed or changed shape. */
   embeddingRankings: OpenRouterEmbeddingRanking[] | null;
+  /** Null when the public rerank rankings feed failed or changed shape. */
+  rerankRankings: OpenRouterEmbeddingRanking[] | null;
+  /** Null when the public transcription rankings feed failed or changed shape. */
+  transcriptionRankings: OpenRouterEmbeddingRanking[] | null;
 }
 
 export interface OpenRouterDiscoveryOptions {
@@ -231,6 +247,113 @@ function isEmbeddingRanking(entry: unknown): entry is OpenRouterEmbeddingRanking
     && row.count >= 0;
 }
 
+function specialPrice(html: string, label: string): number | null {
+  const escaped = label.replaceAll(" ", "\\s");
+  const match = new RegExp(`sku_label\\\\\":\\\\\"${escaped}\\\\\",\\\\\"price\\\\\":\\\\\"([0-9.eE+-]+)\\\\\"`).exec(html);
+  const value = Number(match?.[1]);
+  return value > 0 && Number.isFinite(value) ? value : null;
+}
+
+function displayedPricing(html: string): string {
+  return /displayPricing\\\":(\[[^\]]*\])/.exec(html)?.[1] ?? "";
+}
+
+/** The Models API currently reports zero for rerank SKUs; the public model page carries the billed unit. */
+async function enrichRerankPricing(model: OpenRouterModel, fetchFn: typeof fetch): Promise<OpenRouterModel> {
+  if (rerankPricing(model) !== null) {
+    return model;
+  }
+  const url = `https://openrouter.ai/${model.id}`;
+  try {
+    const response = await fetchFn(url, { redirect: "error", signal: AbortSignal.timeout(30_000) });
+    if (!response.ok) {
+      return model;
+    }
+    const stated = Number(response.headers?.get("content-length"));
+    if (stated > 10 * 1024 * 1024) {
+      return model;
+    }
+    const html = await response.text();
+    if (html.length > 10 * 1024 * 1024) {
+      return model;
+    }
+    const displayed = displayedPricing(html);
+    const input = specialPrice(displayed, "Input tokens");
+    const search = specialPrice(displayed, "Search units");
+    if (input === null && search === null) {
+      return model;
+    }
+    return {
+      ...model,
+      pricing: {
+        ...model.pricing,
+        ...(input !== null ? { rerank_input: String(input) } : {}),
+        ...(search !== null ? { rerank_search: String(search) } : {}),
+      },
+    };
+  } catch {
+    return model;
+  }
+}
+
+async function enrichTranscriptionPricing(model: OpenRouterModel, fetchFn: typeof fetch): Promise<OpenRouterModel> {
+  if (transcriptionPricing(model) !== null) {
+    return model;
+  }
+  const url = `https://openrouter.ai/${model.id}`;
+  try {
+    const response = await fetchFn(url, { redirect: "error", signal: AbortSignal.timeout(30_000) });
+    if (!response.ok) {
+      return model;
+    }
+    const stated = Number(response.headers?.get("content-length"));
+    if (stated > 10 * 1024 * 1024) {
+      return model;
+    }
+    const html = await response.text();
+    if (html.length > 10 * 1024 * 1024) {
+      return model;
+    }
+    const displayed = displayedPricing(html);
+    const perMinute = specialPrice(displayed, "Audio Minutes");
+    const perSecond = specialPrice(displayed, "Audio Seconds");
+    const perHour = specialPrice(displayed, "Audio Hours");
+    const minute = perMinute
+      ?? (perSecond === null ? null : Number((perSecond * 60).toFixed(8)))
+      ?? (perHour === null ? null : Number((perHour / 60).toFixed(8)));
+    const input = specialPrice(displayed, "Input Price") ?? specialPrice(displayed, "Input tokens");
+    const output = specialPrice(displayed, "Output Price") ?? specialPrice(displayed, "Output tokens");
+    if (minute === null && (input === null || output === null)) {
+      return model;
+    }
+    return {
+      ...model,
+      pricing: {
+        ...model.pricing,
+        ...(minute !== null ? { transcription_minute: String(minute) } : {}),
+        ...(input !== null ? { transcription_input: String(input) } : {}),
+        ...(output !== null ? { transcription_output: String(output) } : {}),
+      },
+    };
+  } catch {
+    return model;
+  }
+}
+
+async function enrichSpecialPricing(
+  models: OpenRouterModel[],
+  enrich: (model: OpenRouterModel) => Promise<OpenRouterModel>,
+): Promise<OpenRouterModel[]> {
+  const enriched = [...models];
+  const queue = models.map((model, index) => ({ model, index }));
+  await Promise.all(Array.from({ length: ENDPOINT_CONCURRENCY }, async () => {
+    for (let entry = queue.shift(); entry !== undefined; entry = queue.shift()) {
+      enriched[entry.index] = await enrich(entry.model);
+    }
+  }));
+  return enriched;
+}
+
 /** How many endpoint requests are in flight at once — polite, and fast enough for ~40 routes. */
 const ENDPOINT_CONCURRENCY = 4;
 
@@ -263,13 +386,25 @@ export async function fetchOpenRouterCatalog(
     (data) => ({ ok: true as const, data }),
     () => ({ ok: false as const }),
   );
-  const [models, images, embeddings, rankingsResult, imageRankingsResult, embeddingRankingsResult] = await Promise.all([
+  const rerankRankingsRequest = fetchData(OPENROUTER_RERANK_RANKINGS_URL, fetchFn).then(
+    (data) => ({ ok: true as const, data }),
+    () => ({ ok: false as const }),
+  );
+  const transcriptionRankingsRequest = fetchData(OPENROUTER_TRANSCRIPTION_RANKINGS_URL, fetchFn).then(
+    (data) => ({ ok: true as const, data }),
+    () => ({ ok: false as const }),
+  );
+  const [models, images, embeddings, reranks, transcriptions, rankingsResult, imageRankingsResult, embeddingRankingsResult, rerankRankingsResult, transcriptionRankingsResult] = await Promise.all([
     fetchData(OPENROUTER_MODELS_URL, fetchFn, true),
     fetchData(OPENROUTER_IMAGE_MODELS_URL, fetchFn),
     fetchData(OPENROUTER_EMBEDDING_MODELS_URL, fetchFn, true),
+    fetchData(OPENROUTER_RERANK_MODELS_URL, fetchFn, true),
+    fetchData(OPENROUTER_TRANSCRIPTION_MODELS_URL, fetchFn, true),
     rankingsRequest,
     imageRankingsRequest,
     embeddingRankingsRequest,
+    rerankRankingsRequest,
+    transcriptionRankingsRequest,
   ]);
   if (models.length === 0) {
     throw new Error(`GET ${OPENROUTER_MODELS_URL} → empty catalog`);
@@ -283,6 +418,12 @@ export async function fetchOpenRouterCatalog(
   if (embeddings.length === 0) {
     throw new Error(`GET ${OPENROUTER_EMBEDDING_MODELS_URL} → empty catalog`);
   }
+  if (reranks.length === 0) {
+    throw new Error(`GET ${OPENROUTER_RERANK_MODELS_URL} → empty catalog`);
+  }
+  if (transcriptions.length === 0) {
+    throw new Error(`GET ${OPENROUTER_TRANSCRIPTION_MODELS_URL} → empty catalog`);
+  }
   // The empty guards catch a missing list; these catch a renamed id field —
   // raw entries none of which carry an id would read as a catalog that
   // retired everything at once.
@@ -294,6 +435,12 @@ export async function fetchOpenRouterCatalog(
   }
   if (!embeddings.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
     throw new Error(`GET ${OPENROUTER_EMBEDDING_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
+  if (!reranks.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENROUTER_RERANK_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
+  if (!transcriptions.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
+    throw new Error(`GET ${OPENROUTER_TRANSCRIPTION_MODELS_URL} → invalid or no usable entries (shape drift?)`);
   }
   let rankings = rankingsResult.ok && rankingsResult.data.length > 0 && rankingsResult.data.every(isRanking)
     ? rankingsResult.data as OpenRouterRanking[]
@@ -308,8 +455,26 @@ export async function fetchOpenRouterCatalog(
       && embeddingRankingsResult.data.every(isEmbeddingRanking)
     ? embeddingRankingsResult.data as OpenRouterEmbeddingRanking[]
     : null;
+  let rerankRankings = rerankRankingsResult.ok
+      && rerankRankingsResult.data.length > 0
+      && rerankRankingsResult.data.every(isEmbeddingRanking)
+    ? rerankRankingsResult.data as OpenRouterEmbeddingRanking[]
+    : null;
+  let transcriptionRankings = transcriptionRankingsResult.ok
+      && transcriptionRankingsResult.data.length > 0
+      && transcriptionRankingsResult.data.every(isEmbeddingRanking)
+    ? transcriptionRankingsResult.data as OpenRouterEmbeddingRanking[]
+    : null;
   const imageModels = images as OpenRouterImageModel[];
   const embeddingModels = embeddings as OpenRouterModel[];
+  const rerankModels = await enrichSpecialPricing(
+    reranks as OpenRouterModel[],
+    (model) => enrichRerankPricing(model, fetchFn),
+  );
+  const transcriptionModels = await enrichSpecialPricing(
+    transcriptions as OpenRouterModel[],
+    (model) => enrichTranscriptionPricing(model, fetchFn),
+  );
   if (rankings !== null && leaderboardPermaslugs(models as OpenRouterModel[], rankings)?.size !== ADDITION_LEADERBOARD_LIMIT * 2) {
     rankings = null;
   }
@@ -319,14 +484,24 @@ export async function fetchOpenRouterCatalog(
   if (embeddingRankings !== null && embeddingLeaderboardIds(embeddingModels, embeddingRankings)?.length !== ADDITION_LEADERBOARD_LIMIT) {
     embeddingRankings = null;
   }
+  if (rerankRankings !== null && specializedLeaderboardIds(rerankModels, rerankRankings)?.length !== Math.min(ADDITION_LEADERBOARD_LIMIT, rerankModels.length)) {
+    rerankRankings = null;
+  }
+  if (transcriptionRankings !== null && specializedLeaderboardIds(transcriptionModels, transcriptionRankings)?.length !== Math.min(ADDITION_LEADERBOARD_LIMIT, transcriptionModels.length)) {
+    transcriptionRankings = null;
+  }
   const imageLeaderboard = imageLeaderboardIds(imageModels, imageRankings) ?? [];
   const embeddingLeaderboard = embeddingLeaderboardIds(embeddingModels, embeddingRankings) ?? [];
-  const listed = new Set([...idsOf(models), ...idsOf(images), ...idsOf(embeddings)]);
+  const rerankLeaderboard = specializedLeaderboardIds(rerankModels, rerankRankings) ?? [];
+  const transcriptionLeaderboard = specializedLeaderboardIds(transcriptionModels, transcriptionRankings) ?? [];
+  const listed = new Set([...idsOf(models), ...idsOf(images), ...idsOf(embeddings), ...idsOf(reranks), ...idsOf(transcriptions)]);
   const endpoints: Record<string, OpenRouterEndpoint[] | null> = {};
   const queue = [...new Set([
     ...selectEndpointIds(models as OpenRouterModel[], rankings),
     ...imageLeaderboard,
     ...embeddingLeaderboard,
+    ...rerankLeaderboard,
+    ...transcriptionLeaderboard,
   ])].filter((id) =>
     listed.has(id));
   await Promise.all(
@@ -351,14 +526,18 @@ export async function fetchOpenRouterCatalog(
     imageIds: idsOf(images),
     imageModels,
     embeddingModels,
+    rerankModels,
+    transcriptionModels,
     endpoints,
     rankings,
     imageRankings,
     embeddingRankings,
+    rerankRankings,
+    transcriptionRankings,
   };
 }
 
-type TokenPricing = Pick<ModelPricing, "inputPer1M" | "outputPer1M" | "cachedInputPer1M" | "discount">;
+type TokenPricing = Pick<ModelPricing, "inputPer1M" | "outputPer1M" | "cachedInputPer1M" | "perSearch" | "perAudioMinute" | "discount">;
 
 /** The router's token price, or null when it states none (a free or unpriced listing). */
 function tokenPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | null {
@@ -387,6 +566,33 @@ function embeddingPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"
     outputPer1M: 0,
     ...(cached > 0 ? { cachedInputPer1M: perMillion(cached) } : {}),
   };
+}
+
+/** Rerank providers charge either input tokens or one flat search unit. */
+function rerankPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | null {
+  const input = Number(model.pricing?.rerank_input);
+  const search = Number(model.pricing?.rerank_search);
+  if (input > 0) {
+    return { inputPer1M: perMillion(input), outputPer1M: 0 };
+  }
+  if (search > 0) {
+    return { inputPer1M: 0, outputPer1M: 0, perSearch: search };
+  }
+  return null;
+}
+
+/** STT is billed either like generated tokens or by input-audio minute. */
+function transcriptionPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> | null {
+  const input = Number(model.pricing?.transcription_input);
+  const output = Number(model.pricing?.transcription_output);
+  const minute = Number(model.pricing?.transcription_minute);
+  if (input > 0 && output > 0) {
+    return { inputPer1M: perMillion(input), outputPer1M: perMillion(output) };
+  }
+  if (minute > 0) {
+    return { inputPer1M: 0, outputPer1M: 0, perAudioMinute: minute };
+  }
+  return null;
 }
 
 function standardImageEndpoint(endpoints: OpenRouterEndpoint[] | null | undefined): OpenRouterEndpoint | undefined {
@@ -421,6 +627,10 @@ function isImageLimit(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
+function isSpecializedWindow(value: unknown, kind: "rerank" | "transcription"): value is number {
+  return kind === "transcription" ? isImageLimit(value) : isPositiveInt(value);
+}
+
 /** Prefer the aggregate cap; otherwise use the largest endpoint OpenRouter can route the request to. */
 function textMaxTokens(
   model: OpenRouterModel,
@@ -440,9 +650,22 @@ function textMaxTokens(
   return usable.length > 0 ? Math.max(...usable) : null;
 }
 
+function transcriptionMaxTokens(
+  model: OpenRouterModel,
+  endpoints: OpenRouterEndpoint[] | null | undefined,
+): number | null {
+  return model.context_length === 0 ? 0 : textMaxTokens(model, endpoints);
+}
+
 /** A reset may only proceed when every policy input and ranked modality model is usable. */
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
-  if (catalog.rankings === null || catalog.imageRankings === null || catalog.embeddingRankings === null) return false;
+  if (
+    catalog.rankings === null
+    || catalog.imageRankings === null
+    || catalog.embeddingRankings === null
+    || catalog.rerankRankings === null
+    || catalog.transcriptionRankings === null
+  ) return false;
   const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
   if (ids === null || ids.length !== ADDITION_LEADERBOARD_LIMIT) return false;
   const imagesReady = ids.every((id) => {
@@ -486,6 +709,8 @@ function pickTokenPricing(pricing: Partial<ModelPricing>): TokenPricing {
     inputPer1M: pricing.inputPer1M as number,
     outputPer1M: pricing.outputPer1M as number,
     ...(pricing.cachedInputPer1M !== undefined ? { cachedInputPer1M: pricing.cachedInputPer1M } : {}),
+    ...(pricing.perSearch !== undefined ? { perSearch: pricing.perSearch } : {}),
+    ...(pricing.perAudioMinute !== undefined ? { perAudioMinute: pricing.perAudioMinute } : {}),
     ...(pricing.discount !== undefined ? { discount: pricing.discount } : {}),
   };
 }
@@ -509,6 +734,8 @@ export function applyOpenRouter(
   const byId = new Map(catalog.models.map((model) => [model.id, model]));
   const byImageId = new Map(catalog.imageModels.map((model) => [model.id, model]));
   const byEmbeddingId = new Map(catalog.embeddingModels.map((model) => [model.id, model]));
+  const byRerankId = new Map(catalog.rerankModels.map((model) => [model.id, model]));
+  const byTranscriptionId = new Map(catalog.transcriptionModels.map((model) => [model.id, model]));
   const drawn = new Set(catalog.imageIds);
   const changes: Change[] = [];
   const notes: string[] = [];
@@ -524,7 +751,11 @@ export function applyOpenRouter(
     }
     const entry = family.capabilities.embedding
       ? byEmbeddingId.get(offering.wireId)
-      : byId.get(offering.wireId);
+      : family.capabilities.rerank
+        ? byRerankId.get(offering.wireId)
+        : family.capabilities.transcription
+          ? byTranscriptionId.get(offering.wireId)
+          : byId.get(offering.wireId);
 
     if (family.capabilities.imageGeneration) {
       const image = byImageId.get(offering.wireId);
@@ -570,9 +801,15 @@ export function applyOpenRouter(
         notes.push(`${id}: OpenRouter has announced this listing ends ${ends}`);
       }
     }
-    const routerPrice = family.capabilities.embedding ? embeddingPricing(entry) : tokenPricing(entry);
+    const routerPrice = family.capabilities.embedding
+      ? embeddingPricing(entry)
+      : family.capabilities.rerank
+        ? rerankPricing(entry)
+        : family.capabilities.transcription
+          ? transcriptionPricing(entry)
+          : tokenPricing(entry);
     if (routerPrice === null) {
-      notes.push(`${id}: OpenRouter lists no token price`);
+      notes.push(`${id}: OpenRouter lists no usable price`);
       continue;
     }
     const discount = catalogDiscount(entry, catalog.endpoints[offering.wireId]);
@@ -592,11 +829,18 @@ export function applyOpenRouter(
         family.pricing = { ...price };
       }
       const window = entry.context_length;
-      if (isPositiveInt(window) && window !== family.contextWindow) {
+      const kind = family.capabilities.transcription ? "transcription" : "rerank";
+      if (isSpecializedWindow(window, kind) && window !== family.contextWindow) {
         changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
         family.contextWindow = window;
       }
-      if (!family.capabilities.embedding) {
+      if (family.capabilities.transcription) {
+        const maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
+        if (maxOut !== null && maxOut !== family.maxTokens) {
+          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
+          family.maxTokens = maxOut;
+        }
+      } else if (!family.capabilities.embedding && !family.capabilities.rerank) {
         const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
         const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
         if (maxOut !== null && maxOut !== family.maxTokens) {
@@ -625,7 +869,8 @@ export function applyOpenRouter(
       offering.pricing = { ...price };
     }
     const window = entry.context_length;
-    if (isPositiveInt(window) && window !== family.contextWindow) {
+    const kind = family.capabilities.transcription ? "transcription" : "rerank";
+    if (isSpecializedWindow(window, kind) && window !== family.contextWindow) {
       notes.push(`${id}: OpenRouter states a ${window} window; the family says ${family.contextWindow}`);
     }
   }
@@ -656,6 +901,8 @@ const ADDITION_LEADERBOARD_LIMIT = 20;
 const TEXT_RETENTION_LEADERBOARD_LIMIT = 50;
 const IMAGE_RETENTION_LEADERBOARD_LIMIT = 30;
 const EMBEDDING_RETENTION_LEADERBOARD_LIMIT = 30;
+const RERANK_RETENTION_LEADERBOARD_LIMIT = 30;
+const TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT = 30;
 
 function standardPermaslug(permaslug: string): string {
   const colon = permaslug.indexOf(":");
@@ -726,6 +973,14 @@ function embeddingLeaderboardIds(
     }
   }
   return ids;
+}
+
+function specializedLeaderboardIds(
+  models: OpenRouterModel[],
+  rankings: OpenRouterEmbeddingRanking[] | null,
+  limit = ADDITION_LEADERBOARD_LIMIT,
+): string[] | null {
+  return embeddingLeaderboardIds(models, rankings, limit);
 }
 
 /** The weekly open/closed leaderboard, with serving variants folded to one model. */
@@ -873,6 +1128,16 @@ function embeddingCapabilitiesOf(model: OpenRouterModel): ModelCapabilities {
     reasoning: false,
     embedding: true,
   };
+}
+
+function specializedCapabilitiesOf(model: OpenRouterModel, kind: "rerank" | "transcription"): ModelCapabilities {
+  const base = {
+    tools: false,
+    structuredOutput: false,
+    imageInput: (model.architecture?.input_modalities ?? []).includes("image"),
+    reasoning: false,
+  };
+  return kind === "rerank" ? { ...base, rerank: true } : { ...base, transcription: true };
 }
 
 function discoverRankedImages(
@@ -1066,6 +1331,101 @@ function discoverRankedEmbeddings(
   }
 }
 
+function discoverRankedSpecialized(
+  registry: Registry,
+  catalog: OpenRouterCatalog,
+  today: string,
+  kind: "rerank" | "transcription",
+  changes: Change[],
+  notes: string[],
+  makerOfVendor: Map<string, string>,
+  routed: Set<string | undefined>,
+): void {
+  const models = kind === "rerank" ? catalog.rerankModels : catalog.transcriptionModels;
+  const rankings = kind === "rerank" ? catalog.rerankRankings : catalog.transcriptionRankings;
+  const rankedIds = specializedLeaderboardIds(models, rankings);
+  if (rankedIds === null) {
+    notes.push(`openrouter: weekly ${kind} rankings could not be read; ${kind} models and routes were not added`);
+    return;
+  }
+  const byId = new Map(models.map((model) => [model.id, model]));
+  for (const id of rankedIds) {
+    if (routed.has(id)) {
+      continue;
+    }
+    const model = byId.get(id);
+    const parts = splitId(id);
+    if (model === undefined || parts === null || isVariant(parts.slug)) {
+      continue;
+    }
+    const { vendor, slug } = parts;
+    let maker = makerOfVendor.get(vendor);
+    const family = registry.families[slug];
+    if (family !== undefined) {
+      if (maker === undefined || family.maker !== maker) {
+        notes.push(`openrouter: ranked ${kind} ${id} names family "${slug}" under another maker; left alone`);
+        continue;
+      }
+      if (!family.capabilities[kind] || !familyIsLive(registry, slug)) {
+        continue;
+      }
+      if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
+        routed.add(id);
+      }
+      continue;
+    }
+
+    if (!isSafeSlug(slug)) {
+      notes.push(`openrouter: ranked ${kind} ${id} cannot be a family id; add it by hand under a name this registry can use`);
+      continue;
+    }
+    const price = kind === "rerank" ? rerankPricing(model) : transcriptionPricing(model);
+    const window = model.context_length;
+    const maxOut = kind === "rerank" ? 0 : transcriptionMaxTokens(model, catalog.endpoints[id]);
+    if (price === null || !isSpecializedWindow(window, kind) || maxOut === null) {
+      notes.push(`openrouter: ranked ${kind} ${id} has no usable price or limits; left alone`);
+      continue;
+    }
+    if (maker === undefined) {
+      if (!isSafeSlug(vendor)) {
+        notes.push(`openrouter: ranked ${kind} ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
+        continue;
+      }
+      maker = vendor;
+      registry.makers[maker] = {
+        displayName: makerDisplayNameOf(model, vendor),
+        openrouterVendor: vendor,
+      };
+      makerOfVendor.set(vendor, maker);
+      changes.push({
+        target: `maker ${maker}`,
+        field: "added",
+        from: undefined,
+        to: registry.makers[maker]!.displayName,
+      });
+    }
+    const discount = catalogDiscount(model, catalog.endpoints[id]);
+    const created: ModelFamily & { maker: string } = {
+      maker,
+      displayName: displayNameOf(model, slug),
+      pricing: { ...price, ...(typeof discount === "number" ? { discount } : {}) },
+      capabilities: specializedCapabilitiesOf(model, kind),
+      contextWindow: window,
+      maxTokens: maxOut,
+      note: `Added automatically on ${today} from OpenRouter's weekly ${kind} top 20; numbers and flags are OpenRouter's.`,
+    };
+    registry.families[slug] = created;
+    registry.offerings.push({ provider: "openrouter", family: slug, wireId: id });
+    routed.add(id);
+    changes.push({
+      target: `family ${slug}`,
+      field: "added",
+      from: undefined,
+      to: `${created.displayName} via openrouter (${id})`,
+    });
+  }
+}
+
 /** Hide every live OpenRouter route without deleting any published id or family. */
 export function resetOpenRouterRegistry(registry: Registry): {
   registry: Registry;
@@ -1180,9 +1540,33 @@ export function discoverOpenRouter(
   if (rankedEmbeddingIds !== null && retainedEmbeddingIds === null) {
     notes.push("openrouter: weekly embeddings rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
+  const rerankRetention = specializedLeaderboardIds(
+    catalog.rerankModels,
+    catalog.rerankRankings,
+    RERANK_RETENTION_LEADERBOARD_LIMIT,
+  );
+  const retainedRerankIds = rerankRetention?.length === Math.min(RERANK_RETENTION_LEADERBOARD_LIMIT, catalog.rerankModels.length)
+    ? new Set(rerankRetention)
+    : null;
+  if (catalog.rerankRankings !== null && retainedRerankIds === null) {
+    notes.push("openrouter: weekly rerank rankings were incomplete; ranking retirement did not advance");
+  }
+  const transcriptionRetention = specializedLeaderboardIds(
+    catalog.transcriptionModels,
+    catalog.transcriptionRankings,
+    TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT,
+  );
+  const retainedTranscriptionIds = transcriptionRetention?.length === Math.min(TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT, catalog.transcriptionModels.length)
+    ? new Set(transcriptionRetention)
+    : null;
+  if (catalog.transcriptionRankings !== null && retainedTranscriptionIds === null) {
+    notes.push("openrouter: weekly transcription rankings were incomplete; ranking retirement did not advance");
+  }
   const textById = new Map(catalog.models.map((model) => [model.id, model]));
   const imageById = new Map(catalog.imageModels.map((model) => [model.id, model]));
   const embeddingById = new Map(catalog.embeddingModels.map((model) => [model.id, model]));
+  const rerankById = new Map(catalog.rerankModels.map((model) => [model.id, model]));
+  const transcriptionById = new Map(catalog.transcriptionModels.map((model) => [model.id, model]));
   for (const offering of next.offerings) {
     if (offering.provider !== "openrouter" || offering.wireId === undefined) continue;
     const family = next.families[offering.family];
@@ -1206,6 +1590,26 @@ export function discoverOpenRouter(
       }
       continue;
     }
+    if (family?.capabilities.rerank) {
+      if (retainedRerankIds !== null) {
+        const model = rerankById.get(offering.wireId);
+        const eligible = model === undefined
+          || !oldEnoughForRankingRetirement(model.created, today)
+          || retainedRerankIds.has(offering.wireId);
+        observeRankingEligibility(offering, eligible, today, changes, notes);
+      }
+      continue;
+    }
+    if (family?.capabilities.transcription) {
+      if (retainedTranscriptionIds !== null) {
+        const model = transcriptionById.get(offering.wireId);
+        const eligible = model === undefined
+          || !oldEnoughForRankingRetirement(model.created, today)
+          || retainedTranscriptionIds.has(offering.wireId);
+        observeRankingEligibility(offering, eligible, today, changes, notes);
+      }
+      continue;
+    }
     if (family !== undefined && MAJOR_MODEL_MAKERS.has(family.maker) && hasLiveVendorRoute(next, offering.family)) {
       const eligible = offering.hiddenReason !== "reset" || textById.has(offering.wireId);
       observeRankingEligibility(offering, eligible, today, changes, notes);
@@ -1225,6 +1629,8 @@ export function discoverOpenRouter(
   const routed = new Set(next.offerings.filter((o) => o.provider === "openrouter").map((o) => o.wireId));
   discoverRankedImages(next, catalog, today, changes, notes, makerOfVendor, routed);
   discoverRankedEmbeddings(next, catalog, today, changes, notes, makerOfVendor, routed);
+  discoverRankedSpecialized(next, catalog, today, "rerank", changes, notes, makerOfVendor, routed);
+  discoverRankedSpecialized(next, catalog, today, "transcription", changes, notes, makerOfVendor, routed);
 
   for (const model of catalog.models) {
     const parts = splitId(model.id);

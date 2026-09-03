@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Models</title>
-<meta name="description" content="A daily-refreshed registry of text, image, and embedding models with prices, limits, capabilities, makers, and provider routes.">
+<meta name="description" content="A daily-refreshed registry of text, image, embedding, rerank, and transcription models with prices, limits, capabilities, makers, and provider routes.">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -188,6 +188,8 @@
   .badge.type-text { background: var(--gray-bg); color: var(--gray-ink); }
   .badge.type-image { background: var(--light-bg); color: var(--light-ink); }
   .badge.type-embedding { background: var(--green-bg); color: var(--green-ink); }
+  .badge.type-rerank { background: var(--teal-bg); color: var(--teal-ink); }
+  .badge.type-transcription { background: var(--brand-1); color: var(--brand-8); }
   .price { margin-top: 12px; font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
   .ctx { margin-top: 2px; font-size: 12px; color: var(--dimmed); }
   .also { margin-top: 4px; font-size: 12px; color: var(--dimmed); }
@@ -217,7 +219,7 @@
       <div>
         <div class="eyebrow">Model registry</div>
         <h1>Models</h1>
-        <p>Text, image, and embedding models — what each costs, how much it can hold, what it can do — one card per provider route, refreshed every day.</p>
+        <p>Text, image, embedding, rerank, and transcription models — what each costs, how much it can hold, what it can do — one card per provider route, refreshed every day.</p>
       </div>
     </div>
     <div class="aside">
@@ -255,6 +257,8 @@
         <option value="text">Text</option>
         <option value="image">Image</option>
         <option value="embedding">Embedding</option>
+        <option value="rerank">Rerank</option>
+        <option value="transcription">Transcription</option>
       </select>
       <div class="checks" role="group" aria-label="Capabilities">
         <label class="check"><input type="checkbox" data-cap="tools"> Tools</label>
@@ -276,7 +280,7 @@
   <main class="grid" id="grid" aria-live="polite"></main>
 
   <footer class="foot">
-    <span>Prices in USD per 1M tokens; embeddings charge input only, image models per image or per 1M image tokens.</span>
+    <span>Prices are in USD using each model's native unit: 1M tokens, image, search, or audio minute.</span>
     <span>−n% is a promotional rate at the route's default endpoint, already applied.</span>
     <span>Brand marks identify the model's maker and remain their owners' property.</span>
   </footer>
@@ -288,9 +292,13 @@
   const catalog = await (await fetch("models.json", { cache: "no-cache" })).json();
   const ROUTERS = new Set(["bedrock", "openrouter"]);
   const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"]];
-  const MODEL_TYPES = new Set(["text", "image", "embedding"]);
-  const modelType = (m) => m.capabilities.embedding ? "embedding" : m.capabilities.imageGeneration ? "image" : "text";
-  const typeLabel = (type) => type === "embedding" ? "Embedding" : type === "image" ? "Image" : "Text";
+  const MODEL_TYPES = new Set(["text", "image", "embedding", "rerank", "transcription"]);
+  const modelType = (m) => m.capabilities.embedding ? "embedding"
+    : m.capabilities.imageGeneration ? "image"
+    : m.capabilities.rerank ? "rerank"
+    : m.capabilities.transcription ? "transcription"
+    : "text";
+  const typeLabel = (type) => type.charAt(0).toUpperCase() + type.slice(1);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const initials = (s) => String(s).slice(0, 2).toUpperCase();
   const makerLabel = (id) => catalog.makers[id] ?? id;
@@ -303,20 +311,24 @@
   };
   const modelPriceLabel = (m) => {
     const p = m.pricing;
-    const { inputPer1M, outputPer1M, imageOutputPer1M, perImage } = p;
+    const { inputPer1M, outputPer1M, imageOutputPer1M, perImage, perSearch, perAudioMinute } = p;
     if (m.capabilities.embedding) return `${formatUsd(inputPer1M)} in per 1M`;
+    if (m.capabilities.rerank) return perSearch !== undefined ? `${formatUsd(perSearch)} / search` : `${formatUsd(inputPer1M)} in per 1M`;
+    if (m.capabilities.transcription && perAudioMinute !== undefined) return `${formatUsd(perAudioMinute)} / audio minute`;
     if (imageOutputPer1M === undefined && perImage === undefined) return `${formatUsd(inputPer1M)} in · ${formatUsd(outputPer1M)} out per 1M`;
     const image = perImage !== undefined ? `${imageOutputPer1M ? "≈" : ""}${formatUsd(perImage)} / image` : `${formatUsd(imageOutputPer1M ?? 0)} image out per 1M`;
     return inputPer1M > 0 ? `${image} · ${formatUsd(inputPer1M)} in per 1M` : image;
   };
   const roundTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : `${n}`;
-  const contextWindowLabel = (m) => m.capabilities.embedding
+  const contextWindowLabel = (m) => m.capabilities.embedding || m.capabilities.rerank
     ? `Context ${roundTokens(m.contextWindow)}`
+    : m.capabilities.transcription && m.contextWindow === 0
+      ? "Audio input · token limits not published"
     : `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
   const otherRoutes = (m) => catalog.models.filter((o) => o.family === m.family && o.provider !== m.provider && !o.hidden).map((o) => o.provider);
-  const primaryPrice = (m) => m.capabilities.embedding
-    ? m.pricing.inputPer1M
-    : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M;
+  const primaryPrice = (m) => m.pricing.perSearch ?? m.pricing.perAudioMinute
+    ?? (m.capabilities.embedding || m.capabilities.rerank ? m.pricing.inputPer1M
+      : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M);
 
   // ---- header ----
   const live = catalog.models.filter((m) => !m.hidden);
@@ -417,7 +429,11 @@
     const caps = CAPABILITY_COLUMNS.filter(([k]) => m.capabilities[k]).map(([, l]) => `<span class="badge outline">${l}</span>`).join("");
     const d = m.pricing.discount;
     const listDivisor = 1 - (d ?? 0);
-    const promoList = m.capabilities.embedding
+    const promoList = m.pricing.perSearch !== undefined
+      ? `${formatUsd(m.pricing.perSearch / listDivisor)} / search`
+      : m.pricing.perAudioMinute !== undefined
+        ? `${formatUsd(m.pricing.perAudioMinute / listDivisor)} / audio minute`
+      : m.capabilities.embedding || m.capabilities.rerank
       ? `${formatUsd(m.pricing.inputPer1M / listDivisor)} in per 1M`
       : `${formatUsd(m.pricing.inputPer1M / listDivisor)} in · ${formatUsd((m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M) / listDivisor)} out per 1M`;
     const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${promoList}">−${Math.round(d * 100)}%</span>` : "";

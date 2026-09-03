@@ -64,5 +64,41 @@
     "contextWindow": 262144,
     "maxTokens": 182520,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-06-04); numbers and flags are OpenRouter's."
+  },
+  "parakeet-tdt-0.6b-v3": {
+    "displayName": "Parakeet TDT 0.6B v3",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0015
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "nemotron-3.5-asr-streaming-multilingual-0.6b": {
+    "displayName": "Nemotron 3.5 ASR Streaming Multilingual 0.6B",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0001998
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   }
 }

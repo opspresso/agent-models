@@ -17,8 +17,8 @@
  *   models/offerings/<provider>.json [ModelOffering] — the file is the provider
  *
  * Text and image shapes mirror `src/domain/llm/models.ts` in Agent Studio, the
- * original consumer. Embedding entries are additive: older consumers skip
- * their input-only pricing until they understand `capabilities.embedding`.
+ * original consumer. Specialized entries are additive: older consumers skip
+ * them until they understand their capability discriminator.
  */
 
 import {
@@ -53,6 +53,10 @@ export interface ModelPricing {
   perImage?: number;
   /** Flat charge for each source image supplied to an image edit. */
   perInputImage?: number;
+  /** Flat charge for one rerank search unit. */
+  perSearch?: number;
+  /** Flat charge for one minute of audio transcription. */
+  perAudioMinute?: number;
   /**
    * A promotional discount, as a fraction in (0, 1), that the rates above are
    * *already net of* — so a reader can tell a promotion from a price and put
@@ -71,6 +75,10 @@ export interface ModelCapabilities {
   imageGeneration?: boolean;
   /** Produces vectors through an embeddings endpoint rather than generated tokens. */
   embedding?: boolean;
+  /** Scores documents through a rerank endpoint rather than generating text. */
+  rerank?: boolean;
+  /** Produces text from audio through a transcription endpoint. */
+  transcription?: boolean;
   /**
    * False when the provider rejects `tools` together with `reasoning_effort`
    * on chat/completions. Absent means the combination is allowed.
@@ -192,6 +200,8 @@ const PRICING_KEYS = [
   "imageOutputPer1M",
   "perImage",
   "perInputImage",
+  "perSearch",
+  "perAudioMinute",
   "discount",
 ] as const;
 
@@ -202,6 +212,8 @@ const CAPABILITY_KEYS = [
   "reasoning",
   "imageGeneration",
   "embedding",
+  "rerank",
+  "transcription",
   "reasoningWithTools",
 ] as const;
 
@@ -660,14 +672,19 @@ export function validateRegistry(registry: Registry): string[] {
     checkCapabilities(where, family.capabilities, false, errors);
     const imageGeneration = family.capabilities?.imageGeneration === true;
     const embedding = family.capabilities?.embedding === true;
+    const rerank = family.capabilities?.rerank === true;
+    const transcription = family.capabilities?.transcription === true;
     if (imageGeneration && embedding) {
       errors.push(`${where}: a model may not be both imageGeneration and embedding`);
     }
-    if (!isModelCount(family.contextWindow, imageGeneration)) {
-      errors.push(`${where}: contextWindow must be a positive integer, or zero for an image model`);
+    if ([imageGeneration, embedding, rerank, transcription].filter(Boolean).length > 1) {
+      errors.push(`${where}: model types are mutually exclusive`);
     }
-    if (embedding ? family.maxTokens !== 0 : !isModelCount(family.maxTokens, imageGeneration)) {
-      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer or zero for an image model`);
+    if (!isModelCount(family.contextWindow, imageGeneration || transcription)) {
+      errors.push(`${where}: contextWindow must be a positive integer, or zero for an image model or transcription model`);
+    }
+    if (embedding || rerank ? family.maxTokens !== 0 : !isModelCount(family.maxTokens, imageGeneration || transcription)) {
+      errors.push(`${where}: maxTokens must be zero for an embedding model or rerank model, otherwise a positive integer or zero for an image model or transcription model`);
     }
     if (family.note !== undefined && typeof family.note !== "string") {
       errors.push(`${where}: note must be a string`);
@@ -713,12 +730,28 @@ export function validateRegistry(registry: Registry): string[] {
       ) {
         errors.push(`${where}: a route may not change embedding`);
       }
+      if (
+        offering.capabilities.rerank !== undefined &&
+        offering.capabilities.rerank !== (family.capabilities.rerank ?? false)
+      ) {
+        errors.push(`${where}: a route may not change rerank`);
+      }
+      if (
+        offering.capabilities.transcription !== undefined &&
+        offering.capabilities.transcription !== (family.capabilities.transcription ?? false)
+      ) {
+        errors.push(`${where}: a route may not change transcription`);
+      }
     }
     if (
       offering.maxTokens !== undefined
-      && (family.capabilities.embedding ? offering.maxTokens !== 0 : !isCount(offering.maxTokens))
+      && (family.capabilities.embedding || family.capabilities.rerank
+        ? offering.maxTokens !== 0
+        : family.capabilities.imageGeneration || family.capabilities.transcription
+          ? !isModelCount(offering.maxTokens, true)
+          : !isCount(offering.maxTokens))
     ) {
-      errors.push(`${where}: maxTokens must be zero for an embedding model, otherwise a positive integer`);
+      errors.push(`${where}: maxTokens must be zero for an embedding model or rerank model, otherwise a positive integer or zero for an image model or transcription model`);
     }
     if (offering.hidden !== undefined && offering.hidden !== true) {
       errors.push(`${where}: hidden is either true or absent`);
@@ -801,16 +834,40 @@ export function validateRegistry(registry: Registry): string[] {
       errors.push(`${where}: maxTokens exceeds contextWindow`);
     }
     const { pricing, capabilities } = model;
+    const specializedPrices = [pricing.perSearch, pricing.perAudioMinute].filter((value) => value !== undefined);
     if (capabilities.imageGeneration) {
       if (!((pricing.imageOutputPer1M ?? 0) > 0 || (pricing.perImage ?? 0) > 0)) {
         errors.push(`${where}: an image model needs imageOutputPer1M or perImage`);
+      }
+      if (specializedPrices.length > 0) {
+        errors.push(`${where}: an image model may not carry rerank or transcription pricing`);
       }
     } else if (capabilities.embedding) {
       if (!(pricing.inputPer1M > 0) || pricing.outputPer1M !== 0) {
         errors.push(`${where}: an embedding model needs an input price above zero and an output price of zero`);
       }
+      if (specializedPrices.length > 0) {
+        errors.push(`${where}: an embedding model may not carry rerank or transcription pricing`);
+      }
+    } else if (capabilities.rerank) {
+      if (!((pricing.inputPer1M > 0) || (pricing.perSearch ?? 0) > 0) || pricing.outputPer1M !== 0) {
+        errors.push(`${where}: a rerank model needs an input price or perSearch above zero and an output price of zero`);
+      }
+      if (pricing.perAudioMinute !== undefined) {
+        errors.push(`${where}: a rerank model may not carry transcription pricing`);
+      }
+    } else if (capabilities.transcription) {
+      const tokenPriced = pricing.inputPer1M > 0 && pricing.outputPer1M > 0;
+      if (!tokenPriced && !((pricing.perAudioMinute ?? 0) > 0 && pricing.inputPer1M === 0 && pricing.outputPer1M === 0)) {
+        errors.push(`${where}: a transcription model needs token prices or perAudioMinute above zero`);
+      }
+      if (pricing.perSearch !== undefined) {
+        errors.push(`${where}: a transcription model may not carry rerank pricing`);
+      }
     } else if (!(pricing.inputPer1M > 0 && pricing.outputPer1M > 0)) {
       errors.push(`${where}: a text model needs input and output prices above zero`);
+    } else if (specializedPrices.length > 0) {
+      errors.push(`${where}: a text model may not carry rerank or transcription pricing`);
     }
     if (pricing.cachedInputPer1M !== undefined && pricing.cachedInputPer1M > pricing.inputPer1M) {
       errors.push(`${where}: cached input priced above uncached`);

@@ -11,9 +11,9 @@ https://models.opspresso.com/models.json
 
 [Agent Studio](https://github.com/opspresso/agent-studio) is the original consumer it is
 shaped for: the text and image fields mirror its `src/domain/llm/models.ts`, and the catalog
-is the list that registry will load instead of carrying the numbers in code. Embedding
-models are identified by `capabilities.embedding: true`; consumers that do not support
-them can skip those entries. Anything that can read JSON can use it the same way. A
+is the list that registry will load instead of carrying the numbers in code. Specialized
+models are identified by the `embedding`, `rerank`, or `transcription` capability; consumers
+that do not support them can skip those entries. Anything that can read JSON can use it the same way. A
 browsable view of the same file is at
 <https://models.opspresso.com/> — `docs/index.html`, a static page that reads the catalog and
 mirrors the console's own Models page (<https://studio.opspresso.com/models>): the same
@@ -51,7 +51,7 @@ are recognisably siblings and never mistaken for each other.
 
 ### Model types
 
-The catalog has three mutually exclusive model types. Type is derived from capability flags
+The catalog has five mutually exclusive model types. Type is derived from capability flags
 so existing text and image entries keep their published shape:
 
 | Type | Discriminator | Pricing contract | Limits |
@@ -59,16 +59,21 @@ so existing text and image entries keep their published shape:
 | Text | neither type flag is set | positive `inputPer1M` and `outputPer1M` | positive `contextWindow` and `maxTokens` |
 | Image | `capabilities.imageGeneration: true` | `imageOutputPer1M` or `perImage` | zero is allowed when the provider publishes no token limits |
 | Embedding | `capabilities.embedding: true` | positive `inputPer1M`; `outputPer1M: 0` | positive `contextWindow`; `maxTokens: 0` |
+| Rerank | `capabilities.rerank: true` | positive `inputPer1M` or `perSearch`; `outputPer1M: 0` | positive `contextWindow`; `maxTokens: 0` |
+| Transcription | `capabilities.transcription: true` | positive input/output token rates or `perAudioMinute` | zero limits are allowed for duration-priced models |
 
-`imageGeneration` and `embedding` may not both be true, and an offering may not change
-its family's type. `imageInput` remains an independent capability: a text or embedding
-model can accept images without becoming an image-generation model.
+The four type flags are mutually exclusive, and an offering may not change its family's
+type. `imageInput` remains an independent capability: a text, embedding or rerank model
+can accept images without becoming an image-generation model.
 
 Prices are USD per million tokens; image models add `imageInputPer1M`, `imageOutputPer1M`,
 `perImage` and `perInputImage`, and are priced by token rate *or* per image. Every rate is
 the provider's base, standard-tier rate — a long-context or priority tier is not expressed.
 Embedding models charge `inputPer1M` only, carry `outputPer1M: 0`, and use `maxTokens: 0`
 because they produce vectors rather than generated tokens.
+Rerank models charge per million input tokens or per search unit. Transcription models
+charge per million input/output tokens or per audio minute, depending on the upstream
+provider's billing contract.
 `pricing.discount`, when present, is a promotional discount (a fraction) that the stated
 rates are **already net of** — OpenRouter publishes one per endpoint, and the catalog's
 price is the default endpoint's — so a reader can tell a promotion from a price and put the
@@ -102,13 +107,13 @@ or provider; neither is repeated inside the entry.
 Three things follow from the split and are enforced by `validateRegistry` (and CI):
 
 - the same model reached two ways has one name, one maker, one window and one kind — an
-  offering may not change `contextWindow`, `imageGeneration` or `embedding`;
+  offering may not change `contextWindow` or any model-type discriminator;
 - a `wireId` exists only to say something the id does not: a router route must carry a
   vendor-qualified one (`anthropic/claude-opus-4.8`), and a dotted Anthropic id must carry
   the hyphenated name Anthropic actually serves (`claude-opus-4-8`);
-- a text model is priced on both sides, an image model by token rate or per image, and an
-  embedding model on input; a cached rate never exceeds the uncached one, and the output
-  cap fits in the window.
+- a text model is priced on both sides, an image model by token rate or per image, an
+  embedding model on input, a rerank model by input or search, and a transcription model
+  by tokens or audio minute; a cached rate never exceeds the uncached one, and the output cap fits in the window.
 
 A `note` holds provenance a reader of the file needs — where an odd number came from, why a
 retired route is priced the way it is. It is for people; the catalog does not carry it.
@@ -140,8 +145,8 @@ auto-merged. Removals are checked twice: the update workflow refuses to commit o
 and CI rejects, on pull requests, a removal that no entry requests. A push straight to
 `main` skips only that removal check — the type check, tests and `build:check` still run.
 
-Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models` and
-`/api/v1/embeddings/models` (public),
+Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models`,
+`/api/v1/embeddings/models`, modality-filtered model catalogs and public model pages,
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
 `/v1/models` (`max_input_tokens`, `max_tokens`), the AWS Pricing API for Bedrock (mind the
 unit — `1K tokens` and `1M tokens` rows are mixed), and the pricing pages for OpenAI and
@@ -165,7 +170,7 @@ applies stops the run from writing `models/` at all.
 
 | Source | Needs | May change | May add |
 |---|---|---|---|
-| OpenRouter `/api/v1/models`, `/images/models`, `/embeddings/models`, `/models/{id}/endpoints`, public weekly text, image and embeddings rankings feeds | nothing | a **router-only** family's price, discount and window, plus generated output cap where applicable; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | eligible text, image and embedding families; OpenRouter routes to existing families |
+| OpenRouter `/api/v1/models`, `/images/models`, `/embeddings/models`, modality-filtered catalogs, `/models/{id}/endpoints`, public model pages and weekly rankings feeds | nothing | a **router-only** family's price, discount and window, plus generated output cap where applicable; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | eligible text, image, embedding, rerank and transcription families; OpenRouter routes to existing families |
 | xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
 | Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
 | OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
@@ -219,6 +224,18 @@ endpoint returns vectors, not generated tokens. As with images, a previously unk
 is adopted from the vendor slug and display-name prefix, and an incomplete ranking feed
 fails closed without blocking other modalities.
 
+**A rerank family** is created when it is among the first **20 ranked models the rerank
+catalog can resolve**. The catalog supplies its name, modalities and context window. The
+public model page supplies the native billing SKU because OpenRouter's Models API currently
+reports zero token rates for rerank models: either `inputPer1M` or `perSearch` is recorded.
+Its `outputPer1M` and `maxTokens` are zero because the endpoint returns relevance scores.
+
+**A transcription family** is created when it is among the first **20 ranked models the
+transcription catalog can resolve**. Duration-priced models use `perAudioMinute` and zero
+token limits; token-priced models retain their input/output token rates and published limits.
+For rerank and transcription, a complete ranking may contain fewer than 20 rows when the
+corresponding catalog itself is smaller than 20.
+
 **A new route** is added when a catalog serves a family the registry already has: OpenRouter
 under `<vendor>/<family>`, a vendor under the family id (Anthropic's hyphenated spelling
 becomes the `wireId`). OpenRouter applies the major-maker or leaderboard eligibility
@@ -228,7 +245,7 @@ route of which is hidden is never routed again — it was retired on purpose —
 when its context window equals the family's, the one cheap identity check there is
 (`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
 Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
-Image and embedding routes are added only while their model is in the corresponding weekly
+Image, embedding, rerank and transcription routes are added only while their model is in the corresponding weekly
 Top 20. The first
 *vendor* route to a router-only family puts the family at the list price (the router's
 discount moves to the router's offering).
@@ -245,7 +262,7 @@ the separate draft deletion PR is reviewed.
 
 OpenRouter uses separate admission and retention thresholds so models around the cutoff do
 not churn. Text enters through the weekly open- or closed-weight Top 20 and remains eligible
-through the corresponding **Top 50**; image and embeddings enter through their weekly Top
+through the corresponding **Top 50**; image, embedding, rerank and transcription models enter through their weekly Top
 20 and remain eligible through the corresponding **Top 30**. A listing is exempt from ranking retirement for its first
 **90 days**. Major-maker text routes with a live vendor route are also exempt, while an
 OpenRouter-only OpenAI, Anthropic, Google or xAI family follows the same retention policy as
@@ -298,11 +315,11 @@ a table of what changed and the *needs a look* list.
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
 read from the same environment variable names. `--reset-openrouter` first preserves every
 OpenRouter route as a hidden reset tombstone, then restores what the retention sets (text
-Top 50, image and embeddings Top 30) and major-maker policies still allow and adds what the admission
+Top 50, specialized types Top 30) and major-maker policies still allow and adds what the admission
 policies admit — with the 30-day listing window switched off, so a major maker's whole
 history is eligible. The reset is not written unless all rankings are complete and every
-image Top 20 endpoint has usable standard-tier price and limits. Free or otherwise
-unpriced embedding models remain ineligible without making the ranking feed incomplete.
+image Top 20 endpoint has usable standard-tier price and limits. Free variants and otherwise
+unpriced specialized models remain ineligible without making the ranking feed incomplete.
 
 ## Commands
 

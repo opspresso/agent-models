@@ -54,7 +54,7 @@ export function applyOpenAi(
 }
 
 /**
- * An `openai/` route for every live OpenAI-made text or embedding family the
+ * An `openai/` route for every live OpenAI-made non-image family the
  * catalog serves under the family's own id and this registry does not yet
  * route there. Dated snapshots fold to their alias exactly as they do for presence: a route the
  * retirement clock counts as alive is one discovery must be willing to add.

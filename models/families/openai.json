@@ -945,5 +945,111 @@
     "contextWindow": 8192,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-01 from OpenRouter's weekly embeddings top 20; numbers and flags are OpenRouter's."
+  },
+  "whisper-large-v3": {
+    "displayName": "Whisper Large V3",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.00045
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "whisper-large-v3-turbo": {
+    "displayName": "Whisper Large V3 Turbo",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0001998
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-4o-mini-transcribe": {
+    "displayName": "GPT-4o Mini Transcribe",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 5
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 128000,
+    "maxTokens": 115200,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "whisper-1": {
+    "displayName": "Whisper 1",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.006
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-transcribe": {
+    "displayName": "GPT Transcribe",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.0045
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-4o-transcribe": {
+    "displayName": "GPT-4o Transcribe",
+    "pricing": {
+      "inputPer1M": 2.5,
+      "outputPer1M": 10
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 128000,
+    "maxTokens": 115200,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   }
 }

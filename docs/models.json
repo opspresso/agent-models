@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-02T23:54:57.855Z",
+  "updatedAt": "2026-09-03T14:01:46.619Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -34,7 +34,10 @@
     "sentence-transformers": "Sentence Transformers",
     "mistralai": "Mistral",
     "voyageai": "VoyageAI by MongoDB",
-    "intfloat": "Intfloat"
+    "intfloat": "Intfloat",
+    "cohere": "Cohere",
+    "deepgram": "Deepgram",
+    "fish-audio": "Fish Audio"
   },
   "models": [
     {
@@ -5111,6 +5114,551 @@
       "contextWindow": 1048576,
       "maxTokens": 65536,
       "wireId": "google/gemini-3.8-flash"
+    },
+    {
+      "id": "openrouter/rerank-2.5",
+      "provider": "openrouter",
+      "family": "rerank-2.5",
+      "maker": "voyageai",
+      "displayName": "rerank-2.5",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/rerank-2.5"
+    },
+    {
+      "id": "openrouter/rerank-4-fast",
+      "provider": "openrouter",
+      "family": "rerank-4-fast",
+      "maker": "cohere",
+      "displayName": "Rerank 4 Fast",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perSearch": 0.002
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 0,
+      "wireId": "cohere/rerank-4-fast"
+    },
+    {
+      "id": "openrouter/rerank-v3.5",
+      "provider": "openrouter",
+      "family": "rerank-v3.5",
+      "maker": "cohere",
+      "displayName": "Rerank v3.5",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perSearch": 0.001
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 4096,
+      "maxTokens": 0,
+      "wireId": "cohere/rerank-v3.5"
+    },
+    {
+      "id": "openrouter/rerank-2.5-lite",
+      "provider": "openrouter",
+      "family": "rerank-2.5-lite",
+      "maker": "voyageai",
+      "displayName": "rerank-2.5-lite",
+      "pricing": {
+        "inputPer1M": 0.02,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/rerank-2.5-lite"
+    },
+    {
+      "id": "openrouter/rerank-4-pro",
+      "provider": "openrouter",
+      "family": "rerank-4-pro",
+      "maker": "cohere",
+      "displayName": "Rerank 4 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perSearch": 0.0025
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 0,
+      "wireId": "cohere/rerank-4-pro"
+    },
+    {
+      "id": "openrouter/qwen3-reranker-8b",
+      "provider": "openrouter",
+      "family": "qwen3-reranker-8b",
+      "maker": "qwen",
+      "displayName": "Qwen3 Reranker 8B",
+      "pricing": {
+        "inputPer1M": 0.2,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 40960,
+      "maxTokens": 0,
+      "wireId": "qwen/qwen3-reranker-8b"
+    },
+    {
+      "id": "openrouter/whisper-large-v3",
+      "provider": "openrouter",
+      "family": "whisper-large-v3",
+      "maker": "openai",
+      "displayName": "Whisper Large V3",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00045
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "openai/whisper-large-v3"
+    },
+    {
+      "id": "openrouter/whisper-large-v3-turbo",
+      "provider": "openrouter",
+      "family": "whisper-large-v3-turbo",
+      "maker": "openai",
+      "displayName": "Whisper Large V3 Turbo",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0001998
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "openai/whisper-large-v3-turbo"
+    },
+    {
+      "id": "openrouter/gpt-4o-mini-transcribe",
+      "provider": "openrouter",
+      "family": "gpt-4o-mini-transcribe",
+      "maker": "openai",
+      "displayName": "GPT-4o Mini Transcribe",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 128000,
+      "maxTokens": 115200,
+      "wireId": "openai/gpt-4o-mini-transcribe"
+    },
+    {
+      "id": "openrouter/parakeet-tdt-0.6b-v3",
+      "provider": "openrouter",
+      "family": "parakeet-tdt-0.6b-v3",
+      "maker": "nvidia",
+      "displayName": "Parakeet TDT 0.6B v3",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0015
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "nvidia/parakeet-tdt-0.6b-v3"
+    },
+    {
+      "id": "openrouter/qwen3-asr-flash-2026-02-10",
+      "provider": "openrouter",
+      "family": "qwen3-asr-flash-2026-02-10",
+      "maker": "qwen",
+      "displayName": "Qwen3 ASR Flash",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0021
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "qwen/qwen3-asr-flash-2026-02-10"
+    },
+    {
+      "id": "openrouter/voxtral-mini-transcribe",
+      "provider": "openrouter",
+      "family": "voxtral-mini-transcribe",
+      "maker": "mistralai",
+      "displayName": "Voxtral Mini Transcribe",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.003
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "mistralai/voxtral-mini-transcribe"
+    },
+    {
+      "id": "openrouter/whisper-1",
+      "provider": "openrouter",
+      "family": "whisper-1",
+      "maker": "openai",
+      "displayName": "Whisper 1",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.006
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "openai/whisper-1"
+    },
+    {
+      "id": "openrouter/qwen3-asr-1.7b",
+      "provider": "openrouter",
+      "family": "qwen3-asr-1.7b",
+      "maker": "qwen",
+      "displayName": "Qwen3 ASR 1.7B",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00045
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "qwen/qwen3-asr-1.7b"
+    },
+    {
+      "id": "openrouter/gpt-transcribe",
+      "provider": "openrouter",
+      "family": "gpt-transcribe",
+      "maker": "openai",
+      "displayName": "GPT Transcribe",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0045
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "openai/gpt-transcribe"
+    },
+    {
+      "id": "openrouter/qwen3-asr-0.6b",
+      "provider": "openrouter",
+      "family": "qwen3-asr-0.6b",
+      "maker": "qwen",
+      "displayName": "Qwen3 ASR 0.6B",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0001998
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "qwen/qwen3-asr-0.6b"
+    },
+    {
+      "id": "openrouter/grok-stt-1.0",
+      "provider": "openrouter",
+      "family": "grok-stt-1.0",
+      "maker": "xai",
+      "displayName": "Grok STT 1.0",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00166667
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "x-ai/grok-stt-1.0"
+    },
+    {
+      "id": "openrouter/gpt-4o-transcribe",
+      "provider": "openrouter",
+      "family": "gpt-4o-transcribe",
+      "maker": "openai",
+      "displayName": "GPT-4o Transcribe",
+      "pricing": {
+        "inputPer1M": 2.5,
+        "outputPer1M": 10
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 128000,
+      "maxTokens": 115200,
+      "wireId": "openai/gpt-4o-transcribe"
+    },
+    {
+      "id": "openrouter/mai-transcribe-1.5",
+      "provider": "openrouter",
+      "family": "mai-transcribe-1.5",
+      "maker": "microsoft",
+      "displayName": "MAI-Transcribe 1.5",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.006
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "microsoft/mai-transcribe-1.5"
+    },
+    {
+      "id": "openrouter/nemotron-3.5-asr-streaming-multilingual-0.6b",
+      "provider": "openrouter",
+      "family": "nemotron-3.5-asr-streaming-multilingual-0.6b",
+      "maker": "nvidia",
+      "displayName": "Nemotron 3.5 ASR Streaming Multilingual 0.6B",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0001998
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "nvidia/nemotron-3.5-asr-streaming-multilingual-0.6b"
+    },
+    {
+      "id": "openrouter/nova-3",
+      "provider": "openrouter",
+      "family": "nova-3",
+      "maker": "deepgram",
+      "displayName": "Nova-3",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.0043
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "deepgram/nova-3"
+    },
+    {
+      "id": "openrouter/chirp-3",
+      "provider": "openrouter",
+      "family": "chirp-3",
+      "maker": "google",
+      "displayName": "Chirp 3",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.016
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "google/chirp-3"
+    },
+    {
+      "id": "openrouter/transcribe-1",
+      "provider": "openrouter",
+      "family": "transcribe-1",
+      "maker": "fish-audio",
+      "displayName": "Transcribe 1",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.006
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "fish-audio/transcribe-1"
+    },
+    {
+      "id": "openrouter/voxtral-mini-3b-2507",
+      "provider": "openrouter",
+      "family": "voxtral-mini-3b-2507",
+      "maker": "mistralai",
+      "displayName": "Voxtral Mini 3B 2507",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.001
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "mistralai/voxtral-mini-3b-2507"
+    },
+    {
+      "id": "openrouter/voxtral-small-24b-2507-stt",
+      "provider": "openrouter",
+      "family": "voxtral-small-24b-2507-stt",
+      "maker": "mistralai",
+      "displayName": "Voxtral Small 24B 2507 STT",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.003
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "mistralai/voxtral-small-24b-2507-stt"
     }
   ]
 }

@@ -51,6 +51,16 @@ describe("the committed registry", () => {
           first?.capabilities.embedding ?? false,
           `${family}: routes disagree on kind`,
         );
+        assert.equal(
+          route.capabilities.rerank ?? false,
+          first?.capabilities.rerank ?? false,
+          `${family}: routes disagree on kind`,
+        );
+        assert.equal(
+          route.capabilities.transcription ?? false,
+          first?.capabilities.transcription ?? false,
+          `${family}: routes disagree on kind`,
+        );
       }
     }
   });
@@ -71,6 +81,19 @@ describe("the committed registry", () => {
     assert.ok(embeddings.length > 0);
     assert.ok(embeddings.every((model) =>
       model.pricing.inputPer1M > 0 && model.pricing.outputPer1M === 0 && model.maxTokens === 0));
+  });
+
+  it("publishes exactly text, image, embedding, rerank and transcription model types", () => {
+    const typeOf = (model: ReturnType<typeof deriveModels>[number]): string =>
+      model.capabilities.embedding ? "embedding"
+      : model.capabilities.imageGeneration ? "image"
+      : model.capabilities.rerank ? "rerank"
+      : model.capabilities.transcription ? "transcription"
+      : "text";
+    assert.deepEqual(
+      [...new Set(deriveModels(registry).map(typeOf))].sort(),
+      ["embedding", "image", "rerank", "text", "transcription"],
+    );
   });
 });
 
@@ -261,6 +284,43 @@ describe("validateRegistry", () => {
     assert.match(validateRegistry(r).join("\n"), /may not be both imageGeneration and embedding/);
   });
 
+  it("prices rerank and transcription models in their native billing units", () => {
+    const r = fixture();
+    r.families.reranker = {
+      maker: "openai",
+      displayName: "Reranker",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perSearch: 0.001 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, rerank: true },
+      contextWindow: 4096,
+      maxTokens: 0,
+    };
+    r.families.transcriber = {
+      maker: "openai",
+      displayName: "Transcriber",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.006 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, transcription: true },
+      contextWindow: 0,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openai", family: "reranker" });
+    r.offerings.push({ provider: "openai", family: "transcriber" });
+    assert.deepEqual(validateRegistry(r), []);
+
+    r.families.reranker!.pricing = { inputPer1M: 0.2, outputPer1M: 0 };
+    r.families.transcriber!.pricing = { inputPer1M: 1.25, outputPer1M: 5 };
+    r.families.transcriber!.contextWindow = 128_000;
+    r.families.transcriber!.maxTokens = 16_000;
+    assert.deepEqual(validateRegistry(r), []);
+
+    r.families.reranker!.capabilities.embedding = true;
+    assert.match(validateRegistry(r).join("\n"), /model types are mutually exclusive/);
+    delete r.families.reranker!.capabilities.embedding;
+    r.families.reranker!.pricing = { inputPer1M: 0, outputPer1M: 0 };
+    assert.match(validateRegistry(r).join("\n"), /rerank model needs an input price or perSearch/);
+    r.families.transcriber!.pricing = { inputPer1M: 0, outputPer1M: 0 };
+    assert.match(validateRegistry(r).join("\n"), /transcription model needs token prices or perAudioMinute/);
+  });
+
   it("allows explicit zero output limits for image and embedding models", () => {
     const r = fixture();
     r.families["draw"] = {
@@ -285,6 +345,10 @@ describe("validateRegistry", () => {
     assert.match(validateRegistry(r).join("\n"), /may not change imageGeneration/);
     r.offerings[2]!.capabilities = { embedding: true };
     assert.match(validateRegistry(r).join("\n"), /may not change embedding/);
+    r.offerings[2]!.capabilities = { rerank: true };
+    assert.match(validateRegistry(r).join("\n"), /may not change rerank/);
+    r.offerings[2]!.capabilities = { transcription: true };
+    assert.match(validateRegistry(r).join("\n"), /may not change transcription/);
   });
 });
 

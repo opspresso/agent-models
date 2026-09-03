@@ -1,0 +1,20 @@
+{
+  "transcribe-1": {
+    "displayName": "Transcribe 1",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.006
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  }
+}

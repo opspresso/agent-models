@@ -170,5 +170,23 @@
     "contextWindow": 32768,
     "maxTokens": 4096,
     "note": "Also charges by quality and resolution ($0.04–$0.08); perImage is xAI's headline image_price, what a request naming neither gets."
+  },
+  "grok-stt-1.0": {
+    "displayName": "Grok STT 1.0",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.00166667
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   }
 }

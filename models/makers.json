@@ -94,5 +94,17 @@
   "intfloat": {
     "displayName": "Intfloat",
     "openrouterVendor": "intfloat"
+  },
+  "cohere": {
+    "displayName": "Cohere",
+    "openrouterVendor": "cohere"
+  },
+  "deepgram": {
+    "displayName": "Deepgram",
+    "openrouterVendor": "deepgram"
+  },
+  "fish-audio": {
+    "displayName": "Fish Audio",
+    "openrouterVendor": "fish-audio"
   }
 }
