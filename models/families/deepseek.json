@@ -18,10 +18,10 @@
   "deepseek-v4-pro": {
     "displayName": "DeepSeek V4 Pro 0423",
     "pricing": {
-      "inputPer1M": 0.87,
-      "outputPer1M": 1.74,
-      "cachedInputPer1M": 0.0725,
-      "discount": 0.5
+      "inputPer1M": 1.022424,
+      "outputPer1M": 2.044848,
+      "cachedInputPer1M": 0.085202,
+      "discount": 0.4124
     },
     "capabilities": {
       "tools": true,

@@ -126,5 +126,17 @@
   },
   {
     "family": "text-embedding-ada-002"
+  },
+  {
+    "family": "gpt-4o-mini-transcribe"
+  },
+  {
+    "family": "whisper-1"
+  },
+  {
+    "family": "gpt-transcribe"
+  },
+  {
+    "family": "gpt-4o-transcribe"
   }
 ]
