@@ -1051,5 +1051,39 @@
     "contextWindow": 128000,
     "maxTokens": 115200,
     "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-6-astra": {
+    "displayName": "GPT-6 Astra",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 50,
+      "cachedInputPer1M": 1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-04 from OpenRouter's catalog (listed 2026-09-04); numbers and flags are OpenRouter's."
+  },
+  "gpt-6-astra-pro": {
+    "displayName": "GPT-6 Astra Pro",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 50,
+      "cachedInputPer1M": 1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-04 from OpenRouter's catalog (listed 2026-09-04); numbers and flags are OpenRouter's."
   }
 }

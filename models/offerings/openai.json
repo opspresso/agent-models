@@ -138,5 +138,8 @@
   },
   {
     "family": "gpt-4o-transcribe"
+  },
+  {
+    "family": "gpt-6-astra"
   }
 ]

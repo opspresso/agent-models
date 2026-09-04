@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-03T23:52:57.778Z",
+  "updatedAt": "2026-09-04T23:48:47.078Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -957,6 +957,26 @@
       },
       "contextWindow": 128000,
       "maxTokens": 115200
+    },
+    {
+      "id": "openai/gpt-6-astra",
+      "provider": "openai",
+      "family": "gpt-6-astra",
+      "maker": "openai",
+      "displayName": "GPT-6 Astra",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
     },
     {
       "id": "anthropic/claude-fable-5",
@@ -2832,10 +2852,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 1.022424,
-        "outputPer1M": 2.044848,
-        "cachedInputPer1M": 0.085202,
-        "discount": 0.4124
+        "inputPer1M": 0.981708,
+        "outputPer1M": 1.963416,
+        "cachedInputPer1M": 0.081809,
+        "discount": 0.4358
       },
       "capabilities": {
         "tools": true,
@@ -2854,10 +2874,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07784,
-        "outputPer1M": 0.15568,
-        "cachedInputPer1M": 0.015568,
-        "discount": 0.444
+        "inputPer1M": 0.08722,
+        "outputPer1M": 0.17444,
+        "cachedInputPer1M": 0.017444,
+        "discount": 0.377
       },
       "capabilities": {
         "tools": true,
@@ -4654,9 +4674,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 2.4,
-        "cachedInputPer1M": 0.12
+        "inputPer1M": 0.625,
+        "outputPer1M": 3.125,
+        "cachedInputPer1M": 0.1875
       },
       "capabilities": {
         "tools": true,
@@ -4665,7 +4685,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 182520,
+      "maxTokens": 32768,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
@@ -5742,6 +5762,70 @@
       "contextWindow": 0,
       "maxTokens": 0,
       "wireId": "mistralai/voxtral-small-24b-2507-stt"
+    },
+    {
+      "id": "openrouter/mai-transcribe-2",
+      "provider": "openrouter",
+      "family": "mai-transcribe-2",
+      "maker": "microsoft",
+      "displayName": "MAI-Transcribe 2",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00166667
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "microsoft/mai-transcribe-2"
+    },
+    {
+      "id": "openrouter/gpt-6-astra",
+      "provider": "openrouter",
+      "family": "gpt-6-astra",
+      "maker": "openai",
+      "displayName": "GPT-6 Astra",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-astra"
+    },
+    {
+      "id": "openrouter/gpt-6-astra-pro",
+      "provider": "openrouter",
+      "family": "gpt-6-astra-pro",
+      "maker": "openai",
+      "displayName": "GPT-6 Astra Pro",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 50,
+        "cachedInputPer1M": 1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-astra-pro"
     }
   ]
 }
