@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T23:48:47.078Z",
+  "updatedAt": "2026-09-05T23:37:30.585Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2852,10 +2852,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.981708,
-        "outputPer1M": 1.963416,
-        "cachedInputPer1M": 0.081809,
-        "discount": 0.4358
+        "inputPer1M": 0.799182,
+        "outputPer1M": 1.598364,
+        "cachedInputPer1M": 0.0665985,
+        "discount": 0.5407
       },
       "capabilities": {
         "tools": true,
@@ -2874,10 +2874,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.08722,
-        "outputPer1M": 0.17444,
-        "cachedInputPer1M": 0.017444,
-        "discount": 0.377
+        "inputPer1M": 0.08302,
+        "outputPer1M": 0.16604,
+        "cachedInputPer1M": 0.016604,
+        "discount": 0.407
       },
       "capabilities": {
         "tools": true,
@@ -5826,6 +5826,27 @@
       "contextWindow": 1050000,
       "maxTokens": 128000,
       "wireId": "openai/gpt-6-astra-pro"
+    },
+    {
+      "id": "openrouter/deepseek-v4-flash-vision-exp",
+      "provider": "openrouter",
+      "family": "deepseek-v4-flash-vision-exp",
+      "maker": "deepseek",
+      "displayName": "DeepSeek V4 Flash Vision Exp",
+      "pricing": {
+        "inputPer1M": 0.22,
+        "outputPer1M": 0.66,
+        "cachedInputPer1M": 0.007
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 384000,
+      "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     }
   ]
 }
