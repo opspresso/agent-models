@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-06T23:36:17.318Z",
+  "updatedAt": "2026-09-08T00:03:20.041Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2154,7 +2154,7 @@
       "pricing": {
         "inputPer1M": 1.4,
         "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.14
+        "cachedInputPer1M": 0.26
       },
       "capabilities": {
         "tools": true,
@@ -2163,7 +2163,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 262144,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2292,7 +2292,8 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-5-fast"
+      "wireId": "anthropic/claude-opus-5-fast",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-opus-5",
@@ -2655,7 +2656,8 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.8-fast"
+      "wireId": "anthropic/claude-opus-4.8-fast",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-opus-4.8",
@@ -2739,7 +2741,8 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.7-fast"
+      "wireId": "anthropic/claude-opus-4.7-fast",
+      "hidden": true
     },
     {
       "id": "openrouter/gemini-3.1-flash-lite",
@@ -2852,10 +2855,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.616656,
-        "outputPer1M": 1.233312,
-        "cachedInputPer1M": 0.051388,
-        "discount": 0.6456
+        "inputPer1M": 0.95526,
+        "outputPer1M": 1.91052,
+        "cachedInputPer1M": 0.079605,
+        "discount": 0.451
       },
       "capabilities": {
         "tools": true,
@@ -2874,10 +2877,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07882,
-        "outputPer1M": 0.15764,
-        "cachedInputPer1M": 0.015764,
-        "discount": 0.437
+        "inputPer1M": 0.088606,
+        "outputPer1M": 0.177212,
+        "cachedInputPer1M": 0.0177212,
+        "discount": 0.3671
       },
       "capabilities": {
         "tools": true,
