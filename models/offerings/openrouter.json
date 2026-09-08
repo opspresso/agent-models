@@ -782,5 +782,13 @@
   {
     "family": "deepseek-v4-flash-vision-exp",
     "wireId": "deepseek/deepseek-v4-flash-vision-exp"
+  },
+  {
+    "family": "gpt-5-image",
+    "wireId": "openai/gpt-5-image"
+  },
+  {
+    "family": "voyage-multimodal-3.5",
+    "wireId": "voyageai/voyage-multimodal-3.5"
   }
 ]
