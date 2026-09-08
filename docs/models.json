@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-08T00:03:20.041Z",
+  "updatedAt": "2026-09-08T23:55:38.445Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2855,10 +2855,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.95526,
-        "outputPer1M": 1.91052,
-        "cachedInputPer1M": 0.079605,
-        "discount": 0.451
+        "inputPer1M": 0.9396,
+        "outputPer1M": 1.8792,
+        "cachedInputPer1M": 0.0783,
+        "discount": 0.46
       },
       "capabilities": {
         "tools": true,
@@ -2877,10 +2877,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.088606,
-        "outputPer1M": 0.177212,
-        "cachedInputPer1M": 0.0177212,
-        "discount": 0.3671
+        "inputPer1M": 0.08092,
+        "outputPer1M": 0.16184,
+        "cachedInputPer1M": 0.016184,
+        "discount": 0.422
       },
       "capabilities": {
         "tools": true,
@@ -3075,7 +3075,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 262144,
       "maxTokens": 16384,
       "wireId": "nvidia/nemotron-3-super-120b-a12b"
     },
@@ -5850,6 +5850,50 @@
       "contextWindow": 1048576,
       "maxTokens": 384000,
       "wireId": "deepseek/deepseek-v4-flash-vision-exp"
+    },
+    {
+      "id": "openrouter/gpt-5-image",
+      "provider": "openrouter",
+      "family": "gpt-5-image",
+      "maker": "openai",
+      "displayName": "GPT-5 Image",
+      "pricing": {
+        "inputPer1M": 10,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 1.25,
+        "imageOutputPer1M": 40
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-5-image"
+    },
+    {
+      "id": "openrouter/voyage-multimodal-3.5",
+      "provider": "openrouter",
+      "family": "voyage-multimodal-3.5",
+      "maker": "voyageai",
+      "displayName": "voyage-multimodal-3.5",
+      "pricing": {
+        "inputPer1M": 0.12,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "embedding": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/voyage-multimodal-3.5"
     }
   ]
 }

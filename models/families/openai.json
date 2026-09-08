@@ -1085,5 +1085,24 @@
     "contextWindow": 1050000,
     "maxTokens": 128000,
     "note": "Added automatically on 2026-09-04 from OpenRouter's catalog (listed 2026-09-04); numbers and flags are OpenRouter's."
+  },
+  "gpt-5-image": {
+    "displayName": "GPT-5 Image",
+    "pricing": {
+      "inputPer1M": 10,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 1.25,
+      "imageOutputPer1M": 40
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-08 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }
