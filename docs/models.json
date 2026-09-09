@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-08T23:55:38.445Z",
+  "updatedAt": "2026-09-09T07:44:21.608Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2517,9 +2517,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.0825,
-        "outputPer1M": 0.33,
-        "cachedInputPer1M": 0.020625
+        "inputPer1M": 0.132,
+        "outputPer1M": 0.528,
+        "cachedInputPer1M": 0.033
       },
       "capabilities": {
         "tools": true,
@@ -2855,10 +2855,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.9396,
-        "outputPer1M": 1.8792,
-        "cachedInputPer1M": 0.0783,
-        "discount": 0.46
+        "inputPer1M": 0.95526,
+        "outputPer1M": 1.91052,
+        "cachedInputPer1M": 0.079605,
+        "discount": 0.451
       },
       "capabilities": {
         "tools": true,
@@ -2877,10 +2877,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.08092,
-        "outputPer1M": 0.16184,
-        "cachedInputPer1M": 0.016184,
-        "discount": 0.422
+        "inputPer1M": 0.088606,
+        "outputPer1M": 0.177212,
+        "cachedInputPer1M": 0.0177212,
+        "discount": 0.3671
       },
       "capabilities": {
         "tools": true,
@@ -5848,7 +5848,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     },
     {
