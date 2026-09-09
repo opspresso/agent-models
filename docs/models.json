@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-09T07:44:21.608Z",
+  "updatedAt": "2026-09-09T23:53:51.039Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2517,9 +2517,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.132,
-        "outputPer1M": 0.528,
-        "cachedInputPer1M": 0.033
+        "inputPer1M": 0.0825,
+        "outputPer1M": 0.33,
+        "cachedInputPer1M": 0.020625
       },
       "capabilities": {
         "tools": true,
@@ -2855,10 +2855,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.95526,
-        "outputPer1M": 1.91052,
-        "cachedInputPer1M": 0.079605,
-        "discount": 0.451
+        "inputPer1M": 0.87,
+        "outputPer1M": 1.74,
+        "cachedInputPer1M": 0.0725
       },
       "capabilities": {
         "tools": true,
@@ -2877,10 +2876,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.088606,
-        "outputPer1M": 0.177212,
-        "cachedInputPer1M": 0.0177212,
-        "discount": 0.3671
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.14,
+        "cachedInputPer1M": 0.014,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -4721,10 +4720,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.075,
-        "outputPer1M": 0.25,
-        "cachedInputPer1M": 0.015,
-        "discount": 0.5
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.2333,
+        "cachedInputPer1M": 0.014
       },
       "capabilities": {
         "tools": true,
