@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-09T23:53:51.039Z",
+  "updatedAt": "2026-09-10T23:50:23.606Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2876,10 +2876,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.14,
-        "cachedInputPer1M": 0.014,
-        "discount": 0.5
+        "inputPer1M": 0.088606,
+        "outputPer1M": 0.177212,
+        "cachedInputPer1M": 0.0177212,
+        "discount": 0.3671
       },
       "capabilities": {
         "tools": true,
@@ -2961,8 +2961,8 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.34
+        "inputPer1M": 0.042,
+        "outputPer1M": 0.22
       },
       "capabilities": {
         "tools": true,
@@ -4720,9 +4720,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.2333,
-        "cachedInputPer1M": 0.014
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -5892,6 +5892,29 @@
       "contextWindow": 32000,
       "maxTokens": 0,
       "wireId": "voyageai/voyage-multimodal-3.5"
+    },
+    {
+      "id": "openrouter/gpt-image-2.5-sunburst",
+      "provider": "openrouter",
+      "family": "gpt-image-2.5-sunburst",
+      "maker": "openai",
+      "displayName": "GPT Image 2.5 Sunburst",
+      "pricing": {
+        "inputPer1M": 8,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 2,
+        "imageOutputPer1M": 30
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 400000,
+      "maxTokens": 360000,
+      "wireId": "openai/gpt-image-2.5-sunburst"
     }
   ]
 }

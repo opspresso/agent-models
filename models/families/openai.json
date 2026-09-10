@@ -1104,5 +1104,24 @@
     "contextWindow": 400000,
     "maxTokens": 128000,
     "note": "Added automatically on 2026-09-08 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-image-2.5-sunburst": {
+    "displayName": "GPT Image 2.5 Sunburst",
+    "pricing": {
+      "inputPer1M": 8,
+      "outputPer1M": 8,
+      "cachedInputPer1M": 2,
+      "imageOutputPer1M": 30
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 400000,
+    "maxTokens": 360000,
+    "note": "Added automatically on 2026-09-10 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }
