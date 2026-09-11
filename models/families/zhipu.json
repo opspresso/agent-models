@@ -67,9 +67,9 @@
   "glm-5.2": {
     "displayName": "GLM 5.2",
     "pricing": {
-      "inputPer1M": 0.966,
-      "outputPer1M": 3.036,
-      "cachedInputPer1M": 0.1932
+      "inputPer1M": 0.6,
+      "outputPer1M": 2,
+      "cachedInputPer1M": 0.15
     },
     "capabilities": {
       "tools": true,
@@ -78,7 +78,7 @@
       "reasoning": true
     },
     "contextWindow": 1048576,
-    "maxTokens": 131072,
+    "maxTokens": 182476,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-06-16); numbers and flags are OpenRouter's."
   },
   "glm-5.3-flash": {
