@@ -2,10 +2,10 @@
   "solar-pro4": {
     "displayName": "Solar Pro 4",
     "pricing": {
-      "inputPer1M": 0.03,
-      "outputPer1M": 0.12,
-      "cachedInputPer1M": 0.006,
-      "discount": 0.9
+      "inputPer1M": 0.09,
+      "outputPer1M": 0.36,
+      "cachedInputPer1M": 0.018,
+      "discount": 0.7
     },
     "capabilities": {
       "tools": true,
