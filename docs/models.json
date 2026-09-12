@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-11T23:57:45.436Z",
+  "updatedAt": "2026-09-12T23:51:06.209Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2271,7 +2271,8 @@
       },
       "contextWindow": 1000000,
       "maxTokens": 131072,
-      "wireId": "qwen/qwen3.8-max"
+      "wireId": "qwen/qwen3.8-max",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-opus-5-fast",
@@ -2855,10 +2856,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.839724,
-        "outputPer1M": 1.679448,
-        "cachedInputPer1M": 0.069977,
-        "discount": 0.5174
+        "inputPer1M": 1.6,
+        "outputPer1M": 3.2,
+        "cachedInputPer1M": 0.135
       },
       "capabilities": {
         "tools": true,
@@ -2867,7 +2867,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 393216,
       "wireId": "deepseek/deepseek-v4-pro"
     },
     {
@@ -2877,10 +2877,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.06762,
-        "outputPer1M": 0.13524,
-        "cachedInputPer1M": 0.013524,
-        "discount": 0.517
+        "inputPer1M": 0.06566,
+        "outputPer1M": 0.13132,
+        "cachedInputPer1M": 0.013132,
+        "discount": 0.531
       },
       "capabilities": {
         "tools": true,
@@ -4656,9 +4656,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 1.61595,
-        "outputPer1M": 8.1054,
-        "cachedInputPer1M": 0.18468
+        "inputPer1M": 2.64813806,
+        "outputPer1M": 13.28272425,
+        "cachedInputPer1M": 0.30264435
       },
       "capabilities": {
         "tools": true,
