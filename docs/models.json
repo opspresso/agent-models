@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-12T23:51:06.209Z",
+  "updatedAt": "2026-09-13T23:56:38.195Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2152,9 +2152,10 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 1.4,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
+        "inputPer1M": 1.092,
+        "outputPer1M": 3.432,
+        "cachedInputPer1M": 0.2028,
+        "discount": 0.22
       },
       "capabilities": {
         "tools": true,
@@ -2163,7 +2164,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 943718,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2560,9 +2561,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 2,
-        "cachedInputPer1M": 0.15
+        "inputPer1M": 0.966,
+        "outputPer1M": 3.036,
+        "cachedInputPer1M": 0.1932
       },
       "capabilities": {
         "tools": true,
@@ -2571,7 +2572,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 182476,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -2877,10 +2878,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.06566,
-        "outputPer1M": 0.13132,
-        "cachedInputPer1M": 0.013132,
-        "discount": 0.531
+        "inputPer1M": 0.089866,
+        "outputPer1M": 0.179732,
+        "cachedInputPer1M": 0.0179732,
+        "discount": 0.3581
       },
       "capabilities": {
         "tools": true,
@@ -2962,8 +2963,9 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.042,
-        "outputPer1M": 0.22
+        "inputPer1M": 0.09,
+        "outputPer1M": 0.3,
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
