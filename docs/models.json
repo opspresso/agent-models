@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-13T23:56:38.195Z",
+  "updatedAt": "2026-09-15T00:23:38.287Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2152,10 +2152,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 1.092,
-        "outputPer1M": 3.432,
-        "cachedInputPer1M": 0.2028,
-        "discount": 0.22
+        "inputPer1M": 1.4,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.26
       },
       "capabilities": {
         "tools": true,
@@ -2164,7 +2163,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 131072,
+      "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2519,9 +2518,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.0825,
-        "outputPer1M": 0.33,
-        "cachedInputPer1M": 0.020625
+        "inputPer1M": 0.132,
+        "outputPer1M": 0.528,
+        "cachedInputPer1M": 0.033
       },
       "capabilities": {
         "tools": true,
@@ -2561,9 +2560,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.966,
-        "outputPer1M": 3.036,
-        "cachedInputPer1M": 0.1932
+        "inputPer1M": 1.4,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.14
       },
       "capabilities": {
         "tools": true,
@@ -2572,7 +2571,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 128000,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -2878,10 +2877,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.089866,
-        "outputPer1M": 0.179732,
-        "cachedInputPer1M": 0.0179732,
-        "discount": 0.3581
+        "inputPer1M": 0.088606,
+        "outputPer1M": 0.177212,
+        "cachedInputPer1M": 0.0177212,
+        "discount": 0.3671
       },
       "capabilities": {
         "tools": true,
@@ -3068,8 +3067,8 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Super",
       "pricing": {
-        "inputPer1M": 0.085,
-        "outputPer1M": 0.4
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.45
       },
       "capabilities": {
         "tools": true,
@@ -3078,7 +3077,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 16384,
+      "maxTokens": 235929,
       "wireId": "nvidia/nemotron-3-super-120b-a12b"
     },
     {
@@ -4679,9 +4678,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.625,
-        "outputPer1M": 3.125,
-        "cachedInputPer1M": 0.1875
+        "inputPer1M": 0.6,
+        "outputPer1M": 2.4,
+        "cachedInputPer1M": 0.12
       },
       "capabilities": {
         "tools": true,
@@ -4690,7 +4689,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 32768,
+      "maxTokens": 182520,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
