@@ -106,5 +106,9 @@
   "fish-audio": {
     "displayName": "Fish Audio",
     "openrouterVendor": "fish-audio"
+  },
+  "meta": {
+    "displayName": "Meta",
+    "openrouterVendor": "meta"
   }
 }
