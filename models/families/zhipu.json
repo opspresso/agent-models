@@ -84,9 +84,9 @@
   "glm-5.3-flash": {
     "displayName": "GLM 5.3 Flash",
     "pricing": {
-      "inputPer1M": 0.15,
-      "outputPer1M": 0.5,
-      "cachedInputPer1M": 0.03
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.3333,
+      "cachedInputPer1M": 0.02
     },
     "capabilities": {
       "tools": true,
