@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-17T00:11:58.038Z",
+  "updatedAt": "2026-09-17T07:11:35.156Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -4723,9 +4723,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.2333,
-        "cachedInputPer1M": 0.014
+        "inputPer1M": 0.09,
+        "outputPer1M": 0.3,
+        "cachedInputPer1M": 0.018
       },
       "capabilities": {
         "tools": true,
@@ -5949,9 +5949,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.003
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.006
       },
       "capabilities": {
         "tools": true,
@@ -6026,6 +6026,28 @@
       "contextWindow": 1000000,
       "maxTokens": 131072,
       "wireId": "qwen/qwen3.8-flash"
+    },
+    {
+      "id": "openrouter/mai-image-2.6-flash",
+      "provider": "openrouter",
+      "family": "mai-image-2.6-flash",
+      "maker": "microsoft",
+      "displayName": "MAI-Image-2.6 Flash",
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 19
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 4096,
+      "maxTokens": 1024,
+      "wireId": "microsoft/mai-image-2.6-flash"
     }
   ]
 }

@@ -52,5 +52,23 @@
     "contextWindow": 0,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-04 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "mai-image-2.6-flash": {
+    "displayName": "MAI-Image-2.6 Flash",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 19
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 4096,
+    "maxTokens": 1024,
+    "note": "Added automatically on 2026-09-17 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }
