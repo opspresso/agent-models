@@ -78,15 +78,15 @@
       "reasoning": true
     },
     "contextWindow": 1048576,
-    "maxTokens": 128000,
+    "maxTokens": 131072,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-06-16); numbers and flags are OpenRouter's."
   },
   "glm-5.3-flash": {
     "displayName": "GLM 5.3 Flash",
     "pricing": {
-      "inputPer1M": 0.1,
-      "outputPer1M": 0.3333,
-      "cachedInputPer1M": 0.02
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.2333,
+      "cachedInputPer1M": 0.014
     },
     "capabilities": {
       "tools": true,
