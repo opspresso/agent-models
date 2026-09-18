@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-17T07:11:35.156Z",
+  "updatedAt": "2026-09-18T01:11:26.562Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -4658,9 +4658,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 3,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.3
+        "inputPer1M": 2.1,
+        "outputPer1M": 10.95,
+        "cachedInputPer1M": 0.23
       },
       "capabilities": {
         "tools": true,
@@ -5838,9 +5838,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash Vision Exp",
       "pricing": {
-        "inputPer1M": 0.22,
-        "outputPer1M": 0.66,
-        "cachedInputPer1M": 0.007
+        "inputPer1M": 0.2156,
+        "outputPer1M": 0.6468,
+        "cachedInputPer1M": 0.00686,
+        "discount": 0.51
       },
       "capabilities": {
         "tools": true,
@@ -5849,7 +5850,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 262144,
       "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     },
     {
