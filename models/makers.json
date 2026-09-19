@@ -110,5 +110,9 @@
   "meta": {
     "displayName": "Meta",
     "openrouterVendor": "meta"
+  },
+  "recraft": {
+    "displayName": "Recraft",
+    "openrouterVendor": "recraft"
   }
 }
