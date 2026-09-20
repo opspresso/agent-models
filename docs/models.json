@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-19T23:57:24.051Z",
+  "updatedAt": "2026-09-20T23:56:52.112Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2860,10 +2860,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.422298,
-        "outputPer1M": 0.844596,
-        "cachedInputPer1M": 0.0351915,
-        "discount": 0.7573
+        "inputPer1M": 0.9483,
+        "outputPer1M": 1.8966,
+        "cachedInputPer1M": 0.079025,
+        "discount": 0.455
       },
       "capabilities": {
         "tools": true,
@@ -2882,10 +2882,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.0378,
-        "outputPer1M": 0.0756,
-        "cachedInputPer1M": 0.00756,
-        "discount": 0.73
+        "inputPer1M": 0.089866,
+        "outputPer1M": 0.179732,
+        "cachedInputPer1M": 0.0179732,
+        "discount": 0.3581
       },
       "capabilities": {
         "tools": true,
@@ -5842,10 +5842,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash Vision Exp",
       "pricing": {
-        "inputPer1M": 0.2156,
-        "outputPer1M": 0.6468,
-        "cachedInputPer1M": 0.00686,
-        "discount": 0.51
+        "inputPer1M": 0.22,
+        "outputPer1M": 0.66,
+        "cachedInputPer1M": 0.007
       },
       "capabilities": {
         "tools": true,
@@ -5854,7 +5853,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 262144,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     },
     {
@@ -6075,6 +6074,27 @@
       "contextWindow": 65536,
       "maxTokens": 58982,
       "wireId": "recraft/recraft-v4.1"
+    },
+    {
+      "id": "openrouter/qwen3.7-flash",
+      "provider": "openrouter",
+      "family": "qwen3.7-flash",
+      "maker": "qwen",
+      "displayName": "Qwen3.7 Flash",
+      "pricing": {
+        "inputPer1M": 0.03,
+        "outputPer1M": 0.13,
+        "cachedInputPer1M": 0.006
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 65536,
+      "wireId": "qwen/qwen3.7-flash"
     }
   ]
 }
