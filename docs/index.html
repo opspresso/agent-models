@@ -418,12 +418,12 @@
   }
 
   function card(m) {
-    // The brand mark falls back to the maker's initials, carried in a data
-    // attribute and swapped in by the delegated `error` listener below. An
+    // Try a PNG when the SVG is absent, then fall back to the maker's initials.
+    // The delegated `error` listener below swaps the image. An
     // inline `onerror=` would have to quote the label into a JS string inside
     // an HTML attribute, and a maker named `O'Reilly` breaks that handler.
     const mark = catalog.makers[m.maker] !== undefined
-      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(m.maker)}.svg" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
+      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(m.maker)}.svg" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-png-src="icons/brands/${esc(m.maker)}.png" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
       : `<span class="mark blank">${esc(initials(m.maker))}</span>`;
     const providerBadge = m.hidden
       ? `<span class="badge neutral">${esc(m.provider)} · retired</span>`
@@ -467,6 +467,12 @@
   $("grid").addEventListener("error", (e) => {
     const img = e.target;
     if (img instanceof HTMLImageElement && img.dataset.initials !== undefined) {
+      if (img.dataset.pngSrc !== undefined) {
+        const pngSrc = img.dataset.pngSrc;
+        delete img.dataset.pngSrc;
+        img.src = pngSrc;
+        return;
+      }
       img.parentNode?.classList.add("blank");
       img.replaceWith(document.createTextNode(img.dataset.initials));
     }

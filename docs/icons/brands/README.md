@@ -1,8 +1,8 @@
 # Brand icons
 
-These SVG files identify the companies that make the models in this registry, in the viewer at
+These brand files identify the companies that make the models in this registry, in the viewer at
 `docs/index.html`. They do not identify the routing provider: a model served through Bedrock or
-OpenRouter keeps its maker's logo. They are the same files Agent Studio's console uses.
+OpenRouter keeps its maker's logo. The SVGs are the same files Agent Studio's console uses.
 
 `bedrock.svg` and `openrouter.svg` are the routes' own marks. Nothing renders them today —
 they are here so a view that names the route rather than the maker has one to use.
@@ -15,3 +15,5 @@ maker. Official brand guidance was checked for
 [xAI](https://x.ai/legal/brand-guidelines), and
 [AWS](https://aws.amazon.com/architecture/icons/). Logos must not be modified or used to
 imply endorsement.
+
+`typesafe.png` is the unmodified favicon from [TypeSafe's official site](https://typesafe.ai/).
