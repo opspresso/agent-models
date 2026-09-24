@@ -140,7 +140,8 @@ retired route is priced the way it is. It is for people; the catalog does not ca
    OpenRouter vendor slug, goes in `makers.json` first) and an offering to each
    `models/offerings/<provider>.json` that serves it.
 2. `pnpm format` — rewrites the files in canonical key order and validates them.
-3. `pnpm build` — regenerates `docs/models.json` and the brand icon manifest. CI fails if
+3. `pnpm build` — regenerates `docs/models.json`, the brand icon manifest, and versioned
+   CSS/JS references in `docs/index.html`. CI fails if
    generated files do not match their sources, so commit them together.
 
 Published ids first become `hidden` tombstones. After an automatically hidden route remains

@@ -1,5 +1,6 @@
 /**
- * Source files → `docs/models.json`; brand assets → `docs/icons/brands/manifest.json`.
+ * Source files → `docs/models.json`; brand assets → `docs/icons/brands/manifest.json`;
+ * viewer assets → versioned references in `docs/index.html`.
  *
  *   node scripts/build.ts          # write the catalog
  *   node scripts/build.ts --check  # exit 1 if the committed catalog is stale
@@ -9,6 +10,7 @@
  * daily job commit nothing on a quiet day.
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadRemovalManifest, unrequestedRemovals } from "../src/removals.ts";
@@ -59,11 +61,24 @@ for (const file of readdirSync(iconDirectory).sort()) {
   icons[maker] = file;
 }
 const iconText = formatJson(icons);
+const htmlPath = join(ROOT, "docs", "index.html");
+const currentHtml = readFileSync(htmlPath, "utf8");
+let versionedHtml = currentHtml;
+for (const file of ["styles.css", "app.js"]) {
+  const version = createHash("sha256").update(readFileSync(join(ROOT, "docs", file))).digest("hex").slice(0, 12);
+  const pattern = new RegExp(`((?:href|src)="${file.replace(".", "\\.")})(?:\\?[^\"]*)?(\")`, "g");
+  let matches = 0;
+  versionedHtml = versionedHtml.replace(pattern, (_match, prefix: string, quote: string) => {
+    matches++;
+    return `${prefix}?v=${version}${quote}`;
+  });
+  if (matches !== 1) throw new Error(`docs/index.html must reference ${file} exactly once`);
+}
 
 if (check) {
   const current = existsSync(CATALOG_PATH) ? readFileSync(CATALOG_PATH, "utf-8") : "";
   const currentIcons = existsSync(iconManifestPath) ? readFileSync(iconManifestPath, "utf-8") : "";
-  if (current !== text || currentIcons !== iconText) {
+  if (current !== text || currentIcons !== iconText || currentHtml !== versionedHtml) {
     console.error("generated docs are stale — run `pnpm build` and commit the result");
     process.exit(1);
   }
@@ -71,5 +86,6 @@ if (check) {
 } else {
   writeTextAtomic(CATALOG_PATH, text);
   writeTextAtomic(iconManifestPath, iconText);
+  if (currentHtml !== versionedHtml) writeTextAtomic(htmlPath, versionedHtml);
   console.log(`wrote docs/models.json (${catalog.models.length} models, updatedAt ${catalog.updatedAt}) and ${Object.keys(icons).length} brand icons`);
 }
