@@ -291,7 +291,19 @@
 <script>
 (async () => {
   const $ = (id) => document.getElementById(id);
-  const catalog = await (await fetch("models.json", { cache: "no-cache" })).json();
+  let catalog;
+  try {
+    const response = await fetch("models.json", { cache: "no-cache" });
+    if (!response.ok) throw new Error(`models.json → ${response.status} ${response.statusText}`);
+    catalog = await response.json();
+    if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
+      throw new Error("models.json has an invalid catalog shape");
+    }
+  } catch (error) {
+    console.error("Could not load the model catalog", error);
+    $("grid").innerHTML = '<div class="empty" style="grid-column:1/-1">Could not load the model catalog. Please try again later.</div>';
+    return;
+  }
   const ROUTERS = new Set(["bedrock", "openrouter"]);
   const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"]];
   const MODEL_TYPES = new Set(["text", "image", "embedding", "rerank", "transcription", "decision"]);
@@ -315,8 +327,7 @@
   const modelPriceLabel = (m) => {
     const p = m.pricing;
     const { inputPer1M, outputPer1M, imageOutputPer1M, perImage, perSearch, perAudioMinute } = p;
-    if (m.capabilities.embedding) return `${formatUsd(inputPer1M)} in per 1M`;
-    if (m.capabilities.decision) return `${formatUsd(inputPer1M)} in per 1M`;
+    if (m.capabilities.embedding || m.capabilities.decision) return `${formatUsd(inputPer1M)} in per 1M`;
     if (m.capabilities.rerank) return perSearch !== undefined ? `${formatUsd(perSearch)} / search` : `${formatUsd(inputPer1M)} in per 1M`;
     if (m.capabilities.transcription && perAudioMinute !== undefined) return `${formatUsd(perAudioMinute)} / audio minute`;
     if (imageOutputPer1M === undefined && perImage === undefined) return `${formatUsd(inputPer1M)} in · ${formatUsd(outputPer1M)} out per 1M`;
