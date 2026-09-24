@@ -1,0 +1,23 @@
+{
+  "anthropic": "anthropic.svg",
+  "bedrock": "bedrock.svg",
+  "black-forest-labs": "black-forest-labs.svg",
+  "bytedance-seed": "bytedance-seed.svg",
+  "deepseek": "deepseek.svg",
+  "google": "google.svg",
+  "krea": "krea.svg",
+  "microsoft": "microsoft.svg",
+  "minimax": "minimax.svg",
+  "moonshot": "moonshot.svg",
+  "nvidia": "nvidia.svg",
+  "openai": "openai.svg",
+  "openrouter": "openrouter.svg",
+  "qwen": "qwen.svg",
+  "stepfun": "stepfun.svg",
+  "tencent": "tencent.svg",
+  "typesafe": "typesafe.png",
+  "upstage": "upstage.svg",
+  "xai": "xai.svg",
+  "xiaomimimo": "xiaomimimo.svg",
+  "zhipu": "zhipu.svg"
+}

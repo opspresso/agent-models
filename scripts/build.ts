@@ -1,5 +1,5 @@
 /**
- * Source files → `docs/models.json`.
+ * Source files → `docs/models.json`; brand assets → `docs/icons/brands/manifest.json`.
  *
  *   node scripts/build.ts          # write the catalog
  *   node scripts/build.ts --check  # exit 1 if the committed catalog is stale
@@ -9,7 +9,8 @@
  * daily job commit nothing on a quiet day.
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { loadRemovalManifest, unrequestedRemovals } from "../src/removals.ts";
 import { assertValid, buildCatalog, formatJson, loadRegistry, readCatalog, writeTextAtomic } from "../src/registry.ts";
 import { CATALOG_PATH, ROOT } from "./_root.ts";
@@ -48,15 +49,27 @@ if (previous !== null) {
 }
 
 const text = formatJson(catalog);
+const iconDirectory = join(ROOT, "docs", "icons", "brands");
+const iconManifestPath = join(iconDirectory, "manifest.json");
+const icons: Record<string, string> = {};
+for (const file of readdirSync(iconDirectory).sort()) {
+  const match = /^([a-z0-9._-]+)\.(svg|png)$/.exec(file);
+  if (match === null) continue;
+  const maker = match[1] as string;
+  if (icons[maker] === undefined || file.endsWith(".svg")) icons[maker] = file;
+}
+const iconText = formatJson(icons);
 
 if (check) {
   const current = existsSync(CATALOG_PATH) ? readFileSync(CATALOG_PATH, "utf-8") : "";
-  if (current !== text) {
-    console.error("docs/models.json is stale — run `pnpm build` and commit the result");
+  const currentIcons = existsSync(iconManifestPath) ? readFileSync(iconManifestPath, "utf-8") : "";
+  if (current !== text || currentIcons !== iconText) {
+    console.error("generated docs are stale — run `pnpm build` and commit the result");
     process.exit(1);
   }
-  console.log(`docs/models.json is up to date (${catalog.models.length} models)`);
+  console.log(`generated docs are up to date (${catalog.models.length} models, ${Object.keys(icons).length} icons)`);
 } else {
   writeTextAtomic(CATALOG_PATH, text);
-  console.log(`wrote docs/models.json (${catalog.models.length} models, updatedAt ${catalog.updatedAt})`);
+  writeTextAtomic(iconManifestPath, iconText);
+  console.log(`wrote docs/models.json (${catalog.models.length} models, updatedAt ${catalog.updatedAt}) and ${Object.keys(icons).length} brand icons`);
 }

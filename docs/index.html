@@ -292,12 +292,21 @@
 (async () => {
   const $ = (id) => document.getElementById(id);
   let catalog;
+  let icons;
   try {
-    const response = await fetch("models.json", { cache: "no-cache" });
-    if (!response.ok) throw new Error(`models.json → ${response.status} ${response.statusText}`);
-    catalog = await response.json();
+    const [catalogResponse, iconResponse] = await Promise.all([
+      fetch("models.json", { cache: "no-cache" }),
+      fetch("icons/brands/manifest.json", { cache: "no-cache" }),
+    ]);
+    if (!catalogResponse.ok) throw new Error(`models.json → ${catalogResponse.status} ${catalogResponse.statusText}`);
+    if (!iconResponse.ok) throw new Error(`icons/brands/manifest.json → ${iconResponse.status} ${iconResponse.statusText}`);
+    [catalog, icons] = await Promise.all([catalogResponse.json(), iconResponse.json()]);
     if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
       throw new Error("models.json has an invalid catalog shape");
+    }
+    if (typeof icons !== "object" || icons === null || Array.isArray(icons)
+      || !Object.values(icons).every((file) => typeof file === "string" && /^[a-z0-9._-]+\.(svg|png)$/.test(file))) {
+      throw new Error("brand icon manifest has an invalid shape");
     }
   } catch (error) {
     console.error("Could not load the model catalog", error);
@@ -429,12 +438,12 @@
   }
 
   function card(m) {
-    // Try a PNG when the SVG is absent, then fall back to the maker's initials.
-    // The delegated `error` listener below swaps the image. An
-    // inline `onerror=` would have to quote the label into a JS string inside
+    // A missing icon uses the maker's initials. The delegated `error` listener
+    // also handles a listed file failing to load. An inline `onerror=` would
+    // have to quote the label into a JS string inside
     // an HTML attribute, and a maker named `O'Reilly` breaks that handler.
-    const mark = catalog.makers[m.maker] !== undefined
-      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(m.maker)}.svg" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-png-src="icons/brands/${esc(m.maker)}.png" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
+    const mark = Object.hasOwn(icons, m.maker)
+      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(icons[m.maker])}" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
       : `<span class="mark blank">${esc(initials(m.maker))}</span>`;
     const providerBadge = m.hidden
       ? `<span class="badge neutral">${esc(m.provider)} · retired</span>`
@@ -478,12 +487,6 @@
   $("grid").addEventListener("error", (e) => {
     const img = e.target;
     if (img instanceof HTMLImageElement && img.dataset.initials !== undefined) {
-      if (img.dataset.pngSrc !== undefined) {
-        const pngSrc = img.dataset.pngSrc;
-        delete img.dataset.pngSrc;
-        img.src = pngSrc;
-        return;
-      }
       img.parentNode?.classList.add("blank");
       img.replaceWith(document.createTextNode(img.dataset.initials));
     }
