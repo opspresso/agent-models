@@ -61,6 +61,11 @@ describe("the committed registry", () => {
           first?.capabilities.transcription ?? false,
           `${family}: routes disagree on kind`,
         );
+        assert.equal(
+          route.capabilities.decision ?? false,
+          first?.capabilities.decision ?? false,
+          `${family}: routes disagree on kind`,
+        );
       }
     }
   });
@@ -83,16 +88,17 @@ describe("the committed registry", () => {
       model.pricing.inputPer1M > 0 && model.pricing.outputPer1M === 0 && model.maxTokens === 0));
   });
 
-  it("publishes exactly text, image, embedding, rerank and transcription model types", () => {
+  it("publishes exactly text, image, embedding, rerank, transcription and decision model types", () => {
     const typeOf = (model: ReturnType<typeof deriveModels>[number]): string =>
       model.capabilities.embedding ? "embedding"
       : model.capabilities.imageGeneration ? "image"
       : model.capabilities.rerank ? "rerank"
       : model.capabilities.transcription ? "transcription"
+      : model.capabilities.decision ? "decision"
       : "text";
     assert.deepEqual(
       [...new Set(deriveModels(registry).map(typeOf))].sort(),
-      ["embedding", "image", "rerank", "text", "transcription"],
+      ["decision", "embedding", "image", "rerank", "text", "transcription"],
     );
   });
 });
@@ -319,6 +325,28 @@ describe("validateRegistry", () => {
     assert.match(validateRegistry(r).join("\n"), /rerank model needs an input price or perSearch/);
     r.families.transcriber!.pricing = { inputPer1M: 0, outputPer1M: 0 };
     assert.match(validateRegistry(r).join("\n"), /transcription model needs token prices or perAudioMinute/);
+  });
+
+  it("requires input-only pricing and a published output cap for decisions", () => {
+    const r = fixture();
+    r.families.decider = {
+      maker: "openai",
+      displayName: "Decider",
+      pricing: { inputPer1M: 0.042, outputPer1M: 0 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, decision: true },
+      contextWindow: 32_000,
+      maxTokens: 28_800,
+    };
+    r.offerings.push({ provider: "openai", family: "decider" });
+    assert.deepEqual(validateRegistry(r), []);
+    r.families.decider!.pricing.outputPer1M = 1;
+    assert.match(validateRegistry(r).join("\n"), /decision model needs an input price above zero and an output price of zero/);
+    r.families.decider!.pricing.outputPer1M = 0;
+    r.families.decider!.maxTokens = 0;
+    assert.match(validateRegistry(r).join("\n"), /maxTokens must be zero for an embedding model or rerank model/);
+    r.families.decider!.maxTokens = 28_800;
+    r.offerings.at(-1)!.capabilities = { decision: false };
+    assert.match(validateRegistry(r).join("\n"), /may not change decision/);
   });
 
   it("allows explicit zero output limits for image and embedding models", () => {

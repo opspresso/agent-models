@@ -874,5 +874,9 @@
       "outputPer1M": 4.8,
       "cachedInputPer1M": 0.4
     }
+  },
+  {
+    "family": "jev-1.13",
+    "wireId": "typesafe/jev-1.13"
   }
 ]

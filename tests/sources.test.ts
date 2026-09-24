@@ -13,6 +13,7 @@ import {
   OPENROUTER_RERANK_RANKINGS_URL,
   OPENROUTER_TRANSCRIPTION_MODELS_URL,
   OPENROUTER_TRANSCRIPTION_RANKINGS_URL,
+  OPENROUTER_DECISION_MODELS_URL,
   applyOpenRouter,
   catalogDiscount,
   discoverOpenRouter,
@@ -24,12 +25,12 @@ import {
   type OpenRouterModel,
 } from "../src/sources/openrouter.ts";
 import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
-import { applyAnthropic, discoverAnthropic, undated } from "../src/sources/anthropic.ts";
+import { applyAnthropic, discoverAnthropic, fetchAnthropicModels, undated } from "../src/sources/anthropic.ts";
 import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
 import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
-import { fetchJson, perMillion, type Change } from "../src/sources/types.ts";
+import { fetchJson, HttpError, perMillion, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
 const TODAY = "2026-08-20";
@@ -127,6 +128,7 @@ function orCatalog(models: OpenRouterModel[], extra: Partial<OpenRouterCatalog> 
     embeddingModels: [],
     rerankModels: [],
     transcriptionModels: [],
+    decisionModels: [],
     endpoints: {},
     rankings: [],
     imageRankings: [],
@@ -179,6 +181,19 @@ describe("fetchJson", () => {
     const fetchFn = (async () =>
       new Response(JSON.stringify({ data: "x".repeat(11 * 1024 * 1024) }))) as typeof fetch;
     await assert.rejects(fetchJson("https://example.test/catalog", {}, fetchFn), /larger than/);
+  });
+
+  it("reads only a structured error reason for a Google 400 response", async () => {
+    const fetchFn = (async () => new Response(JSON.stringify({
+      error: { code: 400, message: "API key not valid", details: [{ reason: "API_KEY_INVALID" }] },
+    }), { status: 400, statusText: "Bad Request" })) as typeof fetch;
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, fetchFn), (error: Error) => {
+      assert.ok(error instanceof HttpError);
+      assert.equal(error.status, 400);
+      assert.equal(error.reason, "API_KEY_INVALID");
+      assert.ok(!error.message.includes("API key not valid"));
+      return true;
+    });
   });
 });
 
@@ -569,6 +584,29 @@ describe("applyXai", () => {
   });
 });
 
+describe("fetchAnthropicModels", () => {
+  it("passes along an authentication status without exposing the key", async () => {
+    const key = "test-secret-never-report";
+    let received: RequestInit | undefined;
+    const fetchFn = (async (_url: string | URL | Request, init?: RequestInit) => {
+      received = init;
+      return new Response(null, { status: 401, statusText: "Unauthorized" });
+    }) as typeof fetch;
+    await assert.rejects(fetchAnthropicModels(key, fetchFn), (error: Error) => {
+      assert.ok(error instanceof HttpError);
+      assert.equal(error.status, 401);
+      assert.ok(!error.message.includes(key));
+      return true;
+    });
+    assert.deepEqual(received?.headers, { "x-api-key": key, "anthropic-version": "2023-06-01" });
+  });
+
+  it("preserves other HTTP failures", async () => {
+    const fetchFn = (async () => new Response(null, { status: 429, statusText: "Too Many Requests" })) as typeof fetch;
+    await assert.rejects(fetchAnthropicModels("test-key", fetchFn), /GET .*\/v1\/models\?limit=100 → 429 Too Many Requests/);
+  });
+});
+
 describe("applyAnthropic", () => {
   it("strips a dated snapshot to its alias", () => {
     assert.equal(undated("claude-haiku-4-5-20251001"), "claude-haiku-4-5");
@@ -702,6 +740,15 @@ const TRANSCRIPTION_MODEL: OpenRouterModel = {
   architecture: { input_modalities: ["audio"], output_modalities: ["transcription"] },
 };
 
+const DECISION_MODEL: OpenRouterModel = {
+  id: "typesafe/jev-1.13",
+  name: "TypeSafe: Jev 1.13",
+  context_length: 32_000,
+  pricing: { prompt: "0.000000042", completion: "0" },
+  top_provider: { max_completion_tokens: 28_800 },
+  architecture: { input_modalities: ["text"], output_modalities: ["decisions"] },
+};
+
 const TRANSCRIPTION_RANKING = {
   model_permaslug: TRANSCRIPTION_MODEL.canonical_slug as string,
   variant_permaslug: TRANSCRIPTION_MODEL.canonical_slug as string,
@@ -714,6 +761,9 @@ function specializedCatalogBody(url: string): unknown | null {
   }
   if (url === OPENROUTER_TRANSCRIPTION_MODELS_URL) {
     return { data: [TRANSCRIPTION_MODEL], total_count: 1, links: { next: null } };
+  }
+  if (url === OPENROUTER_DECISION_MODELS_URL) {
+    return { data: [DECISION_MODEL], total_count: 1, links: { next: null } };
   }
   return null;
 }
@@ -815,6 +865,32 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("collects stable decision models without a rankings feed and refreshes input-only pricing", () => {
+    const catalog = orCatalog([], {
+      decisionModels: [{ ...DECISION_MODEL, id: "~typesafe/jev-latest" }, DECISION_MODEL],
+      endpoints: { [DECISION_MODEL.id]: [{ pricing: { prompt: "0.000000042", completion: "0", discount: 0 } }] },
+    });
+    const discovered = discoverOpenRouter(fixture(), catalog, TODAY);
+    assert.deepEqual(discovered.registry.makers.typesafe, { displayName: "TypeSafe", openrouterVendor: "typesafe" });
+    assert.deepEqual(discovered.registry.families["jev-1.13"]?.pricing, { inputPer1M: 0.042, outputPer1M: 0 });
+    assert.equal(discovered.registry.families["jev-1.13"]?.capabilities.decision, true);
+    assert.equal(discovered.registry.families["jev-1.13"]?.maxTokens, 28_800);
+    assert.ok(discovered.registry.offerings.some((offering) => offering.wireId === DECISION_MODEL.id));
+    assert.ok(!discovered.registry.offerings.some((offering) => offering.wireId === "~typesafe/jev-latest"));
+    assert.deepEqual(validateRegistry(discovered.registry), []);
+
+    const changed = applyOpenRouter(discovered.registry, orCatalog([], {
+      decisionModels: [{ ...DECISION_MODEL, context_length: 36_000, top_provider: { max_completion_tokens: 30_000 }, pricing: { prompt: "0.00000005", completion: "0" } }],
+    }), TODAY);
+    assert.deepEqual(changed.registry.families["jev-1.13"]?.pricing, { inputPer1M: 0.05, outputPer1M: 0 });
+    assert.equal(changed.registry.families["jev-1.13"]?.contextWindow, 36_000);
+    assert.equal(changed.registry.families["jev-1.13"]?.maxTokens, 30_000);
+
+    const reset = resetOpenRouterRegistry(discovered.registry);
+    const restored = discoverOpenRouter(reset.registry, catalog, TODAY);
+    assert.equal(restored.registry.offerings.find((offering) => offering.wireId === DECISION_MODEL.id)?.hidden, undefined);
+  });
+
   it("adds ranked rerank and transcription models from complete short leaderboards", () => {
     const { registry } = discoverOpenRouter(
       fixture(),
@@ -1514,6 +1590,28 @@ describe("fetch guards and snapshot folding", () => {
   const jsonResponse = (body: unknown) =>
     ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
 
+  it("OpenRouter: an empty or truncated decisions catalog is a failed read", async () => {
+    for (const body of [
+      { data: [], total_count: 0, links: { next: null } },
+      { data: [DECISION_MODEL], total_count: 2, links: { next: "next" } },
+    ]) {
+      const fetchFn = (async (url: string | URL | Request) => {
+        const target = String(url);
+        if (target === OPENROUTER_DECISION_MODELS_URL) return jsonResponse(body);
+        const specialized = specializedCatalogBody(target);
+        if (specialized !== null) return jsonResponse(specialized);
+        if (target === OPENROUTER_MODELS_URL) return jsonResponse({ data: [GPT_X_LISTED], total_count: 1, links: { next: null } });
+        if (target === OPENROUTER_EMBEDDING_MODELS_URL) return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
+        if (target === OPENROUTER_IMAGE_MODELS_URL) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
+        return jsonResponse({ data: [] });
+      }) as typeof fetch;
+      await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
+        assert.ok(error.message.includes(OPENROUTER_DECISION_MODELS_URL));
+        return true;
+      });
+    }
+  });
+
   it("OpenRouter: enriches specialized prices from the public model page", async () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
@@ -1524,6 +1622,9 @@ describe("fetch guards and snapshot folding", () => {
       if (target === OPENROUTER_TRANSCRIPTION_MODELS_URL) {
         const { transcription_minute: _price, ...pricing } = TRANSCRIPTION_MODEL.pricing!;
         return jsonResponse({ data: [{ ...TRANSCRIPTION_MODEL, pricing }], total_count: 1, links: { next: null } });
+      }
+      if (target === OPENROUTER_DECISION_MODELS_URL) {
+        return jsonResponse(specializedCatalogBody(target));
       }
       if (target === OPENROUTER_RERANK_RANKINGS_URL) return jsonResponse({ data: [RERANK_RANKING] });
       if (target === OPENROUTER_TRANSCRIPTION_RANKINGS_URL) return jsonResponse({ data: [TRANSCRIPTION_RANKING] });

@@ -16,10 +16,9 @@
  *                  the registry now has, the ones just added included.
  *
  * OpenRouter needs no key and always runs; xAI, Anthropic, OpenAI and Google
- * run when their key is in the environment and are reported as skipped
- * otherwise. The exit code is 1 when a source failed, so the run shows red and
- * nobody reads a quiet summary as a clean one — what the other sources found
- * is still written.
+ * are skipped with a report entry when their key is absent or rejected. Other
+ * fetch failures still make the run red; what the other sources found is
+ * still written.
  *
  * Nothing is written if the patched registry fails validation: a provider
  * publishing a max output above its own window is a thing to look at, not a
@@ -86,6 +85,7 @@ const SOURCES: UpdateSource[] = [
   {
     name: "xAI",
     disabled: keyed("XAI_API_KEY"),
+    credentialName: "XAI_API_KEY",
     fetch: async () => {
       const catalog = await fetchXaiCatalog(process.env.XAI_API_KEY as string);
       return { discover: (r) => discoverXai(r, catalog), apply: (r) => applyXai(r, catalog, today) };
@@ -94,6 +94,7 @@ const SOURCES: UpdateSource[] = [
   {
     name: "Anthropic",
     disabled: keyed("ANTHROPIC_API_KEY"),
+    credentialName: "ANTHROPIC_API_KEY",
     fetch: async () => {
       const catalog = await fetchAnthropicModels(process.env.ANTHROPIC_API_KEY as string);
       return { discover: (r) => discoverAnthropic(r, catalog), apply: (r) => applyAnthropic(r, catalog, today) };
@@ -102,6 +103,7 @@ const SOURCES: UpdateSource[] = [
   {
     name: "OpenAI",
     disabled: keyed("OPENAI_API_KEY"),
+    credentialName: "OPENAI_API_KEY",
     fetch: async () => {
       const ids = await fetchOpenAiModelIds(process.env.OPENAI_API_KEY as string);
       return { discover: (r) => discoverOpenAi(r, ids), apply: (r) => applyOpenAi(r, ids, today) };
@@ -110,6 +112,7 @@ const SOURCES: UpdateSource[] = [
   {
     name: "Google",
     disabled: keyed("GOOGLE_API_KEY"),
+    credentialName: "GOOGLE_API_KEY",
     fetch: async () => {
       const catalog = await fetchGoogleModels(process.env.GOOGLE_API_KEY as string);
       return { discover: (r) => discoverGoogle(r, catalog), apply: (r) => applyGoogle(r, catalog, today) };

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { issueBody, slackMessage } from "../src/notify.ts";
+import { renderReport } from "../src/report.ts";
 import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
 import type { Registry } from "../src/registry.ts";
+import { HttpError } from "../src/sources/types.ts";
 
 const registry: Registry = { providers: [], makers: {}, families: {}, offerings: [] };
 
@@ -23,6 +26,46 @@ function source(name: string, order: string[]): UpdateSource {
 }
 
 describe("runUpdatePipeline", () => {
+  it("skips absent or rejected vendor keys, reports why, and continues other sources quietly", async () => {
+    const order: string[] = [];
+    const keyed = (name: string, credentialName: string, error: HttpError): UpdateSource => ({
+      name,
+      credentialName,
+      disabled: null,
+      fetch: async () => { throw error; },
+    });
+    const result = await runUpdatePipeline(registry, [
+      { ...source("Missing", order), disabled: "`MISSING_API_KEY` is not set", credentialName: "MISSING_API_KEY" },
+      keyed("xAI", "XAI_API_KEY", new HttpError("https://example.test/xai", 401, "Unauthorized")),
+      keyed("Anthropic", "ANTHROPIC_API_KEY", new HttpError("https://example.test/anthropic", 401, "Unauthorized")),
+      keyed("OpenAI", "OPENAI_API_KEY", new HttpError("https://example.test/openai", 403, "Forbidden")),
+      keyed("Google", "GOOGLE_API_KEY", new HttpError("https://example.test/google", 400, "Bad Request", "API_KEY_INVALID")),
+      source("OpenRouter", order),
+    ]);
+    assert.equal(result.failed, false);
+    assert.deepEqual(result.outcomes.map((outcome) => outcome.kind), ["skipped", "skipped", "skipped", "skipped", "skipped", "applied"]);
+    assert.deepEqual(order, ["discover:OpenRouter", "apply:OpenRouter"]);
+    const report = renderReport(result.outcomes, "2026-09-24");
+    for (const name of ["MISSING_API_KEY", "XAI_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY"]) {
+      assert.ok(report.includes(name));
+    }
+    const context = { date: "2026-09-24", outcomes: result.outcomes, runUrl: "https://example.test/run" };
+    assert.equal(slackMessage(context), null);
+    assert.equal(issueBody(context), null);
+  });
+
+  it("keeps unrelated HTTP errors as failures", async () => {
+    const keyed = (status: number, reason?: string): UpdateSource => ({
+      name: String(status),
+      credentialName: "GOOGLE_API_KEY",
+      disabled: null,
+      fetch: async () => { throw new HttpError("https://example.test/google", status, "Error", reason); },
+    });
+    const result = await runUpdatePipeline(registry, [keyed(400, "INVALID_ARGUMENT"), keyed(429)]);
+    assert.equal(result.failed, true);
+    assert.deepEqual(result.outcomes.map((outcome) => outcome.kind), ["failed", "failed"]);
+  });
+
   it("isolates a fetch failure and applies OpenRouter last", async () => {
     const order: string[] = [];
     const broken: UpdateSource = { name: "Broken", disabled: null, fetch: async () => { throw new Error("offline"); } };

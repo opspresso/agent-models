@@ -79,6 +79,8 @@ export interface ModelCapabilities {
   rerank?: boolean;
   /** Produces text from audio through a transcription endpoint. */
   transcription?: boolean;
+  /** Returns typed choices or scores through a decisions endpoint. */
+  decision?: boolean;
   /**
    * False when the provider rejects `tools` together with `reasoning_effort`
    * on chat/completions. Absent means the combination is allowed.
@@ -214,6 +216,7 @@ const CAPABILITY_KEYS = [
   "embedding",
   "rerank",
   "transcription",
+  "decision",
   "reasoningWithTools",
 ] as const;
 
@@ -674,10 +677,11 @@ export function validateRegistry(registry: Registry): string[] {
     const embedding = family.capabilities?.embedding === true;
     const rerank = family.capabilities?.rerank === true;
     const transcription = family.capabilities?.transcription === true;
+    const decision = family.capabilities?.decision === true;
     if (imageGeneration && embedding) {
       errors.push(`${where}: a model may not be both imageGeneration and embedding`);
     }
-    if ([imageGeneration, embedding, rerank, transcription].filter(Boolean).length > 1) {
+    if ([imageGeneration, embedding, rerank, transcription, decision].filter(Boolean).length > 1) {
       errors.push(`${where}: model types are mutually exclusive`);
     }
     if (!isModelCount(family.contextWindow, imageGeneration || transcription)) {
@@ -741,6 +745,12 @@ export function validateRegistry(registry: Registry): string[] {
         offering.capabilities.transcription !== (family.capabilities.transcription ?? false)
       ) {
         errors.push(`${where}: a route may not change transcription`);
+      }
+      if (
+        offering.capabilities.decision !== undefined &&
+        offering.capabilities.decision !== (family.capabilities.decision ?? false)
+      ) {
+        errors.push(`${where}: a route may not change decision`);
       }
     }
     if (
@@ -863,6 +873,13 @@ export function validateRegistry(registry: Registry): string[] {
       }
       if (pricing.perSearch !== undefined) {
         errors.push(`${where}: a transcription model may not carry rerank pricing`);
+      }
+    } else if (capabilities.decision) {
+      if (!(pricing.inputPer1M > 0) || pricing.outputPer1M !== 0) {
+        errors.push(`${where}: a decision model needs an input price above zero and an output price of zero`);
+      }
+      if (specializedPrices.length > 0) {
+        errors.push(`${where}: a decision model may not carry rerank or transcription pricing`);
       }
     } else if (!(pricing.inputPer1M > 0 && pricing.outputPer1M > 0)) {
       errors.push(`${where}: a text model needs input and output prices above zero`);

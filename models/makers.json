@@ -118,5 +118,9 @@
   "assemblyai": {
     "displayName": "AssemblyAI",
     "openrouterVendor": "assemblyai"
+  },
+  "typesafe": {
+    "displayName": "TypeSafe",
+    "openrouterVendor": "typesafe"
   }
 }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent Models</title>
-<meta name="description" content="A daily-refreshed registry of text, image, embedding, rerank, and transcription models with prices, limits, capabilities, makers, and provider routes.">
+<meta name="description" content="A daily-refreshed registry of text, image, embedding, rerank, transcription, and decision models with prices, limits, capabilities, makers, and provider routes.">
 <link rel="icon" href="favicon.ico" sizes="48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -190,6 +190,7 @@
   .badge.type-embedding { background: var(--green-bg); color: var(--green-ink); }
   .badge.type-rerank { background: var(--teal-bg); color: var(--teal-ink); }
   .badge.type-transcription { background: var(--brand-1); color: var(--brand-8); }
+  .badge.type-decision { background: var(--teal-bg); color: var(--teal-ink); }
   .price { margin-top: 12px; font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
   .ctx { margin-top: 2px; font-size: 12px; color: var(--dimmed); }
   .also { margin-top: 4px; font-size: 12px; color: var(--dimmed); }
@@ -219,7 +220,7 @@
       <div>
         <div class="eyebrow">Model registry</div>
         <h1>Models</h1>
-        <p>Text, image, embedding, rerank, and transcription models — what each costs, how much it can hold, what it can do — one card per provider route, refreshed every day.</p>
+        <p>Text, image, embedding, rerank, transcription, and decision models — what each costs, how much it can hold, what it can do — one card per provider route, refreshed every day.</p>
       </div>
     </div>
     <div class="aside">
@@ -259,6 +260,7 @@
         <option value="embedding">Embedding</option>
         <option value="rerank">Rerank</option>
         <option value="transcription">Transcription</option>
+        <option value="decision">Decision</option>
       </select>
       <div class="checks" role="group" aria-label="Capabilities">
         <label class="check"><input type="checkbox" data-cap="tools"> Tools</label>
@@ -292,11 +294,12 @@
   const catalog = await (await fetch("models.json", { cache: "no-cache" })).json();
   const ROUTERS = new Set(["bedrock", "openrouter"]);
   const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"]];
-  const MODEL_TYPES = new Set(["text", "image", "embedding", "rerank", "transcription"]);
+  const MODEL_TYPES = new Set(["text", "image", "embedding", "rerank", "transcription", "decision"]);
   const modelType = (m) => m.capabilities.embedding ? "embedding"
     : m.capabilities.imageGeneration ? "image"
     : m.capabilities.rerank ? "rerank"
     : m.capabilities.transcription ? "transcription"
+    : m.capabilities.decision ? "decision"
     : "text";
   const typeLabel = (type) => type.charAt(0).toUpperCase() + type.slice(1);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -313,6 +316,7 @@
     const p = m.pricing;
     const { inputPer1M, outputPer1M, imageOutputPer1M, perImage, perSearch, perAudioMinute } = p;
     if (m.capabilities.embedding) return `${formatUsd(inputPer1M)} in per 1M`;
+    if (m.capabilities.decision) return `${formatUsd(inputPer1M)} in per 1M`;
     if (m.capabilities.rerank) return perSearch !== undefined ? `${formatUsd(perSearch)} / search` : `${formatUsd(inputPer1M)} in per 1M`;
     if (m.capabilities.transcription && perAudioMinute !== undefined) return `${formatUsd(perAudioMinute)} / audio minute`;
     if (imageOutputPer1M === undefined && perImage === undefined) return `${formatUsd(inputPer1M)} in · ${formatUsd(outputPer1M)} out per 1M`;
@@ -327,7 +331,7 @@
     : `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
   const otherRoutes = (m) => catalog.models.filter((o) => o.family === m.family && o.provider !== m.provider && !o.hidden).map((o) => o.provider);
   const primaryPrice = (m) => m.pricing.perSearch ?? m.pricing.perAudioMinute
-    ?? (m.capabilities.embedding || m.capabilities.rerank ? m.pricing.inputPer1M
+    ?? (m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision ? m.pricing.inputPer1M
       : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M);
 
   // ---- header ----
@@ -433,7 +437,7 @@
       ? `${formatUsd(m.pricing.perSearch / listDivisor)} / search`
       : m.pricing.perAudioMinute !== undefined
         ? `${formatUsd(m.pricing.perAudioMinute / listDivisor)} / audio minute`
-      : m.capabilities.embedding || m.capabilities.rerank
+      : m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision
       ? `${formatUsd(m.pricing.inputPer1M / listDivisor)} in per 1M`
       : `${formatUsd(m.pricing.inputPer1M / listDivisor)} in · ${formatUsd((m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M) / listDivisor)} out per 1M`;
     const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${promoList}">−${Math.round(d * 100)}%</span>` : "";

@@ -1,12 +1,14 @@
 import type { Registry } from "./registry.ts";
 import type { SourceOutcome } from "./report.ts";
-import type { SourceResult } from "./sources/types.ts";
+import { HttpError, type SourceResult } from "./sources/types.ts";
 
 export type UpdateStep = (registry: Registry) => { registry: Registry; result: SourceResult };
 
 export interface UpdateSource {
   name: string;
   disabled: string | null;
+  /** A vendor catalog's optional API key; authentication failures skip only this source. */
+  credentialName?: string;
   fetch: (registry: Registry) => Promise<{ discover: UpdateStep; apply: UpdateStep }>;
 }
 
@@ -21,6 +23,12 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function credentialFailure(source: UpdateSource, error: unknown): error is HttpError {
+  return source.credentialName !== undefined
+    && error instanceof HttpError
+    && (error.status === 401 || error.status === 403 || source.credentialName === "GOOGLE_API_KEY" && error.status === 400 && error.reason === "API_KEY_INVALID");
+}
+
 /** Run independent fetches, then discovery and vendor-first application with source-level isolation. */
 export async function runUpdatePipeline(initial: Registry, sources: readonly UpdateSource[]): Promise<PipelineResult> {
   let registry = initial;
@@ -33,7 +41,15 @@ export async function runUpdatePipeline(initial: Registry, sources: readonly Upd
     try {
       return { source, ...await source.fetch(initial) };
     } catch (error) {
-      states.set(source.name, { kind: "failed", source: source.name, error: message(error) });
+      if (credentialFailure(source, error)) {
+        states.set(source.name, {
+          kind: "skipped",
+          source: source.name,
+          reason: `\`${source.credentialName}\` was rejected (HTTP ${error.status}); check the key and its permissions`,
+        });
+      } else {
+        states.set(source.name, { kind: "failed", source: source.name, error: message(error) });
+      }
       return null;
     }
   }));

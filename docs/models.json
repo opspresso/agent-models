@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-24T01:30:06.715Z",
+  "updatedAt": "2026-09-24T01:48:11.329Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -40,7 +40,8 @@
     "fish-audio": "Fish Audio",
     "meta": "Meta",
     "recraft": "Recraft",
-    "assemblyai": "AssemblyAI"
+    "assemblyai": "AssemblyAI",
+    "typesafe": "TypeSafe"
   },
   "models": [
     {
@@ -6350,6 +6351,27 @@
       "contextWindow": 500000,
       "maxTokens": 450000,
       "wireId": "x-ai/grok-4.7"
+    },
+    {
+      "id": "openrouter/jev-1.13",
+      "provider": "openrouter",
+      "family": "jev-1.13",
+      "maker": "typesafe",
+      "displayName": "Jev 1.13",
+      "pricing": {
+        "inputPer1M": 0.042,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 28800,
+      "wireId": "typesafe/jev-1.13"
     }
   ]
 }

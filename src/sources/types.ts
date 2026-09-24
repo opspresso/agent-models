@@ -81,6 +81,29 @@ export function isExternalId(value: unknown): value is string {
 export const FETCH_TIMEOUT_MS = 30_000;
 export const MAX_JSON_BYTES = 10 * 1024 * 1024;
 
+export class HttpError extends Error {
+  readonly status: number;
+  readonly reason: string | undefined;
+
+  constructor(url: string, status: number, statusText: string, reason?: string) {
+    super(`GET ${url} → ${status} ${statusText}`);
+    this.status = status;
+    this.reason = reason;
+  }
+}
+
+function apiErrorReason(body: unknown): string | undefined {
+  if (typeof body !== "object" || body === null || !("error" in body)) return undefined;
+  const error = body.error;
+  if (typeof error !== "object" || error === null || !("details" in error) || !Array.isArray(error.details)) return undefined;
+  for (const detail of error.details as unknown[]) {
+    if (typeof detail === "object" && detail !== null && "reason" in detail && typeof detail.reason === "string") {
+      return detail.reason;
+    }
+  }
+  return undefined;
+}
+
 async function readJson(response: Response, url: string): Promise<unknown> {
   const stated = Number(response.headers?.get("content-length"));
   if (stated > MAX_JSON_BYTES) {
@@ -120,7 +143,15 @@ export async function fetchJson(
   const signal = init.signal == null ? timeout : AbortSignal.any([init.signal, timeout]);
   const response = await fetchFn(url, { ...init, redirect: "error", signal });
   if (!response.ok) {
-    throw new Error(`GET ${url} → ${response.status} ${response.statusText}`);
+    let reason: string | undefined;
+    if (response.status === 400) {
+      try {
+        reason = apiErrorReason(await readJson(response, url));
+      } catch {
+        // Preserve the HTTP status when an error response has no usable JSON body.
+      }
+    }
+    throw new HttpError(url, response.status, response.statusText, reason);
   }
   return readJson(response, url);
 }

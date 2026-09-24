@@ -1,0 +1,19 @@
+{
+  "jev-1.13": {
+    "displayName": "Jev 1.13",
+    "pricing": {
+      "inputPer1M": 0.042,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 32000,
+    "maxTokens": 28800,
+    "note": "OpenRouter's decisions catalog and endpoint list, verified 2026-09-24; input-only pricing, typed decisions via /api/alpha/decisions."
+  }
+}
