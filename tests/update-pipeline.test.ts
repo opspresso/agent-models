@@ -26,6 +26,13 @@ function source(name: string, order: string[]): UpdateSource {
 }
 
 describe("runUpdatePipeline", () => {
+  it("rejects duplicate source names before any fetch", async () => {
+    const order: string[] = [];
+    const duplicate: UpdateSource = { name: "Same", disabled: null, fetch: async () => { order.push("fetch"); throw new Error("unexpected fetch"); } };
+    await assert.rejects(runUpdatePipeline(registry, [duplicate, duplicate]), /duplicate update source "Same"/);
+    assert.deepEqual(order, []);
+  });
+
   it("skips absent or rejected vendor keys, reports why, and continues other sources quietly", async () => {
     const order: string[] = [];
     const keyed = (name: string, credentialName: string, error: HttpError): UpdateSource => ({

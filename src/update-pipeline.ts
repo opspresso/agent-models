@@ -31,6 +31,11 @@ function credentialFailure(source: UpdateSource, error: unknown): error is HttpE
 
 /** Run independent fetches, then discovery and vendor-first application with source-level isolation. */
 export async function runUpdatePipeline(initial: Registry, sources: readonly UpdateSource[]): Promise<PipelineResult> {
+  const names = new Set<string>();
+  for (const source of sources) {
+    if (names.has(source.name)) throw new Error(`duplicate update source "${source.name}"`);
+    names.add(source.name);
+  }
   let registry = initial;
   const states = new Map<string, SourceOutcome>();
   const fetched = await Promise.all(sources.map(async (source) => {
@@ -90,9 +95,8 @@ export async function runUpdatePipeline(initial: Registry, sources: readonly Upd
     }
   }
 
-  // Every source lands in `states` — skipped, failed, or applied. A gap would
-  // mean a name collision in `sources`, and an undefined outcome would only
-  // surface as a crash inside the report; say so here instead.
+  // Every source lands in `states` — skipped, failed, or applied. A missing
+  // outcome is an internal pipeline error, not an empty report row.
   const outcomes = sources.map((source) => {
     const outcome = states.get(source.name);
     if (outcome === undefined) {
