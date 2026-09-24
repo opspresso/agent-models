@@ -321,7 +321,6 @@
     $("grid").innerHTML = '<div class="empty" style="grid-column:1/-1">Could not load the model catalog. Please try again later.</div>';
     return;
   }
-  const ROUTERS = new Set(["bedrock", "openrouter"]);
   const CAPABILITY_COLUMNS = [["tools", "Tools"], ["imageInput", "Vision"], ["reasoning", "Reasoning"]];
   const MODEL_TYPES = new Set(["text", "image", "embedding", "rerank", "transcription", "decision"]);
   const modelType = (m) => m.capabilities.embedding ? "embedding"
@@ -357,7 +356,14 @@
     : m.capabilities.transcription && m.contextWindow === 0
       ? "Audio input · token limits not published"
     : `Context ${roundTokens(m.contextWindow)} · max out ${roundTokens(m.maxTokens)}`;
-  const otherRoutes = (m) => catalog.models.filter((o) => o.family === m.family && o.provider !== m.provider && !o.hidden).map((o) => o.provider);
+  const routesByFamily = new Map();
+  for (const model of catalog.models) {
+    if (model.hidden) continue;
+    const routes = routesByFamily.get(model.family) ?? [];
+    routes.push(model.provider);
+    routesByFamily.set(model.family, routes);
+  }
+  const otherRoutes = (m) => (routesByFamily.get(m.family) ?? []).filter((provider) => provider !== m.provider);
   const primaryPrice = (m) => m.pricing.perSearch ?? m.pricing.perAudioMinute
     ?? (m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision ? m.pricing.inputPer1M
       : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M);
@@ -453,9 +459,11 @@
     const mark = Object.hasOwn(icons, m.maker)
       ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(icons[m.maker])}" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-initials="${esc(initials(makerLabel(m.maker)))}"></span>`
       : `<span class="mark blank">${esc(initials(m.maker))}</span>`;
+    // The route is a gateway when its provider is not the model's maker.
+    const routed = m.provider !== m.maker;
     const providerBadge = m.hidden
       ? `<span class="badge neutral">${esc(m.provider)} · retired</span>`
-      : `<span class="badge ${ROUTERS.has(m.provider) ? "router" : "on"}">${esc(m.provider)}${ROUTERS.has(m.provider) ? " · router" : ""}</span>`;
+      : `<span class="badge ${routed ? "router" : "on"}">${esc(m.provider)}${routed ? " · router" : ""}</span>`;
     const type = modelType(m);
     const typeBadge = `<span class="badge type-${type}">${typeLabel(type)}</span>`;
     const caps = CAPABILITY_COLUMNS.filter(([k]) => m.capabilities[k]).map(([, l]) => `<span class="badge outline">${l}</span>`).join("");
