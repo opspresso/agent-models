@@ -112,6 +112,15 @@ interface GitHubIssue {
   state: string;
 }
 
+class GitHubApiError extends Error {
+  readonly status: number;
+
+  constructor(method: string, path: string, status: number, statusText: string) {
+    super(`${method} ${path} → ${status} ${statusText}`);
+    this.status = status;
+  }
+}
+
 /**
  * Create, rewrite or close the rolling issue. `repo` is `owner/name`. Answers
  * what it did, for the log.
@@ -138,7 +147,7 @@ export async function syncIssue(
       signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) {
-      throw new Error(`${method} ${path} → ${response.status} ${response.statusText}`);
+      throw new GitHubApiError(method, path, response.status, response.statusText);
     }
     return response.status === 204 ? null : response.json();
   };
@@ -163,11 +172,13 @@ export async function syncIssue(
     return `closed #${open.number}`;
   }
   if (open === undefined) {
-    // The label may not exist yet; creating it twice answers 422, which is fine.
+    // A 422 may mean another run created the label first. Verify it exists;
+    // other validation or permission failures must remain visible.
     try {
       await call("POST", "/labels", { name: ISSUE_LABEL, color: "fbca04", description: "The daily model update found something a person should decide" });
-    } catch {
-      /* already there */
+    } catch (error) {
+      if (!(error instanceof GitHubApiError) || error.status !== 422) throw error;
+      await call("GET", `/labels/${encodeURIComponent(ISSUE_LABEL)}`);
     }
     const created = (await call("POST", "/issues", { title: ISSUE_TITLE, body, labels: [ISSUE_LABEL] })) as GitHubIssue;
     return `opened #${created.number}`;

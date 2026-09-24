@@ -74,6 +74,38 @@ describe("syncIssue", () => {
     assert.ok(gh.calls.some((c) => c.method === "POST" && c.path === "/issues" && (c.body as { title: string }).title === ISSUE_TITLE));
   });
 
+  it("confirms a label exists before accepting a create conflict", async () => {
+    const calls: string[] = [];
+    const fetchFn = (async (url: string | URL | Request, init?: RequestInit) => {
+      const path = String(url).replace("https://api.github.com/repos/o/r", "");
+      const method = init?.method ?? "GET";
+      calls.push(`${method} ${path}`);
+      if (path.startsWith("/issues?")) return new Response("[]");
+      if (method === "POST" && path === "/labels") return new Response(null, { status: 422, statusText: "Unprocessable Entity" });
+      if (method === "GET" && path === "/labels/needs-a-look") return new Response('{}');
+      if (method === "POST" && path === "/issues") return new Response('{"number":7}', { status: 201 });
+      throw new Error(`unexpected ${method} ${path}`);
+    }) as typeof fetch;
+    const context = { ...base, outcomes: [{ kind: "failed" as const, source: "Provider", error: "offline" }] };
+    assert.equal(await syncIssue("t", "o/r", context, fetchFn), "opened #7");
+    assert.deepEqual(calls.slice(-3), ["POST /labels", "GET /labels/needs-a-look", "POST /issues"]);
+  });
+
+  it("surfaces a label permission error without creating the issue", async () => {
+    const calls: string[] = [];
+    const fetchFn = (async (url: string | URL | Request, init?: RequestInit) => {
+      const path = String(url).replace("https://api.github.com/repos/o/r", "");
+      const method = init?.method ?? "GET";
+      calls.push(`${method} ${path}`);
+      return path.startsWith("/issues?")
+        ? new Response("[]")
+        : new Response(null, { status: 403, statusText: "Forbidden" });
+    }) as typeof fetch;
+    const context = { ...base, outcomes: [{ kind: "failed" as const, source: "Provider", error: "offline" }] };
+    await assert.rejects(syncIssue("t", "o/r", context, fetchFn), /POST \/labels → 403 Forbidden/);
+    assert.ok(!calls.includes("POST /issues"));
+  });
+
   it("rewrites the open issue when the list changed, and leaves it when it did not", async () => {
     const ctx = { ...base, outcomes: [{ kind: "applied" as const, result: { source: "OpenRouter", changes: [], notes: ["a"] } }] };
     const body = issueBody(ctx) as string;
