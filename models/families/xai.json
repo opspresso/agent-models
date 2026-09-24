@@ -188,5 +188,22 @@
     "contextWindow": 0,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "grok-4.7": {
+    "displayName": "Grok 4.7",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 6,
+      "cachedInputPer1M": 0.5
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 500000,
+    "maxTokens": 450000,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-21); numbers and flags are OpenRouter's."
   }
 }

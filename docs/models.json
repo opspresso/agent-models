@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-20T23:56:52.112Z",
+  "updatedAt": "2026-09-24T01:25:07.173Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -39,7 +39,8 @@
     "deepgram": "Deepgram",
     "fish-audio": "Fish Audio",
     "meta": "Meta",
-    "recraft": "Recraft"
+    "recraft": "Recraft",
+    "assemblyai": "AssemblyAI"
   },
   "models": [
     {
@@ -981,6 +982,46 @@
       "maxTokens": 128000
     },
     {
+      "id": "openai/gpt-6-luna",
+      "provider": "openai",
+      "family": "gpt-6-luna",
+      "maker": "openai",
+      "displayName": "GPT-6 Luna",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
+      "id": "openai/gpt-6-sol",
+      "provider": "openai",
+      "family": "gpt-6-sol",
+      "maker": "openai",
+      "displayName": "GPT-6 Sol",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000
+    },
+    {
       "id": "anthropic/claude-fable-5",
       "provider": "anthropic",
       "family": "claude-fable-5",
@@ -1908,6 +1949,26 @@
       "maxTokens": 4096
     },
     {
+      "id": "xai/grok-4.7",
+      "provider": "xai",
+      "family": "grok-4.7",
+      "maker": "xai",
+      "displayName": "Grok 4.7",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 6,
+        "cachedInputPer1M": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 500000,
+      "maxTokens": 450000
+    },
+    {
       "id": "bedrock/gpt-oss-120b",
       "provider": "bedrock",
       "family": "gpt-oss-120b",
@@ -2154,10 +2215,10 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.91,
-        "outputPer1M": 2.86,
-        "cachedInputPer1M": 0.169,
-        "discount": 0.35
+        "inputPer1M": 0.84,
+        "outputPer1M": 2.64,
+        "cachedInputPer1M": 0.156,
+        "discount": 0.4
       },
       "capabilities": {
         "tools": true,
@@ -2219,7 +2280,7 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.07,
+        "inputPer1M": 0.08,
         "outputPer1M": 0.2,
         "cachedInputPer1M": 0.04
       },
@@ -2230,7 +2291,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 235929,
+      "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2521,9 +2582,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.0825,
-        "outputPer1M": 0.33,
-        "cachedInputPer1M": 0.020625
+        "inputPer1M": 0.132,
+        "outputPer1M": 0.528,
+        "cachedInputPer1M": 0.033
       },
       "capabilities": {
         "tools": true,
@@ -2860,10 +2921,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.9483,
-        "outputPer1M": 1.8966,
-        "cachedInputPer1M": 0.079025,
-        "discount": 0.455
+        "inputPer1M": 0.9396,
+        "outputPer1M": 1.8792,
+        "cachedInputPer1M": 0.0783,
+        "discount": 0.46
       },
       "capabilities": {
         "tools": true,
@@ -2882,10 +2943,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.089866,
-        "outputPer1M": 0.179732,
-        "cachedInputPer1M": 0.0179732,
-        "discount": 0.3581
+        "inputPer1M": 0.088606,
+        "outputPer1M": 0.177212,
+        "cachedInputPer1M": 0.0177212,
+        "discount": 0.3671
       },
       "capabilities": {
         "tools": true,
@@ -3726,7 +3787,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 200000,
       "maxTokens": 64000,
       "wireId": "anthropic/claude-sonnet-4"
     },
@@ -3749,7 +3810,8 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 65535,
-      "wireId": "google/gemini-2.5-pro-preview-05-06"
+      "wireId": "google/gemini-2.5-pro-preview-05-06",
+      "hidden": true
     },
     {
       "id": "openrouter/o4-mini-high",
@@ -4142,7 +4204,8 @@
       },
       "contextWindow": 128000,
       "maxTokens": 4096,
-      "wireId": "openai/gpt-4-turbo-preview"
+      "wireId": "openai/gpt-4-turbo-preview",
+      "hidden": true
     },
     {
       "id": "openrouter/gpt-3.5-turbo-16k",
@@ -4662,9 +4725,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 1.7,
-        "outputPer1M": 8.5,
-        "cachedInputPer1M": 0.17
+        "inputPer1M": 3,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -4727,9 +4790,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.09,
-        "outputPer1M": 0.3,
-        "cachedInputPer1M": 0.018
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -4738,7 +4801,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 131072,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -5482,8 +5545,8 @@
         "reasoning": false,
         "transcription": true
       },
-      "contextWindow": 0,
-      "maxTokens": 0,
+      "contextWindow": 16384,
+      "maxTokens": 13107,
       "wireId": "mistralai/voxtral-mini-transcribe"
     },
     {
@@ -5953,9 +6016,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.003
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.0042,
+        "discount": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -5964,7 +6028,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 131072,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6095,6 +6159,176 @@
       "contextWindow": 1000000,
       "maxTokens": 65536,
       "wireId": "qwen/qwen3.7-flash"
+    },
+    {
+      "id": "openrouter/universal-3-5-pro",
+      "provider": "openrouter",
+      "family": "universal-3-5-pro",
+      "maker": "assemblyai",
+      "displayName": "Universal-3.5 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00375,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "assemblyai/universal-3-5-pro"
+    },
+    {
+      "id": "openrouter/gpt-6-luna-pro",
+      "provider": "openrouter",
+      "family": "gpt-6-luna-pro",
+      "maker": "openai",
+      "displayName": "GPT-6 Luna Pro",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-luna-pro"
+    },
+    {
+      "id": "openrouter/gpt-6-luna",
+      "provider": "openrouter",
+      "family": "gpt-6-luna",
+      "maker": "openai",
+      "displayName": "GPT-6 Luna",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-luna"
+    },
+    {
+      "id": "openrouter/gpt-6-sol-pro",
+      "provider": "openrouter",
+      "family": "gpt-6-sol-pro",
+      "maker": "openai",
+      "displayName": "GPT-6 Sol Pro",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-sol-pro"
+    },
+    {
+      "id": "openrouter/gpt-6-sol",
+      "provider": "openrouter",
+      "family": "gpt-6-sol",
+      "maker": "openai",
+      "displayName": "GPT-6 Sol",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6-sol"
+    },
+    {
+      "id": "openrouter/claude-opus-5.5",
+      "provider": "openrouter",
+      "family": "claude-opus-5.5",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 5.5",
+      "pricing": {
+        "inputPer1M": 4,
+        "outputPer1M": 20,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-5.5"
+    },
+    {
+      "id": "openrouter/mimo-v2.6-flash",
+      "provider": "openrouter",
+      "family": "mimo-v2.6-flash",
+      "maker": "xiaomimimo",
+      "displayName": "MiMo-V2.6-Flash",
+      "pricing": {
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.28,
+        "cachedInputPer1M": 0.0028
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 131072,
+      "wireId": "xiaomi/mimo-v2.6-flash"
+    },
+    {
+      "id": "openrouter/grok-4.7",
+      "provider": "openrouter",
+      "family": "grok-4.7",
+      "maker": "xai",
+      "displayName": "Grok 4.7",
+      "pricing": {
+        "inputPer1M": 1.6,
+        "outputPer1M": 4.8,
+        "cachedInputPer1M": 0.4
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 500000,
+      "maxTokens": 450000,
+      "wireId": "x-ai/grok-4.7"
     }
   ]
 }
