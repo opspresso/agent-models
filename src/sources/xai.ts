@@ -139,6 +139,9 @@ export function applyXai(
       observePresence(offering, offeringNames(offering).some((name) => drawn.has(name)), "xAI", today, changes, notes);
       continue;
     }
+    if (family.capabilities.embedding || family.capabilities.rerank || family.capabilities.transcription || family.capabilities.decision) {
+      continue;
+    }
     const entry = offeringNames(offering)
       .map((name) => byName.get(name))
       .find((candidate) => candidate !== undefined);
@@ -176,7 +179,8 @@ export function discoverXai(registry: Registry, catalog: XaiCatalog): { registry
   const notes: string[] = [];
   const byName = languageByName(catalog);
   for (const [id, family] of Object.entries(next.families)) {
-    if (family.maker !== "xai" || family.capabilities.imageGeneration) {
+    if (family.maker !== "xai" || family.capabilities.imageGeneration || family.capabilities.embedding
+      || family.capabilities.rerank || family.capabilities.transcription || family.capabilities.decision) {
       continue;
     }
     if (familyHasRoute(next, id, "xai") || !familyIsLive(next, id)) {

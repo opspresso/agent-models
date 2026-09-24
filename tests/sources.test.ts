@@ -1465,6 +1465,18 @@ describe("vendor route discovery", () => {
     const unpriced = discoverXai(r, { language: [{ id: "grok-q-0309", aliases: ["grok-q"] }], imageNames: [] });
     assert.ok(!unpriced.registry.offerings.some((o) => o.provider === "xai" && o.family === "grok-q"));
     assert.match(unpriced.result.notes.join("\n"), /no usable token price/);
+
+    r.families["grok-stt"] = {
+      maker: "xai",
+      displayName: "Grok STT",
+      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.01 },
+      capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, transcription: true },
+      contextWindow: 0,
+      maxTokens: 0,
+    };
+    r.offerings.push({ provider: "openrouter", family: "grok-stt", wireId: "x-ai/grok-stt" });
+    const wrongType = discoverXai(r, { language: [{ id: "grok-stt", prompt_text_token_price: 20_000, completion_text_token_price: 60_000 }], imageNames: [] });
+    assert.ok(!wrongType.registry.offerings.some((o) => o.provider === "xai" && o.family === "grok-stt"));
   });
 
   it("Anthropic: holds a first native route for price review, and uses the hyphenated wire id after curation", () => {
