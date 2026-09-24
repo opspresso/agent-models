@@ -141,5 +141,11 @@
   },
   {
     "family": "gpt-6-astra"
+  },
+  {
+    "family": "gpt-6-luna"
+  },
+  {
+    "family": "gpt-6-sol"
   }
 ]

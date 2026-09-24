@@ -1,0 +1,21 @@
+{
+  "universal-3-5-pro": {
+    "displayName": "Universal-3.5 Pro",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.00375,
+      "discount": 0.5
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  }
+}

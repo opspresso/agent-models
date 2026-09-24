@@ -114,5 +114,9 @@
   "recraft": {
     "displayName": "Recraft",
     "openrouterVendor": "recraft"
+  },
+  "assemblyai": {
+    "displayName": "AssemblyAI",
+    "openrouterVendor": "assemblyai"
   }
 }

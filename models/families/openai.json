@@ -1142,5 +1142,73 @@
     "contextWindow": 400000,
     "maxTokens": 360000,
     "note": "Added automatically on 2026-09-11 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "gpt-6-luna-pro": {
+    "displayName": "GPT-6 Luna Pro",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.5,
+      "cachedInputPer1M": 0.01
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-22); numbers and flags are OpenRouter's."
+  },
+  "gpt-6-luna": {
+    "displayName": "GPT-6 Luna",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.5,
+      "cachedInputPer1M": 0.01
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-22); numbers and flags are OpenRouter's."
+  },
+  "gpt-6-sol-pro": {
+    "displayName": "GPT-6 Sol Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-22); numbers and flags are OpenRouter's."
+  },
+  "gpt-6-sol": {
+    "displayName": "GPT-6 Sol",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.2
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-22); numbers and flags are OpenRouter's."
   }
 }

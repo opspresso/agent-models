@@ -30,8 +30,8 @@
       "reasoning": false,
       "transcription": true
     },
-    "contextWindow": 0,
-    "maxTokens": 0,
+    "contextWindow": 16384,
+    "maxTokens": 13107,
     "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   },
   "voxtral-mini-3b-2507": {

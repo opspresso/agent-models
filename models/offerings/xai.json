@@ -32,5 +32,8 @@
   },
   {
     "family": "grok-imagine-image-2.0"
+  },
+  {
+    "family": "grok-4.7"
   }
 ]
