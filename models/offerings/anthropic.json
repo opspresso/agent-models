@@ -40,5 +40,9 @@
   {
     "family": "claude-fable-5.1",
     "wireId": "claude-fable-5-1"
+  },
+  {
+    "family": "claude-opus-5.5",
+    "wireId": "claude-opus-5-5"
   }
 ]
