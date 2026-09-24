@@ -2,9 +2,9 @@
   "gpt-5.6-sol": {
     "displayName": "GPT-5.6 Sol",
     "pricing": {
-      "inputPer1M": 5,
-      "outputPer1M": 30,
-      "cachedInputPer1M": 0.5
+      "inputPer1M": 4,
+      "outputPer1M": 20,
+      "cachedInputPer1M": 0.4
     },
     "capabilities": {
       "tools": true,
@@ -15,7 +15,7 @@
     },
     "contextWindow": 1050000,
     "maxTokens": 128000,
-    "note": "Every GPT-5.6 rejects tools together with reasoning_effort on chat/completions (reasoningWithTools: false); the provider's remedy is an explicit effort of none."
+    "note": "OpenAI's standard short-context promotional price is $4/$20 per million input/output tokens with $0.40 cached input (verified 2026-09-24 at https://developers.openai.com/api/docs/models/gpt-5.6-sol). Every GPT-5.6 rejects tools together with reasoning_effort on chat/completions (reasoningWithTools: false); the provider's remedy is an explicit effort of none."
   },
   "gpt-5.6-terra": {
     "displayName": "GPT-5.6 Terra",
