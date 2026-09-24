@@ -1,0 +1,89 @@
+name: Sync brand icons
+
+# Add only maker SVGs newly available in Lobe Icons. Existing marks stay curated.
+on:
+  schedule:
+    - cron: "0 23 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-brand-icons
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Sync the current main branch
+        run: |
+          git fetch origin main
+          git merge --ff-only origin/main
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.10.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Import newly available maker icons
+        id: icons
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm sync-brand-icons
+
+      - name: Rebuild the icon manifest
+        if: steps.icons.outputs.count != '0'
+        run: pnpm build
+
+      - name: Verify the registry and generated files
+        if: steps.icons.outputs.count != '0'
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build:check
+          node scripts/check-removals.ts HEAD
+          git diff --exit-code -- docs/models.json
+
+      - name: Merge new icons through a pull request
+        if: steps.icons.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ steps.icons.outputs.source_sha }}
+        run: |
+          if [ -z "$(git status --porcelain -- docs/icons/brands)" ]; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git config user.name "nalbam-bot"
+          git config user.email "bot@nalbam.com"
+          branch="automation/brand-icons-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
+          git add docs/icons/brands
+          git commit -m "chore: sync Lobe brand icons $(date -u +%F)"
+          gh auth setup-git
+          git push origin "$branch"
+          pr_url=$(gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: sync Lobe brand icons $(date -u +%F)" \
+            --body "Lobe Icons ${SOURCE_SHA}에서 이 저장소의 makers에 대응하는 새 SVG를 가져왔습니다. 실행: ${RUN_URL}")
+          gh pr merge "$pr_url" --squash --delete-branch

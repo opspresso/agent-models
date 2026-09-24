@@ -15,6 +15,7 @@
     "propose-removals": "node scripts/propose-removals.ts",
     "format": "node scripts/format.ts",
     "update-models": "node scripts/update.ts",
+    "sync-brand-icons": "node scripts/sync-brand-icons.ts",
     "notify": "node scripts/notify.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"tests/**/*.test.ts\""

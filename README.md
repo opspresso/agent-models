@@ -15,8 +15,9 @@ is the list that registry will load instead of carrying the numbers in code. Spe
 models are identified by the `embedding`, `rerank`, `transcription`, or `decision` capability; consumers
 that do not support them can skip those entries. Anything that can read JSON can use it the same way. A
 browsable view of the same file is at
-<https://models.opspresso.com/> — `docs/index.html`, a static page that reads the catalog and
-mirrors the console's own Models page (<https://studio.opspresso.com/models>): the same
+<https://models.opspresso.com/> — `docs/index.html` contains the markup, `docs/styles.css`
+the styling, and `docs/app.js` the catalog-driven behavior. The viewer mirrors the
+console's own Models page (<https://studio.opspresso.com/models>): the same
 catalog header, filter row (search, provider, capabilities, sort) and one card per route,
 drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
 Icons). The studio's mark is re-hued green for this site's logo and favicon, so the two
@@ -163,7 +164,7 @@ direct route after reading them.
 
 ## Keeping it current
 
-`.github/workflows/update.yml` runs every day at 22:00 UTC (and on demand), validates whatever
+`.github/workflows/update-models.yml` runs every day at 22:00 UTC (and on demand), validates whatever
 moved and merges routine updates through a pull request — which republishes the Pages site (`main:/docs`, served at
 `models.opspresso.com`) — and tells people about it. Three phases, every source
 independent of the others:
@@ -334,6 +335,11 @@ Two channels with two roles, both optional and run even when a later build or te
 The job summary holds the full report on every run, including one that refused to write:
 a table of what changed and the *needs a look* list.
 
+`.github/workflows/sync-brand-icons.yml` checks the Lobe Icons static SVG sources every
+Monday at 23:00 UTC. It imports missing maker marks through an automatically verified
+pull request, without replacing existing icons. A maker without a matching Lobe SVG has
+no brand icon in the viewer.
+
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
 read from the same environment variable names. `--reset-openrouter` first preserves every
 OpenRouter route as a hidden reset tombstone, then restores what the retention sets (text
@@ -353,6 +359,7 @@ pnpm build:check     # exit 1 if docs/models.json is stale (CI)
 pnpm check-removals -- HEAD^ --pull-request # verify PR removals against models/removals.json
 pnpm propose-removals # turn update-report.json candidates into a draft-PR deletion patch
 pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
+pnpm sync-brand-icons --dry-run # preview maker SVGs available from Lobe Icons
 pnpm update-models --reset-openrouter # rebuild only OpenRouter from all eligible models
 pnpm notify          # deliver update-report.json to Slack / the issue
 pnpm typecheck

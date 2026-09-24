@@ -53,10 +53,10 @@ const iconDirectory = join(ROOT, "docs", "icons", "brands");
 const iconManifestPath = join(iconDirectory, "manifest.json");
 const icons: Record<string, string> = {};
 for (const file of readdirSync(iconDirectory).sort()) {
-  const match = /^([a-z0-9._-]+)\.(svg|png)$/.exec(file);
+  const match = /^([a-z0-9._-]+)\.svg$/.exec(file);
   if (match === null) continue;
   const maker = match[1] as string;
-  if (icons[maker] === undefined || file.endsWith(".svg")) icons[maker] = file;
+  icons[maker] = file;
 }
 const iconText = formatJson(icons);
 
