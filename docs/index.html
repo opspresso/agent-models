@@ -292,21 +292,29 @@
 (async () => {
   const $ = (id) => document.getElementById(id);
   let catalog;
-  let icons;
-  try {
-    const [catalogResponse, iconResponse] = await Promise.all([
-      fetch("models.json", { cache: "no-cache" }),
-      fetch("icons/brands/manifest.json", { cache: "no-cache" }),
-    ]);
-    if (!catalogResponse.ok) throw new Error(`models.json → ${catalogResponse.status} ${catalogResponse.statusText}`);
-    if (!iconResponse.ok) throw new Error(`icons/brands/manifest.json → ${iconResponse.status} ${iconResponse.statusText}`);
-    [catalog, icons] = await Promise.all([catalogResponse.json(), iconResponse.json()]);
-    if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
-      throw new Error("models.json has an invalid catalog shape");
-    }
+  const iconRequest = fetch("icons/brands/manifest.json", { cache: "no-cache" }).then(async (response) => {
+    if (!response.ok) throw new Error(`icons/brands/manifest.json → ${response.status} ${response.statusText}`);
+    const icons = await response.json();
     if (typeof icons !== "object" || icons === null || Array.isArray(icons)
       || !Object.values(icons).every((file) => typeof file === "string" && /^[a-z0-9._-]+\.(svg|png)$/.test(file))) {
       throw new Error("brand icon manifest has an invalid shape");
+    }
+    return icons;
+  }).catch((error) => {
+    console.error("Could not load brand icons", error);
+    return {};
+  });
+  let icons;
+  try {
+    const [catalogResponse, availableIcons] = await Promise.all([
+      fetch("models.json", { cache: "no-cache" }),
+      iconRequest,
+    ]);
+    if (!catalogResponse.ok) throw new Error(`models.json → ${catalogResponse.status} ${catalogResponse.statusText}`);
+    catalog = await catalogResponse.json();
+    icons = availableIcons;
+    if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
+      throw new Error("models.json has an invalid catalog shape");
     }
   } catch (error) {
     console.error("Could not load the model catalog", error);
