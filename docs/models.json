@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-24T01:48:11.329Z",
+  "updatedAt": "2026-09-24T02:30:48.669Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1749,9 +1749,9 @@
       "maker": "google",
       "displayName": "Gemini 3.8 Flash",
       "pricing": {
-        "inputPer1M": 1.5,
-        "outputPer1M": 7.5,
-        "cachedInputPer1M": 0.15
+        "inputPer1M": 0.75,
+        "outputPer1M": 3.75,
+        "cachedInputPer1M": 0.075
       },
       "capabilities": {
         "tools": true,

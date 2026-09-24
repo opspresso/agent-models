@@ -545,9 +545,9 @@
   "gemini-3.8-flash": {
     "displayName": "Gemini 3.8 Flash",
     "pricing": {
-      "inputPer1M": 1.5,
-      "outputPer1M": 7.5,
-      "cachedInputPer1M": 0.15
+      "inputPer1M": 0.75,
+      "outputPer1M": 3.75,
+      "cachedInputPer1M": 0.075
     },
     "capabilities": {
       "tools": true,
@@ -557,7 +557,7 @@
     },
     "contextWindow": 1048576,
     "maxTokens": 65536,
-    "note": "Added automatically on 2026-09-02 from OpenRouter's catalog (listed 2026-09-02); numbers and flags are OpenRouter's."
+    "note": "Google's standard paid-tier introductory rate through 2026-12-31 (verified 2026-09-24 at https://ai.google.dev/gemini-api/docs/pricing); capability flags originated from OpenRouter."
   },
   "chirp-3": {
     "displayName": "Chirp 3",
