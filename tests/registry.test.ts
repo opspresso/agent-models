@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -19,6 +19,33 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** The committed source files — the registry this repository actually publishes. */
 const registry = loadRegistry(ROOT);
+
+describe("loadRegistry", () => {
+  it("names malformed source files before spreading or iterating them", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-load-"));
+    const base = join(root, "models");
+    mkdirSync(join(base, "families"), { recursive: true });
+    mkdirSync(join(base, "offerings"));
+    try {
+      writeFileSync(join(base, "providers.json"), "null");
+      writeFileSync(join(base, "makers.json"), "{}");
+      assert.throws(() => loadRegistry(root), /models\/providers\.json must be an array/);
+
+      writeFileSync(join(base, "providers.json"), '["openai"]');
+      writeFileSync(join(base, "makers.json"), "{");
+      assert.throws(() => loadRegistry(root), /models\/makers\.json: invalid JSON/);
+      writeFileSync(join(base, "makers.json"), "{}");
+      writeFileSync(join(base, "families/openai.json"), "null");
+      assert.throws(() => loadRegistry(root), /families\/openai\.json must be an object/);
+
+      writeFileSync(join(base, "families/openai.json"), "{}");
+      writeFileSync(join(base, "offerings/openai.json"), "[null]");
+      assert.throws(() => loadRegistry(root), /offerings\/openai\.json\[0\] must be an object/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("the committed registry", () => {
   it("is valid", () => {

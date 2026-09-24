@@ -334,7 +334,12 @@ export function formatJson(value: unknown): string {
 // ---------------------------------------------------------------------------
 
 function readJson(path: string): unknown {
-  return JSON.parse(readFileSync(path, "utf-8"));
+  const text = readFileSync(path, "utf-8");
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`${path}: invalid JSON`, { cause: error });
+  }
 }
 
 function listJson(dir: string): string[] {
@@ -350,18 +355,26 @@ function listJson(dir: string): string[] {
 /** The source files under `root/models`, read as they are — `validateRegistry` judges them. */
 export function loadRegistry(root: string): Registry {
   const base = join(root, "models");
-  const providers = readJson(join(base, "providers.json")) as string[];
-  const makers = readJson(join(base, "makers.json")) as Record<string, ModelMaker>;
+  const providers = readJson(join(base, "providers.json"));
+  const makers = readJson(join(base, "makers.json"));
+  if (!Array.isArray(providers) || !providers.every((provider) => typeof provider === "string")) {
+    throw new Error("models/providers.json must be an array of strings");
+  }
+  if (!isPlain(makers)) {
+    throw new Error("models/makers.json must be an object");
+  }
 
   const families: Registry["families"] = {};
   for (const file of listJson(join(base, "families"))) {
     const maker = basename(file, ".json");
-    const entries = readJson(file) as Record<string, ModelFamily>;
+    const entries = readJson(file);
+    if (!isPlain(entries)) throw new Error(`${file} must be an object of families`);
     for (const [id, family] of Object.entries(entries)) {
+      if (!isPlain(family)) throw new Error(`${file}: family "${id}" must be an object`);
       if (families[id] !== undefined) {
         throw new Error(`family "${id}" is defined twice (second in ${file})`);
       }
-      families[id] = { ...family, maker };
+      families[id] = { ...(family as unknown as ModelFamily), maker };
     }
   }
 
@@ -376,13 +389,15 @@ export function loadRegistry(root: string): Registry {
   };
   for (const file of [...offeringFiles].sort((a, b) => rank(a) - rank(b))) {
     const provider = basename(file, ".json");
-    const entries = readJson(file) as ModelOffering[];
-    for (const offering of entries) {
-      offerings.push({ ...offering, provider });
+    const entries = readJson(file);
+    if (!Array.isArray(entries)) throw new Error(`${file} must be an array of offerings`);
+    for (const [index, offering] of entries.entries()) {
+      if (!isPlain(offering)) throw new Error(`${file}[${index}] must be an object`);
+      offerings.push({ ...(offering as unknown as ModelOffering), provider });
     }
   }
 
-  return { providers, makers, families, offerings };
+  return { providers, makers: makers as Record<string, ModelMaker>, families, offerings };
 }
 
 /** What `writeRegistry` produces at the top of `models/`; everything else there is carried over. */
