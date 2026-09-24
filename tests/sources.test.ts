@@ -585,6 +585,23 @@ describe("applyXai", () => {
 });
 
 describe("fetchAnthropicModels", () => {
+  it("requires pagination metadata so a partial page cannot retire models", async () => {
+    const fetchFn = (async () => new Response(JSON.stringify({ data: [{ id: "claude-x" }] }))) as typeof fetch;
+    await assert.rejects(fetchAnthropicModels("test-key", fetchFn), /missing or invalid has_more/);
+  });
+
+  it("reads every page while has_more is true", async () => {
+    const urls: string[] = [];
+    const fetchFn = (async (url: string | URL | Request) => {
+      urls.push(String(url));
+      return new Response(JSON.stringify(urls.length === 1
+        ? { data: [{ id: "claude-new" }], has_more: true, last_id: "claude-new" }
+        : { data: [{ id: "claude-old" }], has_more: false, last_id: "claude-old" }));
+    }) as typeof fetch;
+    assert.deepEqual(await fetchAnthropicModels("test-key", fetchFn), [{ id: "claude-new" }, { id: "claude-old" }]);
+    assert.match(urls[1] ?? "", /after_id=claude-new/);
+  });
+
   it("passes along an authentication status without exposing the key", async () => {
     const key = "test-secret-never-report";
     let received: RequestInit | undefined;

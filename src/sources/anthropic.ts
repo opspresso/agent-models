@@ -45,18 +45,18 @@ export async function fetchAnthropicModels(
     if (!body.data.every((entry) => typeof entry === "object" && entry !== null && isExternalId((entry as { id?: unknown }).id))) {
       throw new Error(`GET ${url} → invalid entry (shape drift?)`);
     }
-    if (body.has_more !== undefined && typeof body.has_more !== "boolean") {
-      throw new Error(`GET ${url} → invalid has_more (shape drift?)`);
-    }
-    if (body.has_more === true && !isExternalId(body.last_id)) {
-      throw new Error(`GET ${url} → has_more without a valid last_id`);
+    if (typeof body.has_more !== "boolean") {
+      throw new Error(`GET ${url} → missing or invalid has_more (shape drift?)`);
     }
     collected.push(...(body.data as AnthropicModel[]));
-    if (body.has_more !== true || typeof body.last_id !== "string" || body.last_id === "") {
+    if (!body.has_more) {
       if (collected.length === 0) {
         throw new Error(`GET ${ANTHROPIC_MODELS_URL} → empty catalog`);
       }
       return collected;
+    }
+    if (!isExternalId(body.last_id)) {
+      throw new Error(`GET ${url} → has_more without a valid last_id`);
     }
     cursor = body.last_id;
   }
