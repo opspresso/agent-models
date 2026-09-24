@@ -605,48 +605,54 @@ export function validateRegistry(registry: Registry): string[] {
 
   if (!Array.isArray(registry.providers) || registry.providers.some((p) => typeof p !== "string")) {
     errors.push("providers.json must be an array of strings");
-  } else {
-    for (const provider of registry.providers) {
-      if (!isSafeSlug(provider)) {
-        errors.push(`provider id "${provider}" must be a safe slug`);
-      }
+  }
+  if (!isPlain(registry.makers)) {
+    errors.push("makers.json must be an object of maker id → maker definition");
+  }
+  if (!isPlain(registry.families)) {
+    errors.push("families must be an object of family id → family definition");
+  }
+  if (!Array.isArray(registry.offerings)) {
+    errors.push("offerings must be an array");
+  }
+  if (errors.length > 0) return errors;
+
+  for (const provider of registry.providers) {
+    if (!isSafeSlug(provider)) {
+      errors.push(`provider id "${provider}" must be a safe slug`);
     }
   }
   // Self-hosted models are published by each deployment (Agent Studio's own
   // declarations), never by this catalog: a selfhosted entry published here
   // would install in every consumer's registry and block the deployment's own
   // declarations against its catalog-collision rule.
-  if (Array.isArray(registry.providers) && registry.providers.includes("selfhosted")) {
+  if (registry.providers.includes("selfhosted")) {
     errors.push('providers.json must not carry "selfhosted" — deployments publish those models themselves');
   }
-  if (!isPlain(registry.makers)) {
-    errors.push("makers.json must be an object of maker id → maker definition");
-  } else {
-    const vendors = new Map<string, string>();
-    for (const [id, maker] of Object.entries(registry.makers)) {
-      const where = `maker ${id}`;
-      if (!isSafeSlug(id)) {
-        errors.push(`maker id "${id}" must be a safe slug`);
-      }
-      if (!isPlain(maker)) {
-        errors.push(`${where}: not an object`);
-        continue;
-      }
-      for (const key of unknownKeys(maker, MAKER_KEYS)) {
-        errors.push(`${where}: unknown field "${key}"`);
-      }
-      if (typeof maker.displayName !== "string" || maker.displayName.trim() === "") {
-        errors.push(`${where}: displayName is required`);
-      }
-      const vendor = maker.openrouterVendor;
-      if (vendor !== undefined) {
-        if (typeof vendor !== "string" || vendor === "" || vendor.includes("/")) {
-          errors.push(`${where}: openrouterVendor must be a bare vendor slug`);
-        } else if (vendors.has(vendor)) {
-          errors.push(`${where}: openrouterVendor "${vendor}" is already used by maker ${vendors.get(vendor)}`);
-        } else {
-          vendors.set(vendor, id);
-        }
+  const vendors = new Map<string, string>();
+  for (const [id, maker] of Object.entries(registry.makers)) {
+    const where = `maker ${id}`;
+    if (!isSafeSlug(id)) {
+      errors.push(`maker id "${id}" must be a safe slug`);
+    }
+    if (!isPlain(maker)) {
+      errors.push(`${where}: not an object`);
+      continue;
+    }
+    for (const key of unknownKeys(maker, MAKER_KEYS)) {
+      errors.push(`${where}: unknown field "${key}"`);
+    }
+    if (typeof maker.displayName !== "string" || maker.displayName.trim() === "") {
+      errors.push(`${where}: displayName is required`);
+    }
+    const vendor = maker.openrouterVendor;
+    if (vendor !== undefined) {
+      if (typeof vendor !== "string" || vendor === "" || vendor.includes("/")) {
+        errors.push(`${where}: openrouterVendor must be a bare vendor slug`);
+      } else if (vendors.has(vendor)) {
+        errors.push(`${where}: openrouterVendor "${vendor}" is already used by maker ${vendors.get(vendor)}`);
+      } else {
+        vendors.set(vendor, id);
       }
     }
   }
@@ -697,7 +703,11 @@ export function validateRegistry(registry: Registry): string[] {
 
   // Offerings
   const seen = new Set<string>();
-  for (const offering of registry.offerings) {
+  for (const [index, offering] of registry.offerings.entries()) {
+    if (!isPlain(offering)) {
+      errors.push(`offerings[${index}]: not an object`);
+      continue;
+    }
     const id = `${offering.provider}/${offering.family}`;
     const where = `offering ${id}`;
     if (!registry.providers.includes(offering.provider)) {

@@ -138,6 +138,24 @@ function fixture(): Registry {
 }
 
 describe("validateRegistry", () => {
+  it("reports malformed top-level files and offering entries instead of throwing", () => {
+    const invalid = {
+      providers: null,
+      makers: null,
+      families: [],
+      offerings: null,
+    } as unknown as Registry;
+    assert.deepEqual(validateRegistry(invalid), [
+      "providers.json must be an array of strings",
+      "makers.json must be an object of maker id → maker definition",
+      "families must be an object of family id → family definition",
+      "offerings must be an array",
+    ]);
+    const r = fixture();
+    r.offerings.push(null as unknown as Registry["offerings"][number]);
+    assert.match(validateRegistry(r).join("\n"), /offerings\[3\]: not an object/);
+  });
+
   it("refuses a selfhosted provider — deployments publish those models themselves", () => {
     const registry = fixture();
     registry.providers.push("selfhosted");
