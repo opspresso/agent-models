@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-24T01:25:07.173Z",
+  "updatedAt": "2026-09-24T01:30:06.715Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1249,6 +1249,27 @@
       "contextWindow": 1000000,
       "maxTokens": 128000,
       "wireId": "claude-fable-5-1"
+    },
+    {
+      "id": "anthropic/claude-opus-5.5",
+      "provider": "anthropic",
+      "family": "claude-opus-5.5",
+      "maker": "anthropic",
+      "displayName": "Claude Opus 5.5",
+      "pricing": {
+        "inputPer1M": 4,
+        "outputPer1M": 20,
+        "cachedInputPer1M": 0.2
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "claude-opus-5-5"
     },
     {
       "id": "google/gemini-3.1-pro",
