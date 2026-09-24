@@ -30,7 +30,7 @@ import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
 import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
-import { fetchJson, HttpError, perMillion, type Change } from "../src/sources/types.ts";
+import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
 const TODAY = "2026-08-20";
@@ -164,6 +164,22 @@ describe("perMillion", () => {
 });
 
 describe("fetchJson", () => {
+  it("stops reading an oversized streamed HTML response", async () => {
+    let cancelled = false;
+    const chunk = new Uint8Array(MAX_JSON_BYTES / 2 + 1);
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(chunk);
+        controller.enqueue(chunk);
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    await assert.rejects(readTextCapped(new Response(body), "https://example.test/page"), /response is larger than/);
+    assert.equal(cancelled, true);
+  });
+
   it("refuses redirects and applies a request timeout", async () => {
     let received: RequestInit | undefined;
     const fetchFn = (async (_url: string | URL | Request, init?: RequestInit) => {

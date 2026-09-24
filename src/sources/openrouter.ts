@@ -49,7 +49,7 @@
 import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isExternalId, isPositiveInt, perMillion, samePricing, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, isPositiveInt, perMillion, readTextCapped, samePricing, type Change, type SourceResult } from "./types.ts";
 
 /** How far back a first listing counts as new. Older listings are the backlog, which is a person's. */
 export const DISCOVERY_WINDOW_DAYS = 30;
@@ -263,86 +263,63 @@ function displayedPricing(html: string): string {
   return /displayPricing\\\":(\[[^\]]*\])/.exec(html)?.[1] ?? "";
 }
 
+async function modelPageHtml(model: OpenRouterModel, fetchFn: typeof fetch): Promise<string | null> {
+  const url = `https://openrouter.ai/${model.id}`;
+  try {
+    const response = await fetchFn(url, { redirect: "error", signal: AbortSignal.timeout(30_000) });
+    return response.ok ? await readTextCapped(response, url) : null;
+  } catch {
+    // Public page pricing is optional enrichment; a failed read leaves the catalog unchanged.
+    return null;
+  }
+}
+
 /** The Models API currently reports zero for rerank SKUs; the public model page carries the billed unit. */
 async function enrichRerankPricing(model: OpenRouterModel, fetchFn: typeof fetch): Promise<OpenRouterModel> {
   if (rerankPricing(model) !== null) {
     return model;
   }
-  const url = `https://openrouter.ai/${model.id}`;
-  try {
-    const response = await fetchFn(url, { redirect: "error", signal: AbortSignal.timeout(30_000) });
-    if (!response.ok) {
-      return model;
-    }
-    const stated = Number(response.headers?.get("content-length"));
-    if (stated > 10 * 1024 * 1024) {
-      return model;
-    }
-    const html = await response.text();
-    if (html.length > 10 * 1024 * 1024) {
-      return model;
-    }
-    const displayed = displayedPricing(html);
-    const input = specialPrice(displayed, "Input tokens");
-    const search = specialPrice(displayed, "Search units");
-    if (input === null && search === null) {
-      return model;
-    }
-    return {
-      ...model,
-      pricing: {
-        ...model.pricing,
-        ...(input !== null ? { rerank_input: String(input) } : {}),
-        ...(search !== null ? { rerank_search: String(search) } : {}),
-      },
-    };
-  } catch {
-    return model;
-  }
+  const html = await modelPageHtml(model, fetchFn);
+  if (html === null) return model;
+  const displayed = displayedPricing(html);
+  const input = specialPrice(displayed, "Input tokens");
+  const search = specialPrice(displayed, "Search units");
+  if (input === null && search === null) return model;
+  return {
+    ...model,
+    pricing: {
+      ...model.pricing,
+      ...(input !== null ? { rerank_input: String(input) } : {}),
+      ...(search !== null ? { rerank_search: String(search) } : {}),
+    },
+  };
 }
 
 async function enrichTranscriptionPricing(model: OpenRouterModel, fetchFn: typeof fetch): Promise<OpenRouterModel> {
   if (transcriptionPricing(model) !== null) {
     return model;
   }
-  const url = `https://openrouter.ai/${model.id}`;
-  try {
-    const response = await fetchFn(url, { redirect: "error", signal: AbortSignal.timeout(30_000) });
-    if (!response.ok) {
-      return model;
-    }
-    const stated = Number(response.headers?.get("content-length"));
-    if (stated > 10 * 1024 * 1024) {
-      return model;
-    }
-    const html = await response.text();
-    if (html.length > 10 * 1024 * 1024) {
-      return model;
-    }
-    const displayed = displayedPricing(html);
-    const perMinute = specialPrice(displayed, "Audio Minutes");
-    const perSecond = specialPrice(displayed, "Audio Seconds");
-    const perHour = specialPrice(displayed, "Audio Hours");
-    const minute = perMinute
-      ?? (perSecond === null ? null : Number((perSecond * 60).toFixed(8)))
-      ?? (perHour === null ? null : Number((perHour / 60).toFixed(8)));
-    const input = specialPrice(displayed, "Input Price") ?? specialPrice(displayed, "Input tokens");
-    const output = specialPrice(displayed, "Output Price") ?? specialPrice(displayed, "Output tokens");
-    if (minute === null && (input === null || output === null)) {
-      return model;
-    }
-    return {
-      ...model,
-      pricing: {
-        ...model.pricing,
-        ...(minute !== null ? { transcription_minute: String(minute) } : {}),
-        ...(input !== null ? { transcription_input: String(input) } : {}),
-        ...(output !== null ? { transcription_output: String(output) } : {}),
-      },
-    };
-  } catch {
-    return model;
-  }
+  const html = await modelPageHtml(model, fetchFn);
+  if (html === null) return model;
+  const displayed = displayedPricing(html);
+  const perMinute = specialPrice(displayed, "Audio Minutes");
+  const perSecond = specialPrice(displayed, "Audio Seconds");
+  const perHour = specialPrice(displayed, "Audio Hours");
+  const minute = perMinute
+    ?? (perSecond === null ? null : Number((perSecond * 60).toFixed(8)))
+    ?? (perHour === null ? null : Number((perHour / 60).toFixed(8)));
+  const input = specialPrice(displayed, "Input Price") ?? specialPrice(displayed, "Input tokens");
+  const output = specialPrice(displayed, "Output Price") ?? specialPrice(displayed, "Output tokens");
+  if (minute === null && (input === null || output === null)) return model;
+  return {
+    ...model,
+    pricing: {
+      ...model.pricing,
+      ...(minute !== null ? { transcription_minute: String(minute) } : {}),
+      ...(input !== null ? { transcription_input: String(input) } : {}),
+      ...(output !== null ? { transcription_output: String(output) } : {}),
+    },
+  };
 }
 
 async function enrichSpecialPricing(

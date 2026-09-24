@@ -104,13 +104,14 @@ function apiErrorReason(body: unknown): string | undefined {
   return undefined;
 }
 
-async function readJson(response: Response, url: string): Promise<unknown> {
+/** Read a streamed response without accepting more than the catalog size limit. */
+export async function readTextCapped(response: Response, url: string): Promise<string> {
   const stated = Number(response.headers?.get("content-length"));
   if (stated > MAX_JSON_BYTES) {
     throw new Error(`GET ${url} → response is larger than ${MAX_JSON_BYTES} bytes`);
   }
   if (response.body === null || typeof response.body?.getReader !== "function") {
-    return response.json();
+    throw new Error(`GET ${url} → no readable response body`);
   }
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -131,7 +132,18 @@ async function readJson(response: Response, url: string): Promise<unknown> {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return JSON.parse(new TextDecoder().decode(bytes));
+  return new TextDecoder().decode(bytes);
+}
+
+async function readJson(response: Response, url: string): Promise<unknown> {
+  if (response.body === null || typeof response.body?.getReader !== "function") {
+    const stated = Number(response.headers?.get("content-length"));
+    if (stated > MAX_JSON_BYTES) {
+      throw new Error(`GET ${url} → response is larger than ${MAX_JSON_BYTES} bytes`);
+    }
+    return response.json();
+  }
+  return JSON.parse(await readTextCapped(response, url));
 }
 
 export async function fetchJson(
