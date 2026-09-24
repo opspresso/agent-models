@@ -41,6 +41,10 @@
   const typeLabel = (type) => type.charAt(0).toUpperCase() + type.slice(1);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const makerLabel = (id) => catalog.makers[id] ?? id;
+  const makerInitials = (id) => {
+    const words = makerLabel(id).replace(/([a-z])([A-Z])/g, "$1 $2").match(/[a-z0-9]+/gi) ?? [];
+    return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : (words[0] ?? "?").slice(0, 2)).toUpperCase();
+  };
 
   // The console's own formatting, kept to the letter: `formatUsd`,
   // `modelPriceLabel`, `contextWindowLabel`, `otherRoutes`.
@@ -160,11 +164,11 @@
   }
 
   function card(m) {
-    // Only listed Lobe SVGs are shown. A failed image is removed by the
-    // delegated listener below, so the card does not show a broken icon.
+    // A maker without a listed SVG gets initials; the delegated listener
+    // uses the same fallback if a listed image fails to load.
     const mark = Object.hasOwn(icons, m.maker)
-      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(icons[m.maker])}" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24"></span>`
-      : "";
+      ? `<span class="mark" title="${esc(makerLabel(m.maker))}"><img src="icons/brands/${esc(icons[m.maker])}" alt="${esc(makerLabel(m.maker))} logo" width="24" height="24" data-initials="${esc(makerInitials(m.maker))}"></span>`
+      : `<span class="mark initials" title="${esc(makerLabel(m.maker))}">${esc(makerInitials(m.maker))}</span>`;
     // The route is a gateway when its provider is not the model's maker.
     const routed = m.provider !== m.maker;
     const providerBadge = m.hidden
@@ -208,8 +212,9 @@
   // listener outlives every innerHTML rewrite below.
   $("grid").addEventListener("error", (e) => {
     const img = e.target;
-    if (img instanceof HTMLImageElement && img.parentElement?.classList.contains("mark")) {
-      img.parentElement.remove();
+    if (img instanceof HTMLImageElement && img.parentElement?.classList.contains("mark") && img.dataset.initials !== undefined) {
+      img.parentElement.classList.add("initials");
+      img.replaceWith(document.createTextNode(img.dataset.initials));
     }
   }, true);
 

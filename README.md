@@ -337,8 +337,8 @@ a table of what changed and the *needs a look* list.
 
 `.github/workflows/sync-brand-icons.yml` checks the Lobe Icons static SVG sources every
 Monday at 23:00 UTC. It imports missing maker marks through an automatically verified
-pull request, without replacing existing icons. A maker without a matching Lobe SVG has
-no brand icon in the viewer.
+pull request, without replacing existing icons. A maker without a matching Lobe SVG shows
+its initials in the viewer.
 
 Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
 read from the same environment variable names. `--reset-openrouter` first preserves every
