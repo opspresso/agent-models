@@ -3,11 +3,11 @@
  *
  * A family whose only routes are routers carries the router's numbers — the
  * discounted rate, with the discount beside it — because that is what the
- * model costs through the one door it has. The day a vendor route is added,
- * the family becomes the vendor's model: its price is the *list* price, and
- * the router's discount moves to the router's offering as an override (the
- * OpenRouter apply step does that the same run). `promoteFamily` is that
- * step, written once.
+ * model costs through the one door it has. A vendor route is added
+ * automatically only when that vendor publishes a usable price (currently
+ * xAI); the family then takes the vendor's price in its apply step. For a
+ * router discount, `promoteFamily` first removes that discount from the
+ * family and the OpenRouter apply step moves it to the router offering.
  *
  * A route is never added to a family every route of which is hidden: that
  * family was retired on purpose, and a catalog listing it again is not a

@@ -11,7 +11,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
 export const GOOGLE_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -124,10 +124,11 @@ export function applyGoogle(
   return { registry: next, result: { source: "Google", changes, notes } };
 }
 
-/** A `google/` route for every live Google-made text or embedding family the API serves. */
+/** Add a Google route only when a non-router price already anchors the family. */
 export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
+  const notes: string[] = [];
   const byId = byFamilyId(catalog);
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "google" || family.capabilities.imageGeneration) {
@@ -142,7 +143,11 @@ export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { re
     ) {
       continue;
     }
+    if (familyIsRouterOnly(next, id)) {
+      notes.push(`google/${id}: verify the native price before adding this first vendor route`);
+      continue;
+    }
     addRoute(next, { provider: "google", family: id }, changes);
   }
-  return { registry: next, result: { source: "Google", changes, notes: [] } };
+  return { registry: next, result: { source: "Google", changes, notes } };
 }

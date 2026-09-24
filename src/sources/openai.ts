@@ -7,7 +7,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
 
 export const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
@@ -54,16 +54,17 @@ export function applyOpenAi(
 }
 
 /**
- * An `openai/` route for every live OpenAI-made non-image family the
- * catalog serves under the family's own id and this registry does not yet
- * route there. Dated snapshots fold to their alias exactly as they do for presence: a route the
+ * An `openai/` route for a live OpenAI-made non-image family that already has
+ * a non-router price. A router-only family's native price needs manual review.
+ * Dated snapshots fold to their alias exactly as they do for presence: a route the
  * retirement clock counts as alive is one discovery must be willing to add.
- * The family's price is then the list price (`promoteFamily`), which is what
- * OpenAI charges and what OpenRouter's listing was discounting from.
+ * OpenAI's catalog does not publish a price; a first native route must not
+ * infer one from OpenRouter's discount.
  */
 export function discoverOpenAi(registry: Registry, ids: string[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
+  const notes: string[] = [];
   const served = catalogNames(ids);
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "openai" || family.capabilities.imageGeneration) {
@@ -72,7 +73,11 @@ export function discoverOpenAi(registry: Registry, ids: string[]): { registry: R
     if (familyHasRoute(next, id, "openai") || !familyIsLive(next, id) || !served.has(id)) {
       continue;
     }
+    if (familyIsRouterOnly(next, id)) {
+      notes.push(`openai/${id}: verify the native price before adding this first vendor route`);
+      continue;
+    }
     addRoute(next, { provider: "openai", family: id }, changes);
   }
-  return { registry: next, result: { source: "OpenAI", changes, notes: [] } };
+  return { registry: next, result: { source: "OpenAI", changes, notes } };
 }

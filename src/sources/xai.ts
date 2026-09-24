@@ -93,6 +93,28 @@ function ticksToPerMillion(ticks: number | undefined): number | undefined {
   return Number((ticks / TICKS_PER_USD_PER_MILLION).toFixed(8));
 }
 
+function nativePricing(model: XaiLanguageModel): { inputPer1M: number; outputPer1M: number; cachedInputPer1M?: number } | null {
+  const input = ticksToPerMillion(model.prompt_text_token_price);
+  const output = ticksToPerMillion(model.completion_text_token_price);
+  if (input === undefined || output === undefined || !(input > 0) || !(output > 0)) return null;
+  const cached = ticksToPerMillion(model.cached_prompt_text_token_price);
+  return {
+    inputPer1M: input,
+    outputPer1M: output,
+    ...(cached !== undefined && cached > 0 ? { cachedInputPer1M: cached } : {}),
+  };
+}
+
+/** The names the language catalog answers to — ids and every alias. */
+function languageByName(catalog: XaiCatalog): Map<string, XaiLanguageModel> {
+  const byName = new Map<string, XaiLanguageModel>();
+  for (const model of catalog.language) {
+    byName.set(model.id, model);
+    for (const alias of model.aliases ?? []) byName.set(alias, model);
+  }
+  return byName;
+}
+
 export function applyXai(
   registry: Registry,
   catalog: XaiCatalog,
@@ -102,13 +124,7 @@ export function applyXai(
   const changes: Change[] = [];
   const notes: string[] = [];
 
-  const byName = new Map<string, XaiLanguageModel>();
-  for (const model of catalog.language) {
-    byName.set(model.id, model);
-    for (const alias of model.aliases ?? []) {
-      byName.set(alias, model);
-    }
-  }
+  const byName = languageByName(catalog);
   const drawn = new Set(catalog.imageNames);
 
   for (const offering of next.offerings) {
@@ -130,18 +146,11 @@ export function applyXai(
     if (entry === undefined) {
       continue;
     }
-    const input = ticksToPerMillion(entry.prompt_text_token_price);
-    const output = ticksToPerMillion(entry.completion_text_token_price);
-    const cached = ticksToPerMillion(entry.cached_prompt_text_token_price);
-    if (input === undefined || output === undefined || !(input > 0) || !(output > 0)) {
+    const vendorPrice = nativePricing(entry);
+    if (vendorPrice === null) {
       notes.push(`xai/${offering.family}: xAI lists no token price`);
       continue;
     }
-    const vendorPrice = {
-      inputPer1M: input,
-      outputPer1M: output,
-      ...(cached !== undefined && cached > 0 ? { cachedInputPer1M: cached } : {}),
-    };
     const current = {
       inputPer1M: family.pricing.inputPer1M,
       outputPer1M: family.pricing.outputPer1M,
@@ -156,18 +165,6 @@ export function applyXai(
   return { registry: next, result: { source: "xAI", changes, notes } };
 }
 
-/** The names the language catalog answers to — ids and every alias. */
-function languageNames(catalog: XaiCatalog): Set<string> {
-  const names = new Set<string>();
-  for (const model of catalog.language) {
-    names.add(model.id);
-    for (const alias of model.aliases ?? []) {
-      names.add(alias);
-    }
-  }
-  return names;
-}
-
 /**
  * An `xai/` route for every live xAI-made text family the catalog serves under
  * the family's own name and this registry does not yet route there. The
@@ -176,15 +173,22 @@ function languageNames(catalog: XaiCatalog): Set<string> {
 export function discoverXai(registry: Registry, catalog: XaiCatalog): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
-  const names = languageNames(catalog);
+  const notes: string[] = [];
+  const byName = languageByName(catalog);
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "xai" || family.capabilities.imageGeneration) {
       continue;
     }
-    if (familyHasRoute(next, id, "xai") || !familyIsLive(next, id) || !names.has(id)) {
+    if (familyHasRoute(next, id, "xai") || !familyIsLive(next, id)) {
+      continue;
+    }
+    const entry = byName.get(id);
+    if (entry === undefined) continue;
+    if (nativePricing(entry) === null) {
+      notes.push(`xai/${id}: native catalog lists no usable token price; route not added`);
       continue;
     }
     addRoute(next, { provider: "xai", family: id }, changes);
   }
-  return { registry: next, result: { source: "xAI", changes, notes: [] } };
+  return { registry: next, result: { source: "xAI", changes, notes } };
 }

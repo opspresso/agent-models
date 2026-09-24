@@ -11,7 +11,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, isPositiveInt, snapshotAlias, type Change, type SourceResult } from "./types.ts";
 
 export const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
@@ -121,8 +121,9 @@ export function applyAnthropic(
 }
 
 /**
- * An `anthropic/` route for every live Anthropic-made family the catalog
- * serves and this registry does not yet route there. The wire id is the
+ * An `anthropic/` route for a live Anthropic-made family with an existing
+ * non-router price. A router-only family's native price needs manual review.
+ * The wire id is the
  * hyphenated spelling Anthropic answers to, carried only when it differs.
  */
 export function discoverAnthropic(
@@ -131,6 +132,7 @@ export function discoverAnthropic(
 ): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
+  const notes: string[] = [];
   const names = catalogNames(catalog.map(({ id }) => id));
   for (const [id, family] of Object.entries(next.families)) {
     if (family.maker !== "anthropic" || family.capabilities.imageGeneration) {
@@ -143,7 +145,11 @@ export function discoverAnthropic(
     if (!names.has(wire)) {
       continue;
     }
+    if (familyIsRouterOnly(next, id)) {
+      notes.push(`anthropic/${id}: verify the native price before adding this first vendor route`);
+      continue;
+    }
     addRoute(next, { provider: "anthropic", family: id, ...(wire !== id ? { wireId: wire } : {}) }, changes);
   }
-  return { registry: next, result: { source: "Anthropic", changes, notes: [] } };
+  return { registry: next, result: { source: "Anthropic", changes, notes } };
 }

@@ -150,12 +150,16 @@ auto-merged. Removals are checked twice: the update workflow refuses to commit o
 and CI rejects, on pull requests, a removal that no entry requests. A push straight to
 `main` skips only that removal check — the type check, tests and `build:check` still run.
 
-Numbers come from the provider, not from memory: OpenRouter's `/api/v1/models`,
+Numbers come from a published source, not from memory: OpenRouter's `/api/v1/models`,
 `/api/v1/embeddings/models`, modality-filtered model catalogs and public model pages,
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
 `/v1/models` (`max_input_tokens`, `max_tokens`), the AWS Pricing API for Bedrock (mind the
 unit — `1K tokens` and `1M tokens` rows are mixed), and the pricing pages for OpenAI and
-Google, which publish no API for it.
+Google, which publish no API for it. A newly discovered OpenRouter-only family starts
+with OpenRouter's price. Its first OpenAI, Anthropic or Google direct route requires a
+manual check against that provider's pricing page; the model-list APIs alone do not
+establish the native price. xAI publishes token prices in its catalog and can add the
+direct route after reading them.
 
 ## Keeping it current
 
@@ -261,9 +265,10 @@ when its context window equals the family's, the one cheap identity check there 
 (`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
 Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
 Image, embedding, rerank and transcription routes are added only while their model is in the corresponding weekly
-Top 20. The first
-*vendor* route to a router-only family puts the family at the list price (the router's
-discount moves to the router's offering).
+Top 20. The first OpenAI, Anthropic or Google route to a router-only family waits for
+manual native-price verification; the updater reports it in *needs a look*. xAI may add
+the route automatically when its catalog states a usable price, then moves any router
+discount to the OpenRouter offering.
 Decision routes follow their complete catalog and the same identity check.
 
 ### Retirement
