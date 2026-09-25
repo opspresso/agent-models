@@ -50,10 +50,9 @@
   "glm-5.3": {
     "displayName": "GLM 5.3",
     "pricing": {
-      "inputPer1M": 0.84,
-      "outputPer1M": 2.64,
-      "cachedInputPer1M": 0.156,
-      "discount": 0.4
+      "inputPer1M": 1.4,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.26
     },
     "capabilities": {
       "tools": true,
@@ -62,7 +61,7 @@
       "reasoning": true
     },
     "contextWindow": 1310720,
-    "maxTokens": 131072,
+    "maxTokens": 943717,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-08-18); numbers and flags are OpenRouter's."
   },
   "glm-5.2": {
@@ -86,9 +85,9 @@
   "glm-5.3-flash": {
     "displayName": "GLM 5.3 Flash",
     "pricing": {
-      "inputPer1M": 0.15,
-      "outputPer1M": 0.5,
-      "cachedInputPer1M": 0.05
+      "inputPer1M": 0.045,
+      "outputPer1M": 0.6,
+      "cachedInputPer1M": 0.0285
     },
     "capabilities": {
       "tools": true,
@@ -97,7 +96,7 @@
       "reasoning": true
     },
     "contextWindow": 1310720,
-    "maxTokens": 943718,
+    "maxTokens": 131072,
     "note": "Added automatically on 2026-08-27 from OpenRouter's catalog (listed 2026-08-26); numbers and flags are OpenRouter's."
   }
 }
