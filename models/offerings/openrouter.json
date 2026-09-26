@@ -111,8 +111,8 @@
     "family": "step-3.7-flash",
     "wireId": "stepfun/step-3.7-flash",
     "rankMissingSince": "2026-09-17",
-    "rankMissingObservations": 6,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 7,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -150,8 +150,8 @@
     "family": "gpt-chat-latest",
     "wireId": "openai/gpt-chat-latest",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "grok-4.3",
@@ -189,9 +189,9 @@
     "family": "gemma-4-26b-a4b-it",
     "wireId": "google/gemma-4-26b-a4b-it",
     "pricing": {
-      "inputPer1M": 0.09,
-      "outputPer1M": 0.3,
-      "cachedInputPer1M": 0.05
+      "inputPer1M": 0.0675,
+      "outputPer1M": 0.225,
+      "cachedInputPer1M": 0.0375
     }
   },
   {
@@ -267,8 +267,8 @@
     "family": "gpt-5.2-chat",
     "wireId": "openai/gpt-5.2-chat",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gpt-5.2-pro",
@@ -307,8 +307,8 @@
     "family": "gpt-oss-safeguard-20b",
     "wireId": "openai/gpt-oss-safeguard-20b",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "claude-haiku-4.5",
@@ -334,8 +334,8 @@
     "family": "claude-opus-4.1",
     "wireId": "anthropic/claude-opus-4.1",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gemini-2.5-pro",
@@ -349,22 +349,22 @@
     "family": "gemini-2.5-pro-preview",
     "wireId": "google/gemini-2.5-pro-preview",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "claude-opus-4",
     "wireId": "anthropic/claude-opus-4",
     "missingSince": "2026-09-24",
-    "missingObservations": 2,
-    "lastMissingAt": "2026-09-25"
+    "missingObservations": 3,
+    "lastMissingAt": "2026-09-26"
   },
   {
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -378,8 +378,8 @@
     "family": "o4-mini-high",
     "wireId": "openai/o4-mini-high",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "o3",
@@ -409,15 +409,15 @@
     "family": "gemma-3-4b-it",
     "wireId": "google/gemma-3-4b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gemma-3-12b-it",
     "wireId": "google/gemma-3-12b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gemma-3-27b-it",
@@ -427,8 +427,8 @@
     "family": "o3-mini-high",
     "wireId": "openai/o3-mini-high",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "o3-mini",
@@ -446,8 +446,8 @@
     "family": "gemma-2-27b-it",
     "wireId": "google/gemma-2-27b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gpt-4o",
@@ -461,8 +461,8 @@
     "family": "claude-3-haiku",
     "wireId": "anthropic/claude-3-haiku",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-09-25"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-09-26"
   },
   {
     "family": "gpt-4-turbo-preview",
@@ -882,5 +882,9 @@
   {
     "family": "mimo-v2.6-pro",
     "wireId": "xiaomi/mimo-v2.6-pro"
+  },
+  {
+    "family": "kev-4b",
+    "wireId": "jaredpalmer/kev-4b"
   }
 ]

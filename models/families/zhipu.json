@@ -86,8 +86,9 @@
     "displayName": "GLM 5.3 Flash",
     "pricing": {
       "inputPer1M": 0.045,
-      "outputPer1M": 0.6,
-      "cachedInputPer1M": 0.0285
+      "outputPer1M": 0.14,
+      "cachedInputPer1M": 0.01,
+      "discount": 0.5
     },
     "capabilities": {
       "tools": true,
@@ -96,7 +97,7 @@
       "reasoning": true
     },
     "contextWindow": 1310720,
-    "maxTokens": 131072,
+    "maxTokens": 128000,
     "note": "Added automatically on 2026-08-27 from OpenRouter's catalog (listed 2026-08-26); numbers and flags are OpenRouter's."
   }
 }

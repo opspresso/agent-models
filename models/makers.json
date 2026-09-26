@@ -122,5 +122,9 @@
   "typesafe": {
     "displayName": "TypeSafe",
     "openrouterVendor": "typesafe"
+  },
+  "jaredpalmer": {
+    "displayName": "Jared Palmer",
+    "openrouterVendor": "jaredpalmer"
   }
 }

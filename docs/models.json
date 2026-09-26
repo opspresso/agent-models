@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-25T00:11:24.065Z",
+  "updatedAt": "2026-09-26T00:17:48.595Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -41,7 +41,8 @@
     "meta": "Meta",
     "recraft": "Recraft",
     "assemblyai": "AssemblyAI",
-    "typesafe": "TypeSafe"
+    "typesafe": "TypeSafe",
+    "jaredpalmer": "Jared Palmer"
   },
   "models": [
     {
@@ -2311,7 +2312,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 262144,
+      "contextWindow": 1000000,
       "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
@@ -2942,10 +2943,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.841638,
-        "outputPer1M": 1.683276,
-        "cachedInputPer1M": 0.0701365,
-        "discount": 0.5163
+        "inputPer1M": 0.449268,
+        "outputPer1M": 0.898536,
+        "cachedInputPer1M": 0.037439,
+        "discount": 0.7418
       },
       "capabilities": {
         "tools": true,
@@ -2964,10 +2965,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.049,
-        "outputPer1M": 0.098,
-        "cachedInputPer1M": 0.0098,
-        "discount": 0.65
+        "inputPer1M": 0.04704,
+        "outputPer1M": 0.09408,
+        "cachedInputPer1M": 0.009408,
+        "discount": 0.664
       },
       "capabilities": {
         "tools": true,
@@ -3049,9 +3050,9 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.09,
-        "outputPer1M": 0.3,
-        "cachedInputPer1M": 0.05
+        "inputPer1M": 0.0675,
+        "outputPer1M": 0.225,
+        "cachedInputPer1M": 0.0375
       },
       "capabilities": {
         "tools": true,
@@ -4812,8 +4813,9 @@
       "displayName": "GLM 5.3 Flash",
       "pricing": {
         "inputPer1M": 0.045,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.0285
+        "outputPer1M": 0.14,
+        "cachedInputPer1M": 0.01,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -4822,7 +4824,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 131072,
+      "maxTokens": 128000,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6037,9 +6039,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.003
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.0042,
+        "discount": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -6048,7 +6051,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216,
+      "maxTokens": 131072,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6388,9 +6391,30 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
+      "contextWindow": 1050000,
       "maxTokens": 131072,
       "wireId": "xiaomi/mimo-v2.6-pro"
+    },
+    {
+      "id": "openrouter/kev-4b",
+      "provider": "openrouter",
+      "family": "kev-4b",
+      "maker": "jaredpalmer",
+      "displayName": "Kev 4B",
+      "pricing": {
+        "inputPer1M": 0.042,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 8192,
+      "maxTokens": 7372,
+      "wireId": "jaredpalmer/kev-4b"
     }
   ]
 }
