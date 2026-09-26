@@ -1,0 +1,19 @@
+{
+  "kev-4b": {
+    "displayName": "Kev 4B",
+    "pricing": {
+      "inputPer1M": 0.042,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 8192,
+    "maxTokens": 7372,
+    "note": "Added automatically on 2026-09-26 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}
