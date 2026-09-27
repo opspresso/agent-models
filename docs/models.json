@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-26T00:17:48.595Z",
+  "updatedAt": "2026-09-27T00:05:11.742Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2238,9 +2238,10 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 1.4,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
+        "inputPer1M": 0.238,
+        "outputPer1M": 0.748,
+        "cachedInputPer1M": 0.0391,
+        "discount": 0.8
       },
       "capabilities": {
         "tools": true,
@@ -2249,7 +2250,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 943717,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2604,9 +2605,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.132,
-        "outputPer1M": 0.528,
-        "cachedInputPer1M": 0.033
+        "inputPer1M": 0.0825,
+        "outputPer1M": 0.33,
+        "cachedInputPer1M": 0.020625
       },
       "capabilities": {
         "tools": true,
@@ -2943,10 +2944,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.449268,
-        "outputPer1M": 0.898536,
-        "cachedInputPer1M": 0.037439,
-        "discount": 0.7418
+        "inputPer1M": 0.348,
+        "outputPer1M": 0.696,
+        "cachedInputPer1M": 0.029,
+        "discount": 0.8
       },
       "capabilities": {
         "tools": true,
@@ -3092,9 +3093,10 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.06
+        "inputPer1M": 0.21,
+        "outputPer1M": 0.84,
+        "cachedInputPer1M": 0.042,
+        "discount": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -3103,7 +3105,7 @@
         "reasoning": true
       },
       "contextWindow": 204800,
-      "maxTokens": 131072,
+      "maxTokens": 176947,
       "wireId": "minimax/minimax-m2.7"
     },
     {
@@ -4812,10 +4814,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.045,
-        "outputPer1M": 0.14,
-        "cachedInputPer1M": 0.01,
-        "discount": 0.5
+        "inputPer1M": 0.04,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.015
       },
       "capabilities": {
         "tools": true,
@@ -4824,7 +4825,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 128000,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6039,10 +6040,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.14,
-        "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.0042,
-        "discount": 0.3
+        "inputPer1M": 0.035,
+        "outputPer1M": 0.29,
+        "cachedInputPer1M": 0.001
       },
       "capabilities": {
         "tools": true,
@@ -6051,7 +6051,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 384000,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
