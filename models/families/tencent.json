@@ -2,9 +2,9 @@
   "hy3": {
     "displayName": "Hy3",
     "pricing": {
-      "inputPer1M": 0.132,
-      "outputPer1M": 0.528,
-      "cachedInputPer1M": 0.033
+      "inputPer1M": 0.0825,
+      "outputPer1M": 0.33,
+      "cachedInputPer1M": 0.020625
     },
     "capabilities": {
       "tools": true,
