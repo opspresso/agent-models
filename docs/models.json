@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-27T00:05:11.742Z",
+  "updatedAt": "2026-09-28T00:10:41.993Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2238,10 +2238,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.238,
-        "outputPer1M": 0.748,
-        "cachedInputPer1M": 0.0391,
-        "discount": 0.8
+        "inputPer1M": 0.3556,
+        "outputPer1M": 2.574,
+        "cachedInputPer1M": 0.06604
       },
       "capabilities": {
         "tools": true,
@@ -2250,7 +2249,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 943718,
+      "maxTokens": 235929,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2605,9 +2604,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.0825,
-        "outputPer1M": 0.33,
-        "cachedInputPer1M": 0.020625
+        "inputPer1M": 0.132,
+        "outputPer1M": 0.528,
+        "cachedInputPer1M": 0.033
       },
       "capabilities": {
         "tools": true,
@@ -2944,10 +2943,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.348,
-        "outputPer1M": 0.696,
-        "cachedInputPer1M": 0.029,
-        "discount": 0.8
+        "inputPer1M": 0.9483,
+        "outputPer1M": 1.8966,
+        "cachedInputPer1M": 0.079025,
+        "discount": 0.455
       },
       "capabilities": {
         "tools": true,
@@ -2966,10 +2965,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.04704,
-        "outputPer1M": 0.09408,
-        "cachedInputPer1M": 0.009408,
-        "discount": 0.664
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.28,
+        "cachedInputPer1M": 0.028
       },
       "capabilities": {
         "tools": true,
@@ -2978,7 +2976,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 131072,
       "wireId": "deepseek/deepseek-v4-flash"
     },
     {
@@ -3093,10 +3091,9 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.21,
-        "outputPer1M": 0.84,
-        "cachedInputPer1M": 0.042,
-        "discount": 0.3
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,
@@ -3105,7 +3102,7 @@
         "reasoning": true
       },
       "contextWindow": 204800,
-      "maxTokens": 176947,
+      "maxTokens": 131072,
       "wireId": "minimax/minimax-m2.7"
     },
     {
@@ -3488,9 +3485,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V3.2",
       "pricing": {
-        "inputPer1M": 0.269,
-        "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.1345
+        "inputPer1M": 0.28,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.028
       },
       "capabilities": {
         "tools": true,
@@ -4814,9 +4811,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.15,
         "outputPer1M": 0.5,
-        "cachedInputPer1M": 0.015
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4825,7 +4822,7 @@
         "reasoning": true
       },
       "contextWindow": 1310720,
-      "maxTokens": 131072,
+      "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -5929,9 +5926,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash Vision Exp",
       "pricing": {
-        "inputPer1M": 0.22,
-        "outputPer1M": 0.66,
-        "cachedInputPer1M": 0.007
+        "inputPer1M": 0.44,
+        "outputPer1M": 1.32,
+        "cachedInputPer1M": 0.014
       },
       "capabilities": {
         "tools": true,
@@ -5940,7 +5937,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 943717,
       "wireId": "deepseek/deepseek-v4-flash-vision-exp"
     },
     {
@@ -6040,9 +6037,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.035,
-        "outputPer1M": 0.29,
-        "cachedInputPer1M": 0.001
+        "inputPer1M": 0.03483,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.03135
       },
       "capabilities": {
         "tools": true,
@@ -6051,7 +6048,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6415,6 +6412,48 @@
       "contextWindow": 8192,
       "maxTokens": 7372,
       "wireId": "jaredpalmer/kev-4b"
+    },
+    {
+      "id": "openrouter/gemini-3.5-transcribe",
+      "provider": "openrouter",
+      "family": "gemini-3.5-transcribe",
+      "maker": "google",
+      "displayName": "Gemini 3.5 Transcribe",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 12
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 98304,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-3.5-transcribe"
+    },
+    {
+      "id": "openrouter/muse-spark-1.3",
+      "provider": "openrouter",
+      "family": "muse-spark-1.3",
+      "maker": "meta",
+      "displayName": "Muse Spark 1.3",
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 4.25,
+        "cachedInputPer1M": 0.15
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 943718,
+      "wireId": "meta/muse-spark-1.3"
     }
   ]
 }
