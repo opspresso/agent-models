@@ -207,9 +207,9 @@
   "gpt-5.6-sol-pro": {
     "displayName": "GPT-5.6 Sol Pro",
     "pricing": {
-      "inputPer1M": 2,
-      "outputPer1M": 10,
-      "cachedInputPer1M": 0.2,
+      "inputPer1M": 4,
+      "outputPer1M": 20,
+      "cachedInputPer1M": 0.4,
       "discount": 0.5
     },
     "capabilities": {
