@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-29T01:22:38.450Z",
+  "updatedAt": "2026-09-30T00:56:13.731Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2248,7 +2248,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 1310720,
+      "contextWindow": 1048576,
       "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3"
     },
@@ -2312,7 +2312,7 @@
         "imageInput": false,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 262144,
       "maxTokens": 32768,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
@@ -2646,9 +2646,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.3349,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
+        "inputPer1M": 0.1449,
+        "outputPer1M": 3.99,
+        "cachedInputPer1M": 0.1159
       },
       "capabilities": {
         "tools": true,
@@ -3789,7 +3789,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 32000,
-      "wireId": "anthropic/claude-opus-4"
+      "wireId": "anthropic/claude-opus-4",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-sonnet-4",
@@ -4821,7 +4822,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1310720,
+      "contextWindow": 1048576,
       "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3-flash"
     },
@@ -6499,6 +6500,48 @@
       "contextWindow": 1000000,
       "maxTokens": 128000,
       "wireId": "anthropic/claude-sonnet-5.5"
+    },
+    {
+      "id": "openrouter/gpt-6.1-sol-pro",
+      "provider": "openrouter",
+      "family": "gpt-6.1-sol-pro",
+      "maker": "openai",
+      "displayName": "GPT-6.1 Sol Pro",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6.1-sol-pro"
+    },
+    {
+      "id": "openrouter/gpt-6.1-sol",
+      "provider": "openrouter",
+      "family": "gpt-6.1-sol",
+      "maker": "openai",
+      "displayName": "GPT-6.1 Sol",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.1
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 128000,
+      "wireId": "openai/gpt-6.1-sol"
     }
   ]
 }
