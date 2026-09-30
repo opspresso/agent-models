@@ -1210,5 +1210,39 @@
     "contextWindow": 1050000,
     "maxTokens": 128000,
     "note": "Added automatically on 2026-09-24 from OpenRouter's catalog (listed 2026-09-22); numbers and flags are OpenRouter's."
+  },
+  "gpt-6.1-sol-pro": {
+    "displayName": "GPT-6.1 Sol Pro",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-30 from OpenRouter's catalog (listed 2026-09-29); numbers and flags are OpenRouter's."
+  },
+  "gpt-6.1-sol": {
+    "displayName": "GPT-6.1 Sol",
+    "pricing": {
+      "inputPer1M": 2,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.1
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-09-30 from OpenRouter's catalog (listed 2026-09-29); numbers and flags are OpenRouter's."
   }
 }
