@@ -126,5 +126,9 @@
   "jaredpalmer": {
     "displayName": "Jared Palmer",
     "openrouterVendor": "jaredpalmer"
+  },
+  "togethercomputer": {
+    "displayName": "Together",
+    "openrouterVendor": "togethercomputer"
   }
 }

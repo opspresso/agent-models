@@ -1,0 +1,19 @@
+{
+  "tev1-4b-experimental": {
+    "displayName": "Tev1 4B Experimental",
+    "pricing": {
+      "inputPer1M": 0.042,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 32768,
+    "maxTokens": 8,
+    "note": "Added automatically on 2026-10-01 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}

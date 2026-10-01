@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-30T00:56:13.731Z",
+  "updatedAt": "2026-10-01T00:57:23.361Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -42,7 +42,8 @@
     "recraft": "Recraft",
     "assemblyai": "AssemblyAI",
     "typesafe": "TypeSafe",
-    "jaredpalmer": "Jared Palmer"
+    "jaredpalmer": "Jared Palmer",
+    "togethercomputer": "Together"
   },
   "models": [
     {
@@ -2238,9 +2239,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 1.4,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.26
+        "inputPer1M": 0.2219,
+        "outputPer1M": 7.61,
+        "cachedInputPer1M": 0.2217
       },
       "capabilities": {
         "tools": true,
@@ -2249,7 +2250,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943717,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2302,9 +2303,10 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.16,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.0595,
+        "outputPer1M": 0.17,
+        "cachedInputPer1M": 0.02975,
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -2313,7 +2315,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 32768,
+      "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2646,9 +2648,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.1449,
+        "inputPer1M": 0.3249,
         "outputPer1M": 3.99,
-        "cachedInputPer1M": 0.1159
+        "cachedInputPer1M": 0.26
       },
       "capabilities": {
         "tools": true,
@@ -2942,10 +2944,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.95526,
-        "outputPer1M": 1.91052,
-        "cachedInputPer1M": 0.079605,
-        "discount": 0.451
+        "inputPer1M": 0.783,
+        "outputPer1M": 1.566,
+        "cachedInputPer1M": 0.06525,
+        "discount": 0.55
       },
       "capabilities": {
         "tools": true,
@@ -2964,9 +2966,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.14,
-        "outputPer1M": 0.28,
-        "cachedInputPer1M": 0.028
+        "inputPer1M": 0.07854,
+        "outputPer1M": 0.15708,
+        "cachedInputPer1M": 0.015708,
+        "discount": 0.439
       },
       "capabilities": {
         "tools": true,
@@ -2975,7 +2978,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 384000,
       "wireId": "deepseek/deepseek-v4-flash"
     },
     {
@@ -4747,9 +4750,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 3,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.3
+        "inputPer1M": 0.28,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.27
       },
       "capabilities": {
         "tools": true,
@@ -6039,9 +6042,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.006
+        "inputPer1M": 0.018612,
+        "outputPer1M": 0.396,
+        "cachedInputPer1M": 0.00291
       },
       "capabilities": {
         "tools": true,
@@ -6191,8 +6194,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.00375,
-        "discount": 0.5
+        "perAudioMinute": 0.0075
       },
       "capabilities": {
         "tools": false,
@@ -6327,7 +6329,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1048576,
+      "contextWindow": 1050000,
       "maxTokens": 131072,
       "wireId": "xiaomi/mimo-v2.6-flash"
     },
@@ -6542,6 +6544,113 @@
       "contextWindow": 1050000,
       "maxTokens": 128000,
       "wireId": "openai/gpt-6.1-sol"
+    },
+    {
+      "id": "openrouter/recraft-v4.1-flash",
+      "provider": "openrouter",
+      "family": "recraft-v4.1-flash",
+      "maker": "recraft",
+      "displayName": "Recraft V4.1 Flash",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 1.67664671
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 58982,
+      "wireId": "recraft/recraft-v4.1-flash"
+    },
+    {
+      "id": "openrouter/rerank-3-lite",
+      "provider": "openrouter",
+      "family": "rerank-3-lite",
+      "maker": "voyageai",
+      "displayName": "rerank-3-lite",
+      "pricing": {
+        "inputPer1M": 0.02,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/rerank-3-lite"
+    },
+    {
+      "id": "openrouter/rerank-3",
+      "provider": "openrouter",
+      "family": "rerank-3",
+      "maker": "voyageai",
+      "displayName": "rerank-3",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "rerank": true
+      },
+      "contextWindow": 32000,
+      "maxTokens": 0,
+      "wireId": "voyageai/rerank-3"
+    },
+    {
+      "id": "openrouter/transcribe-1-pro",
+      "provider": "openrouter",
+      "family": "transcribe-1-pro",
+      "maker": "fish-audio",
+      "displayName": "Transcribe 1 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.006
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "fish-audio/transcribe-1-pro"
+    },
+    {
+      "id": "openrouter/tev1-4b-experimental",
+      "provider": "openrouter",
+      "family": "tev1-4b-experimental",
+      "maker": "togethercomputer",
+      "displayName": "Tev1 4B Experimental",
+      "pricing": {
+        "inputPer1M": 0.042,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 8,
+      "wireId": "togethercomputer/tev1-4b-experimental"
     }
   ]
 }
