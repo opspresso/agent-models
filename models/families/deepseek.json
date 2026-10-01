@@ -18,10 +18,10 @@
   "deepseek-v4-pro": {
     "displayName": "DeepSeek V4 Pro 0423",
     "pricing": {
-      "inputPer1M": 0.95526,
-      "outputPer1M": 1.91052,
-      "cachedInputPer1M": 0.079605,
-      "discount": 0.451
+      "inputPer1M": 0.783,
+      "outputPer1M": 1.566,
+      "cachedInputPer1M": 0.06525,
+      "discount": 0.55
     },
     "capabilities": {
       "tools": true,
@@ -36,9 +36,10 @@
   "deepseek-v4-flash": {
     "displayName": "DeepSeek V4 Flash 0423",
     "pricing": {
-      "inputPer1M": 0.14,
-      "outputPer1M": 0.28,
-      "cachedInputPer1M": 0.028
+      "inputPer1M": 0.07854,
+      "outputPer1M": 0.15708,
+      "cachedInputPer1M": 0.015708,
+      "discount": 0.439
     },
     "capabilities": {
       "tools": true,
@@ -47,7 +48,7 @@
       "reasoning": true
     },
     "contextWindow": 1048576,
-    "maxTokens": 131072,
+    "maxTokens": 384000,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-04-24); numbers and flags are OpenRouter's."
   },
   "deepseek-v4-flash-vision-exp": {
@@ -71,9 +72,9 @@
   "deepseek-v4.1-flash": {
     "displayName": "DeepSeek V4.1 Flash",
     "pricing": {
-      "inputPer1M": 0.3,
-      "outputPer1M": 1.2,
-      "cachedInputPer1M": 0.006
+      "inputPer1M": 0.018612,
+      "outputPer1M": 0.396,
+      "cachedInputPer1M": 0.00291
     },
     "capabilities": {
       "tools": true,

@@ -111,8 +111,8 @@
     "family": "step-3.7-flash",
     "wireId": "stepfun/step-3.7-flash",
     "rankMissingSince": "2026-09-17",
-    "rankMissingObservations": 11,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 12,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -150,8 +150,8 @@
     "family": "gpt-chat-latest",
     "wireId": "openai/gpt-chat-latest",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "grok-4.3",
@@ -267,8 +267,8 @@
     "family": "gpt-5.2-chat",
     "wireId": "openai/gpt-5.2-chat",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gpt-5.2-pro",
@@ -307,8 +307,8 @@
     "family": "gpt-oss-safeguard-20b",
     "wireId": "openai/gpt-oss-safeguard-20b",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "claude-haiku-4.5",
@@ -334,8 +334,8 @@
     "family": "claude-opus-4.1",
     "wireId": "anthropic/claude-opus-4.1",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gemini-2.5-pro",
@@ -349,8 +349,8 @@
     "family": "gemini-2.5-pro-preview",
     "wireId": "google/gemini-2.5-pro-preview",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "claude-opus-4",
@@ -364,8 +364,8 @@
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -379,8 +379,8 @@
     "family": "o4-mini-high",
     "wireId": "openai/o4-mini-high",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "o3",
@@ -410,15 +410,15 @@
     "family": "gemma-3-4b-it",
     "wireId": "google/gemma-3-4b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gemma-3-12b-it",
     "wireId": "google/gemma-3-12b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gemma-3-27b-it",
@@ -428,8 +428,8 @@
     "family": "o3-mini-high",
     "wireId": "openai/o3-mini-high",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "o3-mini",
@@ -447,8 +447,8 @@
     "family": "gemma-2-27b-it",
     "wireId": "google/gemma-2-27b-it",
     "rankMissingSince": "2026-08-30",
-    "rankMissingObservations": 27,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 28,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gpt-4o",
@@ -462,8 +462,8 @@
     "family": "claude-3-haiku",
     "wireId": "anthropic/claude-3-haiku",
     "missingSince": "2026-09-27",
-    "missingObservations": 4,
-    "lastMissingAt": "2026-09-30"
+    "missingObservations": 5,
+    "lastMissingAt": "2026-10-01"
   },
   {
     "family": "gpt-4-turbo-preview",
@@ -557,8 +557,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 2,
-    "lastRankMissingAt": "2026-09-30"
+    "rankMissingObservations": 3,
+    "lastRankMissingAt": "2026-10-01"
   },
   {
     "family": "gpt-5-image-mini",
@@ -909,5 +909,25 @@
   {
     "family": "gpt-6.1-sol",
     "wireId": "openai/gpt-6.1-sol"
+  },
+  {
+    "family": "recraft-v4.1-flash",
+    "wireId": "recraft/recraft-v4.1-flash"
+  },
+  {
+    "family": "rerank-3-lite",
+    "wireId": "voyageai/rerank-3-lite"
+  },
+  {
+    "family": "rerank-3",
+    "wireId": "voyageai/rerank-3"
+  },
+  {
+    "family": "transcribe-1-pro",
+    "wireId": "fish-audio/transcribe-1-pro"
+  },
+  {
+    "family": "tev1-4b-experimental",
+    "wireId": "togethercomputer/tev1-4b-experimental"
   }
 ]
