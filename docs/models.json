@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-01T00:57:23.361Z",
+  "updatedAt": "2026-10-02T01:13:27.383Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -43,7 +43,8 @@
     "assemblyai": "AssemblyAI",
     "typesafe": "TypeSafe",
     "jaredpalmer": "Jared Palmer",
-    "togethercomputer": "Together"
+    "togethercomputer": "Together",
+    "liquid": "LiquidAI"
   },
   "models": [
     {
@@ -2239,9 +2240,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.2219,
-        "outputPer1M": 7.61,
-        "cachedInputPer1M": 0.2217
+        "inputPer1M": 1.4,
+        "outputPer1M": 4.4,
+        "cachedInputPer1M": 0.14
       },
       "capabilities": {
         "tools": true,
@@ -2250,7 +2251,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2303,10 +2304,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.0595,
-        "outputPer1M": 0.17,
-        "cachedInputPer1M": 0.02975,
-        "discount": 0.15
+        "inputPer1M": 0.06,
+        "outputPer1M": 0.16,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -2315,7 +2315,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 131072,
+      "maxTokens": 32768,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2648,7 +2648,7 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.3249,
+        "inputPer1M": 0.41,
         "outputPer1M": 3.99,
         "cachedInputPer1M": 0.26
       },
@@ -2944,10 +2944,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.783,
-        "outputPer1M": 1.566,
-        "cachedInputPer1M": 0.06525,
-        "discount": 0.55
+        "inputPer1M": 0.2088,
+        "outputPer1M": 0.4176,
+        "cachedInputPer1M": 0.0174,
+        "discount": 0.88
       },
       "capabilities": {
         "tools": true,
@@ -2966,10 +2966,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.07854,
-        "outputPer1M": 0.15708,
-        "cachedInputPer1M": 0.015708,
-        "discount": 0.439
+        "inputPer1M": 0.042,
+        "outputPer1M": 0.084,
+        "cachedInputPer1M": 0.0084,
+        "discount": 0.7
       },
       "capabilities": {
         "tools": true,
@@ -4750,9 +4750,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.28,
+        "inputPer1M": 0.355,
         "outputPer1M": 10,
-        "cachedInputPer1M": 0.27
+        "cachedInputPer1M": 0.355
       },
       "capabilities": {
         "tools": true,
@@ -4771,9 +4771,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.6,
-        "outputPer1M": 2.4,
-        "cachedInputPer1M": 0.12
+        "inputPer1M": 0.5,
+        "outputPer1M": 2.2,
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -4782,7 +4782,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 182520,
+      "maxTokens": 16384,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
@@ -6042,9 +6042,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.018612,
-        "outputPer1M": 0.396,
-        "cachedInputPer1M": 0.00291
+        "inputPer1M": 0.03,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -6651,6 +6651,28 @@
       "contextWindow": 32768,
       "maxTokens": 8,
       "wireId": "togethercomputer/tev1-4b-experimental"
+    },
+    {
+      "id": "openrouter/d1",
+      "provider": "openrouter",
+      "family": "d1",
+      "maker": "liquid",
+      "displayName": "D1",
+      "pricing": {
+        "inputPer1M": 0.04,
+        "outputPer1M": 0,
+        "cachedInputPer1M": 0.04
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 58982,
+      "wireId": "liquid/d1"
     }
   ]
 }
