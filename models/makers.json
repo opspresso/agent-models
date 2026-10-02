@@ -130,5 +130,9 @@
   "togethercomputer": {
     "displayName": "Together",
     "openrouterVendor": "togethercomputer"
+  },
+  "liquid": {
+    "displayName": "LiquidAI",
+    "openrouterVendor": "liquid"
   }
 }
