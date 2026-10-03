@@ -657,13 +657,7 @@ function transcriptionMaxTokens(
 
 /** A reset may only proceed when every policy input and ranked modality model is usable. */
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
-  if (
-    catalog.rankings === null
-    || catalog.imageRankings === null
-    || catalog.embeddingRankings === null
-    || catalog.rerankRankings === null
-    || catalog.transcriptionRankings === null
-  ) return false;
+  if (Object.values(retentionRankings(catalog)).some((ranked) => ranked === null)) return false;
   const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
   if (ids === null || ids.length !== ADDITION_LEADERBOARD_LIMIT) return false;
   const imagesReady = ids.every((id) => {
@@ -984,6 +978,28 @@ function specializedLeaderboardIds(
   limit = ADDITION_LEADERBOARD_LIMIT,
 ): string[] | null {
   return embeddingLeaderboardIds(models, rankings, limit);
+}
+
+/** The complete retention sets used both to restore reset routes and to retire existing ones. */
+function retentionRankings(catalog: OpenRouterCatalog): {
+  text: Set<string> | null;
+  image: Set<string> | null;
+  embedding: Set<string> | null;
+  rerank: Set<string> | null;
+  transcription: Set<string> | null;
+} {
+  const complete = (ids: Iterable<string> | null, expected: number): Set<string> | null => {
+    if (ids === null) return null;
+    const ranked = new Set(ids);
+    return ranked.size === expected ? ranked : null;
+  };
+  return {
+    text: complete(leaderboardPermaslugs(catalog.models, catalog.rankings, TEXT_RETENTION_LEADERBOARD_LIMIT), TEXT_RETENTION_LEADERBOARD_LIMIT * 2),
+    image: complete(imageLeaderboardIds(catalog.imageModels, catalog.imageRankings, IMAGE_RETENTION_LEADERBOARD_LIMIT), IMAGE_RETENTION_LEADERBOARD_LIMIT),
+    embedding: complete(embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings, EMBEDDING_RETENTION_LEADERBOARD_LIMIT), EMBEDDING_RETENTION_LEADERBOARD_LIMIT),
+    rerank: complete(specializedLeaderboardIds(catalog.rerankModels, catalog.rerankRankings, RERANK_RETENTION_LEADERBOARD_LIMIT), Math.min(RERANK_RETENTION_LEADERBOARD_LIMIT, catalog.rerankModels.length)),
+    transcription: complete(specializedLeaderboardIds(catalog.transcriptionModels, catalog.transcriptionRankings, TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT), Math.min(TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT, catalog.transcriptionModels.length)),
+  };
 }
 
 /** The weekly open/closed leaderboard, with serving variants folded to one model. */
@@ -1584,62 +1600,29 @@ export function discoverOpenRouter(
   );
   const unknownVendors = new Map<string, string[]>();
   const rankedPermaslugs = leaderboardPermaslugs(catalog.models, catalog.rankings);
-  const textRetention = leaderboardPermaslugs(
-    catalog.models,
-    catalog.rankings,
-    TEXT_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedPermaslugs = textRetention?.size === TEXT_RETENTION_LEADERBOARD_LIMIT * 2
-    ? textRetention
-    : null;
+  const {
+    text: retainedPermaslugs,
+    image: retainedImageIds,
+    embedding: retainedEmbeddingIds,
+    rerank: retainedRerankIds,
+    transcription: retainedTranscriptionIds,
+  } = retentionRankings(catalog);
   if (rankedPermaslugs === null) {
     notes.push("openrouter: weekly rankings could not be read; non-major models and routes were not added");
   } else if (retainedPermaslugs === null) {
     notes.push("openrouter: weekly rankings did not contain a complete open/closed Top 50; ranking retirement did not advance");
   }
   const rankedImageIds = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
-  const imageRetention = imageLeaderboardIds(
-    catalog.imageModels,
-    catalog.imageRankings,
-    IMAGE_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedImageIds = imageRetention?.length === IMAGE_RETENTION_LEADERBOARD_LIMIT
-    ? new Set(imageRetention)
-    : null;
   if (rankedImageIds !== null && retainedImageIds === null) {
     notes.push("openrouter: weekly image rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
   const rankedEmbeddingIds = embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings);
-  const embeddingRetention = embeddingLeaderboardIds(
-    catalog.embeddingModels,
-    catalog.embeddingRankings,
-    EMBEDDING_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedEmbeddingIds = embeddingRetention?.length === EMBEDDING_RETENTION_LEADERBOARD_LIMIT
-    ? new Set(embeddingRetention)
-    : null;
   if (rankedEmbeddingIds !== null && retainedEmbeddingIds === null) {
     notes.push("openrouter: weekly embeddings rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
-  const rerankRetention = specializedLeaderboardIds(
-    catalog.rerankModels,
-    catalog.rerankRankings,
-    RERANK_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedRerankIds = rerankRetention?.length === Math.min(RERANK_RETENTION_LEADERBOARD_LIMIT, catalog.rerankModels.length)
-    ? new Set(rerankRetention)
-    : null;
   if (catalog.rerankRankings !== null && retainedRerankIds === null) {
     notes.push("openrouter: weekly rerank rankings were incomplete; ranking retirement did not advance");
   }
-  const transcriptionRetention = specializedLeaderboardIds(
-    catalog.transcriptionModels,
-    catalog.transcriptionRankings,
-    TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedTranscriptionIds = transcriptionRetention?.length === Math.min(TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT, catalog.transcriptionModels.length)
-    ? new Set(transcriptionRetention)
-    : null;
   if (catalog.transcriptionRankings !== null && retainedTranscriptionIds === null) {
     notes.push("openrouter: weekly transcription rankings were incomplete; ranking retirement did not advance");
   }

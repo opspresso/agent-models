@@ -863,6 +863,30 @@ function embeddingRetentionCatalog(targetRank: 30 | 31, created = OLD): OpenRout
   });
 }
 
+function resetReadyCatalog(): OpenRouterCatalog {
+  const target = { ...DEEPSEEK_Z_LISTED, canonical_slug: "deepseek/deepseek-z-20260110", created: OLD };
+  const text = textRetentionCatalog(target, 50);
+  const image = imageRetentionCatalog(30);
+  const embedding = embeddingRetentionCatalog(30);
+  return {
+    ...text,
+    imageIds: image.imageIds,
+    imageModels: image.imageModels,
+    imageRankings: image.imageRankings,
+    embeddingModels: embedding.embeddingModels,
+    embeddingRankings: embedding.embeddingRankings,
+    rerankModels: [RERANK_MODEL],
+    rerankRankings: [RERANK_RANKING],
+    transcriptionModels: [TRANSCRIPTION_MODEL],
+    transcriptionRankings: [TRANSCRIPTION_RANKING],
+    endpoints: Object.fromEntries(image.imageModels.map((model) => [model.id, [{
+      context_length: 1024,
+      max_completion_tokens: 1024,
+      pricing: { image_output: "0.00001" },
+    }]])),
+  };
+}
+
 describe("undiscounted / promoteFamily", () => {
   it("puts the list price back and drops the discount", () => {
     assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
@@ -1169,26 +1193,38 @@ describe("discoverOpenRouter", () => {
   });
 
   it("allows a reset with complete embeddings rankings that include free models", () => {
-    const imageModels = Array.from({ length: 20 }, (_, index) => ({ id: `image/m-${index}` }));
-    const endpoints = Object.fromEntries(imageModels.map((model) => [model.id, [{
-      context_length: 1024,
-      max_completion_tokens: 1024,
-      pricing: { image_output: "0.00001" },
-    }]]));
-    const freeEmbedding = { ...EMBEDDING_MODEL, pricing: { prompt: "0", completion: "0" } };
-    const catalog = orCatalog([], {
-      rankings: [],
-      imageModels,
-      imageRankings: imageModels.map((model, index) => ({
-        model_permaslug: model.id,
-        variant_permaslug: model.id,
-        image_output_requests: 20 - index,
-      })),
-      embeddingModels: [freeEmbedding],
-      embeddingRankings: [EMBEDDING_RANKING],
-      endpoints,
-    });
+    const catalog = resetReadyCatalog();
+    catalog.embeddingModels[0]!.pricing = { prompt: "0", completion: "0" };
     assert.equal(openRouterResetReady(catalog), true);
+    const restored = discoverOpenRouter(resetOpenRouterRegistry(fixture()).registry, catalog, TODAY);
+    assert.equal(restored.registry.offerings.find((offering) => offering.family === "deepseek-z")?.hidden, undefined);
+    assert.equal(restored.registry.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.hidden, undefined);
+  });
+
+  it("refuses a reset when admission rankings are usable but retention rankings are incomplete", () => {
+    const text = resetReadyCatalog();
+    text.rankings = text.rankings!.filter((_, index) => index < 20 || index >= 50 && index < 70);
+    assert.equal(openRouterResetReady(text), false, "text Top 20 cannot restore the Top 50 retention set");
+
+    const image = resetReadyCatalog();
+    image.imageRankings = image.imageRankings!.slice(0, 20);
+    assert.equal(openRouterResetReady(image), false, "image Top 20 cannot restore the Top 30 retention set");
+
+    const embedding = resetReadyCatalog();
+    embedding.embeddingRankings = embedding.embeddingRankings!.slice(0, 20);
+    assert.equal(openRouterResetReady(embedding), false, "embedding Top 20 cannot restore the Top 30 retention set");
+
+    for (const kind of ["rerank", "transcription"] as const) {
+      const catalog = resetReadyCatalog();
+      catalog[`${kind}Rankings`] = [];
+      assert.equal(openRouterResetReady(catalog), false, `${kind} must cover its smaller catalog`);
+    }
+  });
+
+  it("refuses a reset when a ranked image has unusable endpoint metadata", () => {
+    const catalog = resetReadyCatalog();
+    catalog.endpoints[catalog.imageModels[0]!.id] = null;
+    assert.equal(openRouterResetReady(catalog), false);
   });
 
   it("bootstraps an older ranked model after an OpenRouter reset", () => {
