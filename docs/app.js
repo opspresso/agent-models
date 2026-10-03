@@ -43,19 +43,23 @@
 
   // The console's own formatting, kept to the letter: `formatUsd`,
   // `modelPriceLabel`, `contextWindowLabel`, `otherRoutes`.
-  const formatUsd = (v, digits) => {
-    const d = digits ?? (v !== 0 && Math.abs(v) < 0.01 ? 4 : 2);
-    return `$${v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
+  const USD_FORMATS = Object.fromEntries([2, 4].map((digits) => [digits,
+    new Intl.NumberFormat("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits }),
+  ]));
+  const formatUsd = (v) => {
+    const digits = v !== 0 && Math.abs(v) < 0.01 ? 4 : 2;
+    return `$${USD_FORMATS[digits].format(v)}`;
   };
-  const modelPriceLabel = (m) => {
+  const modelPriceLabel = (m, multiplier = 1) => {
     const p = m.pricing;
+    const price = (value) => formatUsd(value * multiplier);
     const { inputPer1M, outputPer1M, imageOutputPer1M, perImage, perSearch, perAudioMinute } = p;
-    if (m.capabilities.embedding || m.capabilities.decision) return `${formatUsd(inputPer1M)} in per 1M`;
-    if (m.capabilities.rerank) return perSearch !== undefined ? `${formatUsd(perSearch)} / search` : `${formatUsd(inputPer1M)} in per 1M`;
-    if (m.capabilities.transcription && perAudioMinute !== undefined) return `${formatUsd(perAudioMinute)} / audio minute`;
-    if (imageOutputPer1M === undefined && perImage === undefined) return `${formatUsd(inputPer1M)} in · ${formatUsd(outputPer1M)} out per 1M`;
-    const image = perImage !== undefined ? `${imageOutputPer1M ? "≈" : ""}${formatUsd(perImage)} / image` : `${formatUsd(imageOutputPer1M ?? 0)} image out per 1M`;
-    return inputPer1M > 0 ? `${image} · ${formatUsd(inputPer1M)} in per 1M` : image;
+    if (m.capabilities.embedding || m.capabilities.decision) return `${price(inputPer1M)} in per 1M`;
+    if (m.capabilities.rerank) return perSearch !== undefined ? `${price(perSearch)} / search` : `${price(inputPer1M)} in per 1M`;
+    if (m.capabilities.transcription && perAudioMinute !== undefined) return `${price(perAudioMinute)} / audio minute`;
+    if (imageOutputPer1M === undefined && perImage === undefined) return `${price(inputPer1M)} in · ${price(outputPer1M)} out per 1M`;
+    const image = perImage !== undefined ? `${imageOutputPer1M ? "≈" : ""}${price(perImage)} / image` : `${price(imageOutputPer1M ?? 0)} image out per 1M`;
+    return inputPer1M > 0 ? `${image} · ${price(inputPer1M)} in per 1M` : image;
   };
   const roundTokens = (n) => n >= 1e6 ? `${Math.round(n / 1e4) / 100}M` : n >= 1e3 ? `${Math.round(n / 1e3)}K` : `${n}`;
   const contextWindowLabel = (m) => m.capabilities.embedding || m.capabilities.rerank
@@ -173,15 +177,7 @@
     const typeBadge = `<span class="badge type-${type}">${typeLabel(type)}</span>`;
     const caps = CAPABILITY_COLUMNS.filter(([k]) => m.capabilities[k]).map(([, l]) => `<span class="badge outline">${l}</span>`).join("");
     const d = m.pricing.discount;
-    const listDivisor = 1 - (d ?? 0);
-    const promoList = m.pricing.perSearch !== undefined
-      ? `${formatUsd(m.pricing.perSearch / listDivisor)} / search`
-      : m.pricing.perAudioMinute !== undefined
-        ? `${formatUsd(m.pricing.perAudioMinute / listDivisor)} / audio minute`
-      : m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision
-      ? `${formatUsd(m.pricing.inputPer1M / listDivisor)} in per 1M`
-      : `${formatUsd(m.pricing.inputPer1M / listDivisor)} in · ${formatUsd((m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M) / listDivisor)} out per 1M`;
-    const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${promoList}">−${Math.round(d * 100)}%</span>` : "";
+    const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${esc(modelPriceLabel(m, 1 / (1 - d)))}">−${Math.round(d * 100)}%</span>` : "";
     const routes = otherRoutes(m);
     const cached = m.pricing.cachedInputPer1M !== undefined && !m.capabilities.imageGeneration ? `cached ${formatUsd(m.pricing.cachedInputPer1M)}` : "";
     const wire = m.wireId ? `<code title="Sent to ${esc(m.provider)} as ${esc(m.wireId)}">${esc(m.wireId)}</code>` : "<span></span>";
