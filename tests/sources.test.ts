@@ -958,6 +958,29 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("does not overwrite an existing maker when a new specialized vendor uses its id", () => {
+    for (const kind of ["image", "embedding", "rerank", "transcription", "decision"] as const) {
+      const r = fixture();
+      const model = {
+        id: "xai/special",
+        name: "Different maker: Special",
+        context_length: 4096,
+        top_provider: { max_completion_tokens: 1024 },
+        pricing: { prompt: "0.000001", completion: "0", rerank_search: "0.001", transcription_minute: "0.006" },
+        architecture: { output_modalities: [kind === "decision" ? "decisions" : kind] },
+      };
+      const ranking = { model_permaslug: model.id, variant_permaslug: model.id, count: 1, image_output_requests: 1 };
+      const { registry, result } = discoverOpenRouter(r, orCatalog([], {
+        [`${kind}Models`]: [model],
+        ...(kind === "decision" ? {} : { [`${kind}Rankings`]: [ranking] }),
+        endpoints: { [model.id]: [{ context_length: 4096, max_completion_tokens: 1024, pricing: { image_output: "0.000003" } }] },
+      }), TODAY);
+      assert.deepEqual(registry.makers, r.makers, kind);
+      assert.equal(registry.families.special, undefined, kind);
+      assert.match(result.notes.join("\n"), /existing maker "xai" under a different vendor mapping/, kind);
+    }
+  });
+
   it("collects stable decision models without a rankings feed and refreshes input-only pricing", () => {
     const catalog = orCatalog([], {
       decisionModels: [{ ...DECISION_MODEL, id: "~typesafe/jev-latest" }, DECISION_MODEL],

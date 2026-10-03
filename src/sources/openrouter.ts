@@ -1187,6 +1187,29 @@ function matchesFamilyWindow(id: string, family: ModelFamily, window: unknown, n
   return false;
 }
 
+function adoptMaker(
+  registry: Registry,
+  model: OpenRouterImageModel,
+  vendor: string,
+  makerOfVendor: Map<string, string>,
+  changes: Change[],
+  notes: string[],
+): string | undefined {
+  if (!isSafeSlug(vendor)) {
+    notes.push(`openrouter: ${model.id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
+    return undefined;
+  }
+  if (Object.hasOwn(registry.makers, vendor)) {
+    notes.push(`openrouter: ${model.id} names existing maker "${vendor}" under a different vendor mapping; left alone`);
+    return undefined;
+  }
+  const displayName = makerDisplayNameOf(model, vendor);
+  registry.makers[vendor] = { displayName, openrouterVendor: vendor };
+  makerOfVendor.set(vendor, vendor);
+  changes.push({ target: `maker ${vendor}`, field: "added", from: undefined, to: displayName });
+  return vendor;
+}
+
 function discoverRankedImages(
   registry: Registry,
   catalog: OpenRouterCatalog,
@@ -1250,22 +1273,8 @@ function discoverRankedImages(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked image ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const created: ModelFamily & { maker: string } = {
       maker,
@@ -1341,22 +1350,8 @@ function discoverRankedEmbeddings(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked embedding ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
@@ -1437,22 +1432,8 @@ function discoverRankedSpecialized(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked ${kind} ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
@@ -1515,14 +1496,8 @@ function discoverDecisions(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: decision ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = { displayName: makerDisplayNameOf(model, vendor), openrouterVendor: vendor };
-      makerOfVendor.set(vendor, maker);
-      changes.push({ target: `maker ${maker}`, field: "added", from: undefined, to: registry.makers[maker]!.displayName });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
