@@ -74,7 +74,7 @@ const SOURCES: UpdateSource[] = [
         ...discoveryEndpointIds(registry, models, today, rankings, { bootstrap: resetOpenRouter }),
       ]);
       if (resetOpenRouter && !openRouterResetReady(catalog)) {
-        throw new Error("complete text/image/embedding/rerank/transcription weekly rankings and usable Top 20 image endpoints are required for an OpenRouter reset");
+        throw new Error("complete text Top 50 and specialized Top 30 retention rankings, plus usable Top 20 image endpoints, are required for an OpenRouter reset");
       }
       return {
         discover: (r) => discoverOpenRouter(r, catalog, today, { bootstrap: resetOpenRouter }),
