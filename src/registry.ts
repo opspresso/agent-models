@@ -364,7 +364,7 @@ export function loadRegistry(root: string): Registry {
     throw new Error("models/makers.json must be an object");
   }
 
-  const families: Registry["families"] = {};
+  const families: Registry["families"] = Object.create(null);
   for (const file of listJson(join(base, "families"))) {
     const maker = basename(file, ".json");
     const entries = readJson(file);

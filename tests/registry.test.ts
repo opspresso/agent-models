@@ -21,6 +21,26 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const registry = loadRegistry(ROOT);
 
 describe("loadRegistry", () => {
+  it("loads family names as data, including prototype property names", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-load-"));
+    try {
+      const r = fixture();
+      const family = r.families["gpt-x"]!;
+      Object.assign(r.families, { constructor: family });
+      r.offerings.push({ provider: "openai", family: "constructor" });
+      writeRegistry(root, r);
+      assert.deepEqual(loadRegistry(root).families.constructor, family);
+
+      const file = join(root, "models/families/openai.json");
+      writeFileSync(file, JSON.stringify(Object.fromEntries([["__proto__", family]])));
+      const loaded = loadRegistry(root);
+      assert.ok(Object.hasOwn(loaded.families, "__proto__"));
+      assert.match(validateRegistry(loaded).join("\n"), /family __proto__: id must be a safe slug/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("names malformed source files before spreading or iterating them", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-load-"));
     const base = join(root, "models");
