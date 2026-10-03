@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import fs, { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -494,6 +495,35 @@ describe("deriveModels", () => {
 });
 
 describe("writeRegistry", () => {
+  it("preserves the original files when both replacement and rollback fail", (t) => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-rollback-"));
+    const rename = fs.renameSync;
+    try {
+      writeRegistry(root, fixture());
+      const original = readFileSync(join(root, "models/families/openai.json"), "utf8");
+      const failure = t.mock.method(fs, "renameSync", (from: fs.PathLike, to: fs.PathLike) => {
+        if (String(from).includes(".models-write-")) throw new Error("simulated rename failure");
+        return rename(from, to);
+      });
+      syncBuiltinESMExports();
+      const changed = fixture();
+      changed.families["gpt-x"]!.pricing.inputPer1M = 5;
+      assert.throws(() => writeRegistry(root, changed), /original files preserved at/);
+      failure.mock.restore();
+      syncBuiltinESMExports();
+      const transaction = readdirSync(root).find((name) => name.startsWith(".models-write-"));
+      assert.ok(transaction);
+      const backup = join(root, transaction, "previous");
+      assert.equal(readFileSync(join(backup, "families/openai.json"), "utf8"), original);
+      rename(backup, join(root, "models"));
+      assert.deepEqual(validateRegistry(loadRegistry(root)), []);
+    } finally {
+      t.mock.restoreAll();
+      syncBuiltinESMExports();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("validates before writing and cannot escape the models directory", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
     const sentinel = join(root, "package.json");

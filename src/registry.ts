@@ -463,13 +463,18 @@ export function writeRegistry(root: string, registry: Registry): void {
       renameSync(staging, base);
     } catch (error) {
       if (existsSync(backup)) {
-        renameSync(backup, base);
+        try {
+          renameSync(backup, base);
+        } catch (restoreError) {
+          throw new AggregateError([error, restoreError], `registry replacement and rollback failed; original files preserved at ${backup}`);
+        }
       }
       throw error;
     }
     rmSync(backup, { recursive: true, force: true });
   } finally {
-    rmSync(transaction, { recursive: true, force: true });
+    // A failed rollback leaves the only original copy in backup.
+    if (!existsSync(backup)) rmSync(transaction, { recursive: true, force: true });
   }
 }
 
