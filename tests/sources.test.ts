@@ -29,7 +29,7 @@ import { applyAnthropic, discoverAnthropic, fetchAnthropicModels, undated } from
 import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
-import { addRoute, promoteFamily, undiscounted } from "../src/sources/routes.ts";
+import { addRoute, setNativePricing } from "../src/sources/routes.ts";
 import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
@@ -647,7 +647,8 @@ describe("applyXai", () => {
   it("reads 1e-10 USD ticks as USD per million and matches through aliases", () => {
     const { registry, result } = applyXai(fixture(), catalog, TODAY);
     assert.deepEqual(registry.families["grok-q"]!.pricing, { inputPer1M: 1.25, outputPer1M: 2.5, cachedInputPer1M: 0.2 });
-    assert.equal(result.changes.length, 1);
+    assert.deepEqual(result.changes.map((change) => change.field), ["pricing", "pricingSource"]);
+    assert.equal(registry.families["grok-q"]!.pricingSource, "native");
     assert.deepEqual(result.notes, []);
   });
 
@@ -966,25 +967,29 @@ function resetReadyCatalog(): OpenRouterCatalog {
   };
 }
 
-describe("undiscounted / promoteFamily", () => {
-  it("puts the list price back and drops the discount", () => {
-    assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
-      inputPer1M: 5,
-      outputPer1M: 30,
-      cachedInputPer1M: 0.5,
-    });
-    assert.deepEqual(undiscounted({ inputPer1M: 1, outputPer1M: 2 }), { inputPer1M: 1, outputPer1M: 2 });
+describe("setNativePricing", () => {
+  it("uses an actual native quote and preserves the router's existing discounted price", () => {
+    const r = fixture();
+    const family = r.families["deepseek-z"]!;
+    family.pricingSource = "openrouter";
+    family.pricing.discount = 0.5;
+    const router = r.offerings.find((o) => o.family === "deepseek-z")!;
+    delete router.pricing;
+    const previous = { ...family.pricing };
+    const native = { inputPer1M: 1, outputPer1M: 4 };
+    setNativePricing(r, "deepseek-z", native, []);
+    assert.deepEqual(family.pricing, native);
+    assert.equal(family.pricingSource, "native");
+    assert.deepEqual(router.pricing, previous);
   });
 
-  it("promotes only a router-only family that carries a discount", () => {
+  it("marks an identical native quote verified without changing the quoted price", () => {
     const r = fixture();
-    r.families["deepseek-z"]!.pricing.discount = 0.5;
-    const changes: Change[] = [];
-    promoteFamily(r, "deepseek-z", changes);
-    assert.deepEqual(r.families["deepseek-z"]!.pricing, { inputPer1M: 0.28, outputPer1M: 0.56, cachedInputPer1M: 0.056 });
-    assert.equal(changes.length, 1);
-    promoteFamily(r, "gpt-x", changes); // vendor-routed already: nothing
-    assert.equal(changes.length, 1);
+    r.families["gpt-x"]!.pricingSource = "openrouter";
+    const current = { ...r.families["gpt-x"]!.pricing };
+    setNativePricing(r, "gpt-x", current, []);
+    assert.deepEqual(r.families["gpt-x"]!.pricing, current);
+    assert.equal(r.families["gpt-x"]!.pricingSource, "native");
   });
 });
 
@@ -1638,7 +1643,66 @@ describe("discoverOpenRouter", () => {
 });
 
 describe("vendor route discovery", () => {
-  it("xAI: routes a live xAI family the catalog names, and promotes a router-only family", () => {
+  it("uses the router quote for the first native route while preserving a Bedrock quote", () => {
+    const r = fixture();
+    r.providers.push("bedrock");
+    r.offerings = r.offerings.filter((o) => o.provider !== "openai");
+    r.offerings.push({ provider: "bedrock", family: "gpt-x", wireId: "openai.gpt-x" });
+    const bedrockPrice = { ...r.families["gpt-x"]!.pricing };
+    const discovered = discoverOpenAi(r, ["gpt-x"]).registry;
+    assert.deepEqual(discovered.families["gpt-x"]!.pricing, { inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25 });
+    assert.equal(discovered.families["gpt-x"]!.pricingSource, "openrouter");
+    assert.deepEqual(discovered.offerings.find((o) => o.provider === "bedrock")!.pricing, bedrockPrice);
+    assert.deepEqual(validateRegistry(discovered), []);
+  });
+
+  it("keeps refreshing fallback prices after native discovery without replacing native limits", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((o) => o.provider !== "openai");
+    const discovered = discoverOpenAi(r, ["gpt-x"]).registry;
+    const family = discovered.families["gpt-x"]!;
+    family.contextWindow = 2_000_000;
+    family.maxTokens = 256_000;
+    const catalog = orCatalog([{ ...GPT_X_LISTED, context_length: 400_000 }]);
+    const first = applyOpenRouter(discovered, catalog, TODAY).registry;
+    assert.deepEqual(first.families["gpt-x"]!.pricing, { inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25 });
+    const next = applyOpenRouter(first, orCatalog([{
+      ...GPT_X_LISTED, context_length: 400_000,
+      pricing: { prompt: "0.000001", completion: "0.000002", input_cache_read: "0.0000001" },
+    }]), TODAY).registry;
+    assert.deepEqual(next.families["gpt-x"]!.pricing, { inputPer1M: 1, outputPer1M: 2, cachedInputPer1M: 0.1 });
+    assert.equal(next.families["gpt-x"]!.contextWindow, 2_000_000);
+    assert.equal(next.families["gpt-x"]!.maxTokens, 256_000);
+    assert.equal(next.offerings.find((o) => o.wireId === "openai/gpt-x")!.pricing, undefined);
+    assert.deepEqual(validateRegistry(next), []);
+  });
+
+  it("prefers verified official prices even before the first native route exists", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((o) => o.provider !== "openai");
+    r.families["gpt-x"]!.pricingSource = "native";
+    const quoted = { ...r.families["gpt-x"]!.pricing };
+    const beforeDiscovery = applyOpenRouter(r, orCatalog([GPT_X_LISTED]), TODAY).registry;
+    assert.deepEqual(beforeDiscovery.families["gpt-x"]!.pricing, quoted);
+    const added = discoverOpenAi(beforeDiscovery, ["gpt-x"]).registry;
+    assert.ok(added.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"));
+    assert.equal(added.families["gpt-x"]!.pricingSource, "native");
+    assert.deepEqual(added.families["gpt-x"]!.pricing, quoted);
+  });
+
+  it("switches fallback pricing to an xAI quote without applying a router discount to the native route", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((o) => !(o.provider === "xai" && o.family === "grok-q"));
+    r.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" });
+    r.families["grok-q"]!.pricing = { inputPer1M: 1, outputPer1M: 3, discount: 0.5 };
+    const fallback = discoverXai(r, { language: [{ id: "grok-q" }], imageNames: [] }).registry;
+    const native = applyXai(fallback, { language: [{ id: "grok-q", prompt_text_token_price: 10_000, completion_text_token_price: 30_000 }], imageNames: [] }, TODAY).registry;
+    assert.deepEqual(native.families["grok-q"]!.pricing, { inputPer1M: 1, outputPer1M: 3 });
+    assert.equal(native.families["grok-q"]!.pricingSource, "native");
+    assert.deepEqual(native.offerings.find((o) => o.wireId === "x-ai/grok-q")!.pricing, { inputPer1M: 1, outputPer1M: 3, discount: 0.5 });
+  });
+
+  it("xAI: prefers a native quote and falls back to OpenRouter when none is published", () => {
     const r = fixture();
     // grok-q served only via OpenRouter, with a discount.
     r.offerings = r.offerings.filter((o) => !(o.provider === "xai" && o.family === "grok-q"));
@@ -1647,10 +1711,12 @@ describe("vendor route discovery", () => {
     const { registry, result } = discoverXai(r, { language: [{ id: "grok-q-0309", aliases: ["grok-q"], prompt_text_token_price: 20_000, completion_text_token_price: 60_000 }], imageNames: [] });
     assert.deepEqual(registry.offerings.find((o) => o.provider === "xai" && o.family === "grok-q"), { provider: "xai", family: "grok-q" });
     assert.deepEqual(registry.families["grok-q"]!.pricing, { inputPer1M: 2, outputPer1M: 6 });
-    assert.deepEqual(result.changes.map((c) => c.field), ["pricing", "added"]);
+    assert.equal(registry.families["grok-q"]!.pricingSource, "native");
+    assert.ok(result.changes.some((c) => c.field === "added"));
     const unpriced = discoverXai(r, { language: [{ id: "grok-q-0309", aliases: ["grok-q"] }], imageNames: [] });
-    assert.ok(!unpriced.registry.offerings.some((o) => o.provider === "xai" && o.family === "grok-q"));
-    assert.match(unpriced.result.notes.join("\n"), /no usable token price/);
+    assert.ok(unpriced.registry.offerings.some((o) => o.provider === "xai" && o.family === "grok-q"));
+    assert.equal(unpriced.registry.families["grok-q"]!.pricingSource, "openrouter");
+    assert.deepEqual(unpriced.registry.families["grok-q"]!.pricing, r.families["grok-q"]!.pricing);
 
     r.families["grok-stt"] = {
       maker: "xai",
@@ -1665,19 +1731,16 @@ describe("vendor route discovery", () => {
     assert.ok(!wrongType.registry.offerings.some((o) => o.provider === "xai" && o.family === "grok-stt"));
   });
 
-  it("Anthropic: holds a first native route for price review, and uses the hyphenated wire id after curation", () => {
+  it("Anthropic: adds the first native route with fallback pricing and the hyphenated wire id", () => {
     const r = fixture();
     r.offerings = r.offerings.filter((o) => o.provider !== "anthropic");
     r.offerings.push({ provider: "openrouter", family: "claude-y.1", wireId: "anthropic/claude-y.1" });
-    const held = discoverAnthropic(r, [{ id: "claude-y-1-20260101" }]);
-    assert.ok(!held.registry.offerings.some((o) => o.provider === "anthropic"));
-    assert.match(held.result.notes.join("\n"), /verify the native price/);
-    r.offerings.push({ provider: "google", family: "claude-y.1" });
     const { registry } = discoverAnthropic(r, [{ id: "claude-y-1-20260101" }]);
     assert.deepEqual(registry.offerings.find((o) => o.provider === "anthropic"), { provider: "anthropic", family: "claude-y.1", wireId: "claude-y-1" });
+    assert.equal(registry.families["claude-y.1"]!.pricingSource, "openrouter");
   });
 
-  it("OpenAI: does not infer native prices for router-only text and embedding families", () => {
+  it("OpenAI: adds text and embedding routes using the exact OpenRouter fallback prices", () => {
     const r = fixture();
     r.offerings = r.offerings.filter((o) => o.provider !== "openai");
     r.families["gpt-x"]!.pricing = { inputPer1M: 1, outputPer1M: 3, discount: 0.5 };
@@ -1692,14 +1755,16 @@ describe("vendor route discovery", () => {
     };
     r.offerings.push({ provider: "openrouter", family: "embed-1", wireId: "openai/embed-1" });
     const { registry, result } = discoverOpenAi(r, ["gpt-x", "draw-1", "embed-1"]);
-    assert.ok(!registry.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"));
-    assert.ok(!registry.offerings.some((o) => o.provider === "openai" && o.family === "embed-1"));
+    assert.ok(registry.offerings.some((o) => o.provider === "openai" && o.family === "gpt-x"));
+    assert.ok(registry.offerings.some((o) => o.provider === "openai" && o.family === "embed-1"));
+    assert.equal(registry.families["gpt-x"]!.pricingSource, "openrouter");
+    assert.equal(registry.families["embed-1"]!.pricingSource, "openrouter");
     assert.ok(!registry.offerings.some((o) => o.provider === "openai" && o.family === "draw-1"));
-    assert.deepEqual(registry.families["gpt-x"]!.pricing, { inputPer1M: 1, outputPer1M: 3, discount: 0.5 });
-    assert.equal(result.notes.length, 2);
+    assert.deepEqual(registry.families["gpt-x"]!.pricing, { inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 });
+    assert.equal(result.notes.length, 0);
   });
 
-  it("Google: holds unverified native routes and watches curated routes' limits", () => {
+  it("Google: adds fallback-priced routes and watches native limits", () => {
     const r = fixture();
     r.families["gemini-z"] = {
       maker: "google",
@@ -1724,10 +1789,12 @@ describe("vendor route discovery", () => {
       { name: "models/embedding-z", inputTokenLimit: 2048, supportedGenerationMethods: ["embedContent"] },
     ];
     const discovered = discoverGoogle(r, catalog);
-    assert.deepEqual(discovered.registry.offerings.filter((o) => o.provider === "google"), []);
-    assert.equal(discovered.result.notes.length, 2);
-    const curated = structuredClone(discovered.registry);
-    curated.offerings.push({ provider: "google", family: "gemini-z" }, { provider: "google", family: "embedding-z" });
+    assert.deepEqual(discovered.registry.offerings.filter((o) => o.provider === "google"), [
+      { provider: "google", family: "gemini-z" }, { provider: "google", family: "embedding-z" },
+    ]);
+    assert.equal(discovered.registry.families["gemini-z"]!.pricingSource, "openrouter");
+    assert.equal(discovered.result.notes.length, 0);
+    const curated = discovered.registry;
     const applied = applyGoogle(curated, catalog, TODAY);
     assert.equal(applied.registry.families["gemini-z"]!.contextWindow, 1_048_576);
     assert.equal(applied.registry.families["embedding-z"]!.contextWindow, 2048);

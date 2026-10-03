@@ -16,8 +16,8 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isExternalId, samePricing, type Change, type SourceResult } from "./types.ts";
+import { addRoute, familyHasRoute, familyIsLive, setNativePricing } from "./routes.ts";
+import { fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
 
 export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
 /** The drawing models' own catalog — read for existence; their per-image price stays hand-kept. */
@@ -154,15 +154,7 @@ export function applyXai(
       notes.push(`xai/${offering.family}: xAI lists no token price`);
       continue;
     }
-    const current = {
-      inputPer1M: family.pricing.inputPer1M,
-      outputPer1M: family.pricing.outputPer1M,
-      ...(family.pricing.cachedInputPer1M !== undefined ? { cachedInputPer1M: family.pricing.cachedInputPer1M } : {}),
-    };
-    if (!samePricing(current, vendorPrice)) {
-      changes.push({ target: `family ${offering.family}`, field: "pricing", from: current, to: vendorPrice });
-      family.pricing = { ...vendorPrice };
-    }
+    setNativePricing(next, offering.family, vendorPrice, changes);
   }
 
   return { registry: next, result: { source: "xAI", changes, notes } };
@@ -188,11 +180,7 @@ export function discoverXai(registry: Registry, catalog: XaiCatalog): { registry
     }
     const entry = byName.get(id);
     if (entry === undefined) continue;
-    if (nativePricing(entry) === null) {
-      notes.push(`xai/${id}: native catalog lists no usable token price; route not added`);
-      continue;
-    }
-    addRoute(next, { provider: "xai", family: id }, changes);
+    addRoute(next, { provider: "xai", family: id }, changes, nativePricing(entry) ?? undefined);
   }
   return { registry: next, result: { source: "xAI", changes, notes } };
 }

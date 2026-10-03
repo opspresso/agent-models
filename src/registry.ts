@@ -92,6 +92,8 @@ export interface ModelCapabilities {
 export interface ModelFamily {
   displayName: string;
   pricing: ModelPricing;
+  /** Native quotes take priority; OpenRouter prices remain refreshable when used as a fallback. */
+  pricingSource?: "native" | "openrouter";
   capabilities: ModelCapabilities;
   contextWindow: number;
   maxTokens: number;
@@ -223,6 +225,7 @@ const CAPABILITY_KEYS = [
 const FAMILY_KEYS = [
   "displayName",
   "pricing",
+  "pricingSource",
   "capabilities",
   "contextWindow",
   "maxTokens",
@@ -705,6 +708,9 @@ export function validateRegistry(registry: Registry): string[] {
       errors.push(`${where}: displayName is required`);
     }
     checkPricing(where, family.pricing, false, errors);
+    if (family.pricingSource !== undefined && family.pricingSource !== "openrouter" && family.pricingSource !== "native") {
+      errors.push(`${where}: pricingSource must be native or openrouter`);
+    }
     checkCapabilities(where, family.capabilities, false, errors);
     const imageGeneration = family.capabilities?.imageGeneration === true;
     const embedding = family.capabilities?.embedding === true;

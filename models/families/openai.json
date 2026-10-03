@@ -1235,6 +1235,7 @@
       "outputPer1M": 10,
       "cachedInputPer1M": 0.1
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,

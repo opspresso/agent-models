@@ -583,6 +583,7 @@
       "inputPer1M": 2,
       "outputPer1M": 12
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": false,
       "structuredOutput": false,
