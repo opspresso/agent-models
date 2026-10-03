@@ -47,6 +47,7 @@
  */
 
 import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
+import { applyFamilyLimits } from "./limits.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, perMillion, readTextCapped, samePricing, type Change, type SourceResult } from "./types.ts";
@@ -771,17 +772,13 @@ export function applyOpenRouter(
         family.pricing = price;
       }
       const window = endpoint?.context_length;
-      if (isImageLimit(window) && window !== family.contextWindow) {
-        changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-        family.contextWindow = window;
-      }
       const maxOut = isImageLimit(endpoint?.max_completion_tokens)
         ? endpoint.max_completion_tokens
         : window;
-      if (isImageLimit(maxOut) && maxOut <= family.contextWindow && maxOut !== family.maxTokens) {
-        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-        family.maxTokens = maxOut;
-      }
+      applyFamilyLimits(next, offering.family, {
+        contextWindow: isImageLimit(window) ? window : null,
+        maxTokens: isImageLimit(maxOut) ? maxOut : null,
+      }, "openrouter", changes, notes);
       continue;
     }
     observePresence(offering, entry !== undefined, "OpenRouter", today, changes, notes);
@@ -827,26 +824,20 @@ export function applyOpenRouter(
       }
       const window = entry.context_length;
       const kind = family.capabilities.transcription ? "transcription" : family.capabilities.decision ? "decision" : "rerank";
-      if (isSpecializedWindow(window, kind) && window !== family.contextWindow) {
-        changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-        family.contextWindow = window;
-      }
+      let maxOut: number | null = null;
       if (family.capabilities.transcription) {
-        const maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
-        if (maxOut !== null && maxOut !== family.maxTokens) {
-          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-          family.maxTokens = maxOut;
-        }
+        maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
       } else if (!family.capabilities.embedding && !family.capabilities.rerank) {
         const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
-        const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
-        if (maxOut !== null && maxOut !== family.maxTokens) {
-          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-          family.maxTokens = maxOut;
-        } else if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
-          notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${family.contextWindow} window; left alone`);
+        maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
+        if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
+          notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${window ?? family.contextWindow} window; left alone`);
         }
       }
+      applyFamilyLimits(next, offering.family, {
+        contextWindow: isSpecializedWindow(window, kind) ? window : null,
+        maxTokens: maxOut,
+      }, "openrouter", changes, notes);
       if (offering.pricing !== undefined) {
         changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: undefined });
         delete offering.pricing;

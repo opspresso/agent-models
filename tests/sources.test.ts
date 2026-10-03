@@ -374,14 +374,36 @@ describe("applyOpenRouter", () => {
     assert.equal(registry.families["deepseek-z"]!.maxTokens, 262_144);
   });
 
-  it("refuses an output cap the catalog puts above the window", () => {
+  it("keeps the previous limits when the catalog shrinks the window without a usable output cap", () => {
     const catalog = orCatalog([
       { ...DEEPSEEK_Z_LISTED, context_length: 100_000, top_provider: { max_completion_tokens: 400_000 } },
     ]);
     const { registry, result } = applyOpenRouter(fixture(), catalog, TODAY);
-    assert.equal(registry.families["deepseek-z"]!.contextWindow, 100_000);
+    assert.equal(registry.families["deepseek-z"]!.contextWindow, 1_048_576);
     assert.equal(registry.families["deepseek-z"]!.maxTokens, 384_000);
     assert.match(result.notes.join("\n"), /above the 100000 window/);
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
+  it("applies a smaller window together with a usable smaller output cap", () => {
+    const { registry } = applyOpenRouter(fixture(), orCatalog([{
+      ...DEEPSEEK_Z_LISTED, context_length: 100_000, top_provider: { max_completion_tokens: 32_000 },
+    }]), TODAY);
+    assert.equal(registry.families["deepseek-z"]!.contextWindow, 100_000);
+    assert.equal(registry.families["deepseek-z"]!.maxTokens, 32_000);
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
+  it("keeps image limits together when an endpoint's output cap exceeds its window", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((offering) => !(offering.family === "draw-1" && offering.provider === "openai"));
+    const { registry } = applyOpenRouter(r, orCatalog([], {
+      imageIds: ["openai/draw-1"], imageModels: [{ id: "openai/draw-1" }],
+      endpoints: { "openai/draw-1": [{ context_length: 32_000, max_completion_tokens: 64_000, pricing: { image_output: "0.00003" } }] },
+    }), TODAY);
+    assert.equal(registry.families["draw-1"]!.contextWindow, 400_000);
+    assert.equal(registry.families["draw-1"]!.maxTokens, 128_000);
+    assert.deepEqual(validateRegistry(registry), []);
   });
 
   it("keeps a vendor family's numbers and sets the route override only while the router differs", () => {
@@ -641,6 +663,20 @@ describe("fetchAnthropicModels", () => {
 });
 
 describe("applyAnthropic", () => {
+  it("rejects inconsistent catalog limits and windows smaller than a route override", () => {
+    for (const override of [false, true]) {
+      const r = fixture();
+      if (override) r.offerings.push({ provider: "openrouter", family: "claude-y.1", wireId: "anthropic/claude-y.1", maxTokens: 128_000 });
+      const { registry, result } = applyAnthropic(r, [{
+        id: "claude-y-1", max_input_tokens: 100_000, max_tokens: override ? 32_000 : 200_000,
+      }], TODAY);
+      assert.equal(registry.families["claude-y.1"]!.contextWindow, 200_000);
+      assert.equal(registry.families["claude-y.1"]!.maxTokens, 64_000);
+      assert.match(result.notes.join("\n"), /limits left unchanged/);
+      assert.deepEqual(validateRegistry(registry), []);
+    }
+  });
+
   it("strips a dated snapshot to its alias", () => {
     assert.equal(undated("claude-haiku-4-5-20251001"), "claude-haiku-4-5");
     assert.equal(undated("claude-opus-5"), "claude-opus-5");
@@ -1645,6 +1681,23 @@ describe("vendor route discovery", () => {
       )?.missingSince,
       TODAY,
     );
+  });
+
+  it("Google: keeps a valid pair when a smaller window has missing or conflicting output metadata", () => {
+    for (const outputTokenLimit of [undefined, 128_000, 32_000]) {
+      const r = fixture();
+      r.offerings.push({ provider: "google", family: "gpt-x" });
+      const { registry, result } = applyGoogle(r, [{
+        name: "models/gpt-x", inputTokenLimit: 64_000,
+        ...(outputTokenLimit === undefined ? {} : { outputTokenLimit }),
+        supportedGenerationMethods: ["generateContent"],
+      }], TODAY);
+      const accepted = outputTokenLimit === 32_000;
+      assert.equal(registry.families["gpt-x"]!.contextWindow, accepted ? 64_000 : 1_050_000);
+      assert.equal(registry.families["gpt-x"]!.maxTokens, accepted ? 32_000 : 128_000);
+      assert.equal(result.notes.some((note) => note.includes("limits left unchanged")), !accepted);
+      assert.deepEqual(validateRegistry(registry), []);
+    }
   });
 
   it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {

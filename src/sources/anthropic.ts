@@ -10,6 +10,7 @@
  */
 
 import type { Registry } from "../registry.ts";
+import { applyFamilyLimits } from "./limits.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, isPositiveInt, snapshotAlias, type Change, type SourceResult } from "./types.ts";
@@ -107,14 +108,7 @@ export function applyAnthropic(
       notes.push(`anthropic/${offering.family}: catalog entry carries no limits`);
       continue;
     }
-    if (window !== family.contextWindow) {
-      changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-      family.contextWindow = window;
-    }
-    if (maxOut !== family.maxTokens) {
-      changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-      family.maxTokens = maxOut;
-    }
+    applyFamilyLimits(next, offering.family, { contextWindow: window, maxTokens: maxOut }, "anthropic", changes, notes);
   }
 
   return { registry: next, result: { source: "Anthropic", changes, notes } };
