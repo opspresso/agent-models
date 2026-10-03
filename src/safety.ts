@@ -10,14 +10,14 @@ export function detectRegistryAnomalies(before: Registry, after: Registry): stri
   const anomalies: string[] = [];
   const beforeFamilies = new Set(Object.keys(before.families));
   const afterFamilies = new Set(Object.keys(after.families));
-  const removedFamilies = [...beforeFamilies].filter((id) => !afterFamilies.has(id));
-  if (removedFamilies.length > 0) anomalies.push(`${removedFamilies.length} families would be removed`);
+  const removedFamilies = [...beforeFamilies].filter((id) => !afterFamilies.has(id)).sort();
+  if (removedFamilies.length > 0) anomalies.push(`${removedFamilies.length} families would be removed: ${removedFamilies.join(", ")}`);
 
   const offeringId = (offering: Registry["offerings"][number]): string => `${offering.provider}/${offering.family}`;
   const beforeOfferings = new Set(before.offerings.map(offeringId));
   const afterOfferings = new Set(after.offerings.map(offeringId));
-  const removedOfferings = [...beforeOfferings].filter((id) => !afterOfferings.has(id));
-  if (removedOfferings.length > 0) anomalies.push(`${removedOfferings.length} offerings would be removed`);
+  const removedOfferings = [...beforeOfferings].filter((id) => !afterOfferings.has(id)).sort();
+  if (removedOfferings.length > 0) anomalies.push(`${removedOfferings.length} offerings would be removed: ${removedOfferings.join(", ")}`);
 
   for (const provider of before.providers) {
     const previous = before.offerings.filter((offering) => offering.provider === provider && !offering.hidden);
@@ -25,9 +25,15 @@ export function detectRegistryAnomalies(before: Registry, after: Registry): stri
     const newlyMissing = after.offerings.filter((offering) => {
       const old = oldById.get(offeringId(offering));
       return offering.provider === provider && old !== undefined && old.missingSince === undefined && offering.missingSince !== undefined;
-    }).length;
-    if (newlyMissing >= 3 && newlyMissing / previous.length >= 0.5) {
-      anomalies.push(`${provider}: ${newlyMissing} of ${previous.length} live offerings became missing at once`);
+    });
+    if (newlyMissing.length >= 3 && newlyMissing.length / previous.length >= 0.5) {
+      const changes = newlyMissing.map((offering) => JSON.stringify({
+        id: offeringId(offering),
+        missingSince: offering.missingSince,
+        missingObservations: offering.missingObservations,
+        lastMissingAt: offering.lastMissingAt,
+      })).sort();
+      anomalies.push(`${provider}: ${newlyMissing.length} of ${previous.length} live offerings became missing at once: ${changes.join(", ")}`);
     }
   }
 
@@ -35,7 +41,14 @@ export function detectRegistryAnomalies(before: Registry, after: Registry): stri
   const newlyHidden = after.offerings.filter((offering) => {
     const old = beforeById.get(offeringId(offering));
     return old !== undefined && !old.hidden && offering.hidden && !["reset", "ranking"].includes(offering.hiddenReason ?? "");
-  }).length;
-  if (newlyHidden >= 10) anomalies.push(`${newlyHidden} offerings would become hidden at once`);
+  });
+  if (newlyHidden.length >= 10) {
+    const changes = newlyHidden.map((offering) => JSON.stringify({
+      id: offeringId(offering),
+      hiddenReason: offering.hiddenReason,
+      hiddenAt: offering.hiddenAt,
+    })).sort();
+    anomalies.push(`${newlyHidden.length} offerings would become hidden at once: ${changes.join(", ")}`);
+  }
   return anomalies;
 }
