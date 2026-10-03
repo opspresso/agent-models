@@ -191,6 +191,33 @@ describe("validateRegistry", () => {
     );
   });
 
+  it("reports malformed nested shapes without dereferencing them", () => {
+    const cases: Array<(r: Registry) => void> = [
+      (r) => { Object.assign(r.offerings[2]!, { capabilities: null }); },
+      (r) => { Object.assign(r.offerings[2]!, { wireId: 123 }); },
+      (r) => { Object.assign(r.families, { "gpt-x": null }); r.offerings[0]!.maxTokens = 10; },
+      (r) => { Object.assign(r.families["gpt-x"]!, { capabilities: null }); r.offerings[0]!.maxTokens = 10; },
+      (r) => { Object.assign(r.families["gpt-x"]!, { capabilities: null }); r.offerings[0]!.capabilities = { embedding: true }; },
+    ];
+    for (const mutate of cases) {
+      const r = fixture();
+      mutate(r);
+      assert.ok(validateRegistry(r).length > 0);
+    }
+    assert.deepEqual(validateRegistry(null as unknown as Registry), ["registry must be an object"]);
+  });
+
+  it("requires own maker and family definitions and unique provider ids", () => {
+    const r = fixture();
+    r.families["gpt-x"]!.maker = "constructor";
+    r.offerings.push({ provider: "openai", family: "constructor" });
+    r.providers.push("openai");
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /maker "constructor" is not in makers.json/);
+    assert.match(errors, /unknown family "constructor"/);
+    assert.match(errors, /duplicate providers/);
+  });
+
   it("accepts the fixture", () => {
     assert.deepEqual(validateRegistry(fixture()), []);
   });
