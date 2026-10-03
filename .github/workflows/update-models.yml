@@ -144,7 +144,17 @@ jobs:
           if [ -n "$open_branch" ]; then
             git fetch origin "$open_branch"
             git switch --track "origin/$open_branch"
-            git merge --no-edit origin/main
+            if ! git merge --no-edit --no-commit --no-ff origin/main; then
+              # The catalog is regenerated below from the merged registry.
+              # Source conflicts require review and must never be discarded.
+              conflicts=$(git diff --name-only --diff-filter=U)
+              if [ "$conflicts" != "docs/models.json" ]; then
+                echo "::error::cannot merge main into the removal proposal"
+                git status --short
+                exit 1
+              fi
+              git restore --source=origin/main --staged --worktree -- docs/models.json
+            fi
             branch="$open_branch"
           else
             branch="automation/model-removals-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -154,7 +164,7 @@ jobs:
           pnpm build
           node scripts/check-removals.ts HEAD --pull-request
           git add models docs
-          if ! git diff --cached --quiet; then
+          if ! git diff --cached --quiet || git rev-parse --verify --quiet MERGE_HEAD > /dev/null; then
             git commit -m "chore: propose model removals $(date -u +%F)"
           fi
           gh auth setup-git
