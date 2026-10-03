@@ -364,14 +364,14 @@ export function loadRegistry(root: string): Registry {
     throw new Error("models/makers.json must be an object");
   }
 
-  const families: Registry["families"] = {};
+  const families: Registry["families"] = Object.create(null);
   for (const file of listJson(join(base, "families"))) {
     const maker = basename(file, ".json");
     const entries = readJson(file);
     if (!isPlain(entries)) throw new Error(`${file} must be an object of families`);
     for (const [id, family] of Object.entries(entries)) {
       if (!isPlain(family)) throw new Error(`${file}: family "${id}" must be an object`);
-      if (families[id] !== undefined) {
+      if (Object.hasOwn(families, id)) {
         throw new Error(`family "${id}" is defined twice (second in ${file})`);
       }
       families[id] = { ...(family as unknown as ModelFamily), maker };
@@ -463,13 +463,18 @@ export function writeRegistry(root: string, registry: Registry): void {
       renameSync(staging, base);
     } catch (error) {
       if (existsSync(backup)) {
-        renameSync(backup, base);
+        try {
+          renameSync(backup, base);
+        } catch (restoreError) {
+          throw new AggregateError([error, restoreError], `registry replacement and rollback failed; original files preserved at ${backup}`);
+        }
       }
       throw error;
     }
     rmSync(backup, { recursive: true, force: true });
   } finally {
-    rmSync(transaction, { recursive: true, force: true });
+    // A failed rollback leaves the only original copy in backup.
+    if (!existsSync(backup)) rmSync(transaction, { recursive: true, force: true });
   }
 }
 
@@ -618,6 +623,8 @@ function isModelCount(value: unknown, zeroAllowed: boolean): value is number {
 export function validateRegistry(registry: Registry): string[] {
   const errors: string[] = [];
 
+  if (!isPlain(registry)) return ["registry must be an object"];
+
   if (!Array.isArray(registry.providers) || registry.providers.some((p) => typeof p !== "string")) {
     errors.push("providers.json must be an array of strings");
   }
@@ -636,6 +643,9 @@ export function validateRegistry(registry: Registry): string[] {
     if (!isSafeSlug(provider)) {
       errors.push(`provider id "${provider}" must be a safe slug`);
     }
+  }
+  if (new Set(registry.providers).size !== registry.providers.length) {
+    errors.push("providers.json must not contain duplicate providers");
   }
   // Self-hosted models are published by each deployment (Agent Studio's own
   // declarations), never by this catalog: a selfhosted entry published here
@@ -683,7 +693,9 @@ export function validateRegistry(registry: Registry): string[] {
       continue;
     }
     const { maker, ...own } = family;
-    if (registry.makers[maker] === undefined) {
+    if (typeof maker !== "string") {
+      errors.push(`${where}: maker must be a string`);
+    } else if (!Object.hasOwn(registry.makers, maker)) {
       errors.push(`${where}: maker "${maker}" is not in makers.json`);
     }
     for (const key of unknownKeys(own as Plain, FAMILY_KEYS)) {
@@ -723,6 +735,10 @@ export function validateRegistry(registry: Registry): string[] {
       errors.push(`offerings[${index}]: not an object`);
       continue;
     }
+    if (typeof offering.provider !== "string" || typeof offering.family !== "string") {
+      errors.push(`offerings[${index}]: provider and family must be strings`);
+      continue;
+    }
     const id = `${offering.provider}/${offering.family}`;
     const where = `offering ${id}`;
     if (!registry.providers.includes(offering.provider)) {
@@ -736,50 +752,32 @@ export function validateRegistry(registry: Registry): string[] {
     for (const key of unknownKeys(own as Plain, OFFERING_KEYS)) {
       errors.push(`${where}: unknown field "${key}"`);
     }
-    const family = registry.families[offering.family];
-    if (family === undefined) {
+    if (!Object.hasOwn(registry.families, offering.family)) {
       errors.push(`${where}: unknown family "${offering.family}"`);
       continue;
     }
+    const family = registry.families[offering.family]!;
+    // Family shape errors were reported above. Do not dereference them while
+    // checking route overrides; malformed input must remain a validation result.
+    if (!isPlain(family)) continue;
     if (offering.pricing !== undefined) {
       checkPricing(where, offering.pricing, true, errors);
     }
     if (offering.capabilities !== undefined) {
       checkCapabilities(where, offering.capabilities, true, errors);
       // A route may not disagree with its family about what kind of model it is.
-      if (
-        offering.capabilities.imageGeneration !== undefined &&
-        offering.capabilities.imageGeneration !== (family.capabilities.imageGeneration ?? false)
-      ) {
-        errors.push(`${where}: a route may not change imageGeneration`);
-      }
-      if (
-        offering.capabilities.embedding !== undefined &&
-        offering.capabilities.embedding !== (family.capabilities.embedding ?? false)
-      ) {
-        errors.push(`${where}: a route may not change embedding`);
-      }
-      if (
-        offering.capabilities.rerank !== undefined &&
-        offering.capabilities.rerank !== (family.capabilities.rerank ?? false)
-      ) {
-        errors.push(`${where}: a route may not change rerank`);
-      }
-      if (
-        offering.capabilities.transcription !== undefined &&
-        offering.capabilities.transcription !== (family.capabilities.transcription ?? false)
-      ) {
-        errors.push(`${where}: a route may not change transcription`);
-      }
-      if (
-        offering.capabilities.decision !== undefined &&
-        offering.capabilities.decision !== (family.capabilities.decision ?? false)
-      ) {
-        errors.push(`${where}: a route may not change decision`);
+      if (isPlain(offering.capabilities) && isPlain(family.capabilities)) {
+        for (const type of ["imageGeneration", "embedding", "rerank", "transcription", "decision"] as const) {
+          if (offering.capabilities[type] !== undefined &&
+              offering.capabilities[type] !== (family.capabilities[type] ?? false)) {
+            errors.push(`${where}: a route may not change ${type}`);
+          }
+        }
       }
     }
     if (
       offering.maxTokens !== undefined
+      && isPlain(family.capabilities)
       && (family.capabilities.embedding || family.capabilities.rerank
         ? offering.maxTokens !== 0
         : family.capabilities.imageGeneration || family.capabilities.transcription
@@ -845,7 +843,7 @@ export function validateRegistry(registry: Registry): string[] {
     if (offering.provider === "openrouter") {
       if (offering.wireId === undefined) {
         errors.push(`${where}: a router route needs a wireId`);
-      } else if (!offering.wireId.includes("/")) {
+      } else if (typeof offering.wireId === "string" && !offering.wireId.includes("/")) {
         errors.push(`${where}: router wireId names no vendor`);
       }
     }

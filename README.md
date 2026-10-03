@@ -346,7 +346,7 @@ read from the same environment variable names. `--reset-openrouter` first preser
 OpenRouter route as a hidden reset tombstone, then restores what the retention sets (text
 Top 50, specialized types Top 30) and major-maker policies still allow and adds what the admission
 policies admit — with the 30-day listing window switched off, so a major maker's whole
-history is eligible. The reset is not written unless all rankings are complete and every
+history is eligible. The reset is not written unless all retention rankings are complete and every
 image Top 20 endpoint has usable standard-tier price and limits. Free variants and otherwise
 unpriced specialized models remain ineligible without making the ranking feed incomplete.
 

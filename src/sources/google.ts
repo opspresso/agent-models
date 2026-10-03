@@ -10,6 +10,7 @@
  */
 
 import type { Registry } from "../registry.ts";
+import { applyFamilyLimits } from "./limits.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
@@ -43,8 +44,11 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
     })) {
       throw new Error(`GET ${url} → invalid entry (shape drift?)`);
     }
+    if (body.nextPageToken !== undefined && typeof body.nextPageToken !== "string") {
+      throw new Error(`GET ${url} → invalid nextPageToken (shape drift?)`);
+    }
     collected.push(...(body.models as GoogleModel[]));
-    if (typeof body.nextPageToken !== "string" || body.nextPageToken === "") {
+    if (body.nextPageToken === undefined || body.nextPageToken === "") {
       if (collected.length === 0) {
         throw new Error(`GET ${GOOGLE_MODELS_URL} → empty catalog`);
       }
@@ -108,18 +112,10 @@ export function applyGoogle(
     }
     const window = entry.inputTokenLimit;
     const maxOut = entry.outputTokenLimit;
-    if (isPositiveInt(window) && window !== family.contextWindow) {
-      changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-      family.contextWindow = window;
-    }
-    if (!family.capabilities.embedding && isPositiveInt(maxOut) && maxOut !== family.maxTokens) {
-      if (maxOut > family.contextWindow) {
-        notes.push(`google/${offering.family}: Google states outputTokenLimit ${maxOut} above the ${family.contextWindow} window; left alone`);
-      } else {
-        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-        family.maxTokens = maxOut;
-      }
-    }
+    applyFamilyLimits(next, offering.family, {
+      contextWindow: isPositiveInt(window) ? window : null,
+      maxTokens: !family.capabilities.embedding && isPositiveInt(maxOut) ? maxOut : null,
+    }, "google", changes, notes);
   }
   return { registry: next, result: { source: "Google", changes, notes } };
 }

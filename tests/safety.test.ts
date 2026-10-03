@@ -3,11 +3,11 @@ import { describe, it } from "node:test";
 import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
 import type { Registry } from "../src/registry.ts";
 
-function fixture(): Registry {
+function fixture(count = 6): Registry {
   return {
     providers: ["openai"],
     makers: { openai: { displayName: "OpenAI" } },
-    families: Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`gpt-${index}`, {
+    families: Object.fromEntries(Array.from({ length: count }, (_, index) => [`gpt-${index}`, {
       maker: "openai",
       displayName: `GPT ${index}`,
       pricing: { inputPer1M: 1, outputPer1M: 2 },
@@ -15,7 +15,7 @@ function fixture(): Registry {
       contextWindow: 1000,
       maxTokens: 100,
     }])),
-    offerings: Array.from({ length: 6 }, (_, index) => ({ provider: "openai", family: `gpt-${index}` })),
+    offerings: Array.from({ length: count }, (_, index) => ({ provider: "openai", family: `gpt-${index}` })),
   };
 }
 
@@ -86,5 +86,55 @@ describe("detectRegistryAnomalies", () => {
   it("gives the same approval digest regardless of anomaly order", () => {
     assert.equal(anomalyDigest(["b", "a"]), anomalyDigest(["a", "b"]));
     assert.equal(anomalyDigest(["a"]).length, 12);
+  });
+
+  it("binds disappearance approval to the affected routes and lifecycle values", () => {
+    const before = fixture();
+    const first = structuredClone(before);
+    const second = structuredClone(before);
+    for (const offering of first.offerings.slice(0, 3)) {
+      Object.assign(offering, { missingSince: "2026-08-23", missingObservations: 1, lastMissingAt: "2026-08-23" });
+    }
+    for (const offering of second.offerings.slice(3)) {
+      Object.assign(offering, { missingSince: "2026-08-23", missingObservations: 1, lastMissingAt: "2026-08-23" });
+    }
+    const digest = anomalyDigest(detectRegistryAnomalies(before, first));
+    assert.notEqual(digest, anomalyDigest(detectRegistryAnomalies(before, second)));
+    first.offerings.reverse();
+    assert.equal(digest, anomalyDigest(detectRegistryAnomalies(before, first)));
+    first.offerings.find((offering) => offering.missingSince !== undefined)!.missingSince = "2026-08-24";
+    assert.notEqual(digest, anomalyDigest(detectRegistryAnomalies(before, first)));
+  });
+
+  it("binds removal approval to the deleted families and routes", () => {
+    const before = fixture();
+    const first = structuredClone(before);
+    const second = structuredClone(before);
+    delete first.families["gpt-0"];
+    first.offerings = first.offerings.filter((offering) => offering.family !== "gpt-0");
+    delete second.families["gpt-1"];
+    second.offerings = second.offerings.filter((offering) => offering.family !== "gpt-1");
+    assert.notEqual(
+      anomalyDigest(detectRegistryAnomalies(before, first)),
+      anomalyDigest(detectRegistryAnomalies(before, second)),
+    );
+  });
+
+  it("binds bulk hiding approval to its routes and retirement reason", () => {
+    const before = fixture(12);
+    const first = structuredClone(before);
+    const second = structuredClone(before);
+    for (const offering of first.offerings.slice(0, 10)) {
+      Object.assign(offering, { hidden: true, hiddenReason: "catalog", hiddenAt: "2026-08-23" });
+    }
+    for (const offering of second.offerings.slice(2)) {
+      Object.assign(offering, { hidden: true, hiddenReason: "catalog", hiddenAt: "2026-08-23" });
+    }
+    const digest = anomalyDigest(detectRegistryAnomalies(before, first));
+    assert.notEqual(digest, anomalyDigest(detectRegistryAnomalies(before, second)));
+    first.offerings.reverse();
+    assert.equal(digest, anomalyDigest(detectRegistryAnomalies(before, first)));
+    delete first.offerings.find((offering) => offering.hidden)!.hiddenReason;
+    assert.notEqual(digest, anomalyDigest(detectRegistryAnomalies(before, first)));
   });
 });

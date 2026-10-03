@@ -29,10 +29,10 @@
  */
 
 import { appendFileSync } from "node:fs";
-import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
+import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic, type Registry } from "../src/registry.ts";
 import { renderReport, type SourceOutcome } from "../src/report.ts";
 import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
-import { findRemovalCandidates, loadRemovalManifest, type RemovalCandidate } from "../src/removals.ts";
+import { findRemovalCandidates, loadRemovalManifest, type RemovalCandidate, type RemovalRequest } from "../src/removals.ts";
 import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
 import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
@@ -74,7 +74,7 @@ const SOURCES: UpdateSource[] = [
         ...discoveryEndpointIds(registry, models, today, rankings, { bootstrap: resetOpenRouter }),
       ]);
       if (resetOpenRouter && !openRouterResetReady(catalog)) {
-        throw new Error("complete text/image/embedding/rerank/transcription weekly rankings and usable Top 20 image endpoints are required for an OpenRouter reset");
+        throw new Error("complete text Top 50 and specialized Top 30 retention rankings, plus usable Top 20 image endpoints, are required for an OpenRouter reset");
       }
       return {
         discover: (r) => discoverOpenRouter(r, catalog, today, { bootstrap: resetOpenRouter }),
@@ -152,8 +152,14 @@ function abort(source: string, error: string): never {
   finish(1);
 }
 
-let registry = loadRegistry(ROOT);
-const removalRequests = loadRemovalManifest(ROOT);
+let registry: Registry;
+let removalRequests: RemovalRequest[];
+try {
+  registry = loadRegistry(ROOT);
+  removalRequests = loadRemovalManifest(ROOT);
+} catch (error) {
+  abort("Registry", error instanceof Error ? error.message : String(error));
+}
 const baseline = structuredClone(registry);
 const before = validateRegistry(registry);
 if (before.length > 0) {

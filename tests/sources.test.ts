@@ -178,6 +178,28 @@ describe("fetchJson", () => {
     });
     await assert.rejects(readTextCapped(new Response(body), "https://example.test/page"), /response is larger than/);
     assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  });
+
+  it("cancels a response rejected by its content length and releases its reader", async () => {
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({ cancel() { cancelled = true; } });
+    await assert.rejects(readTextCapped(new Response(body, {
+      headers: { "content-length": String(MAX_JSON_BYTES + 1) },
+    }), "https://example.test/catalog"), /response is larger than/);
+    assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  });
+
+  it("uses readable response bodies for JSON and releases readers after success or failure", async () => {
+    const response = Response.json({ data: [1] });
+    assert.deepEqual(await fetchJson("https://example.test/catalog", {}, async () => response), { data: [1] });
+    assert.equal(response.body!.locked, false);
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(null)), /no readable response body/);
+
+    const body = new ReadableStream<Uint8Array>({ start(controller) { controller.error(new Error("interrupted stream")); } });
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(body)), /interrupted stream/);
+    assert.equal(body.locked, false);
   });
 
   it("refuses redirects and applies a request timeout", async () => {
@@ -210,6 +232,27 @@ describe("fetchJson", () => {
       assert.ok(!error.message.includes("API key not valid"));
       return true;
     });
+  });
+
+  it("cancels unread HTTP error bodies without replacing their status if cleanup fails", async () => {
+    for (const errored of [false, true]) {
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          if (errored) controller.error(new Error("body already failed"));
+        },
+        cancel() { cancelled = true; },
+      });
+      await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(body, {
+        status: 401, statusText: "Unauthorized",
+      })), (error: Error) => {
+        assert.ok(error instanceof HttpError);
+        assert.equal(error.status, 401);
+        return true;
+      });
+      assert.equal(cancelled, !errored);
+      assert.equal(body.locked, false);
+    }
   });
 });
 
@@ -374,14 +417,36 @@ describe("applyOpenRouter", () => {
     assert.equal(registry.families["deepseek-z"]!.maxTokens, 262_144);
   });
 
-  it("refuses an output cap the catalog puts above the window", () => {
+  it("keeps the previous limits when the catalog shrinks the window without a usable output cap", () => {
     const catalog = orCatalog([
       { ...DEEPSEEK_Z_LISTED, context_length: 100_000, top_provider: { max_completion_tokens: 400_000 } },
     ]);
     const { registry, result } = applyOpenRouter(fixture(), catalog, TODAY);
-    assert.equal(registry.families["deepseek-z"]!.contextWindow, 100_000);
+    assert.equal(registry.families["deepseek-z"]!.contextWindow, 1_048_576);
     assert.equal(registry.families["deepseek-z"]!.maxTokens, 384_000);
     assert.match(result.notes.join("\n"), /above the 100000 window/);
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
+  it("applies a smaller window together with a usable smaller output cap", () => {
+    const { registry } = applyOpenRouter(fixture(), orCatalog([{
+      ...DEEPSEEK_Z_LISTED, context_length: 100_000, top_provider: { max_completion_tokens: 32_000 },
+    }]), TODAY);
+    assert.equal(registry.families["deepseek-z"]!.contextWindow, 100_000);
+    assert.equal(registry.families["deepseek-z"]!.maxTokens, 32_000);
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
+  it("keeps image limits together when an endpoint's output cap exceeds its window", () => {
+    const r = fixture();
+    r.offerings = r.offerings.filter((offering) => !(offering.family === "draw-1" && offering.provider === "openai"));
+    const { registry } = applyOpenRouter(r, orCatalog([], {
+      imageIds: ["openai/draw-1"], imageModels: [{ id: "openai/draw-1" }],
+      endpoints: { "openai/draw-1": [{ context_length: 32_000, max_completion_tokens: 64_000, pricing: { image_output: "0.00003" } }] },
+    }), TODAY);
+    assert.equal(registry.families["draw-1"]!.contextWindow, 400_000);
+    assert.equal(registry.families["draw-1"]!.maxTokens, 128_000);
+    assert.deepEqual(validateRegistry(registry), []);
   });
 
   it("keeps a vendor family's numbers and sets the route override only while the router differs", () => {
@@ -641,6 +706,20 @@ describe("fetchAnthropicModels", () => {
 });
 
 describe("applyAnthropic", () => {
+  it("rejects inconsistent catalog limits and windows smaller than a route override", () => {
+    for (const override of [false, true]) {
+      const r = fixture();
+      if (override) r.offerings.push({ provider: "openrouter", family: "claude-y.1", wireId: "anthropic/claude-y.1", maxTokens: 128_000 });
+      const { registry, result } = applyAnthropic(r, [{
+        id: "claude-y-1", max_input_tokens: 100_000, max_tokens: override ? 32_000 : 200_000,
+      }], TODAY);
+      assert.equal(registry.families["claude-y.1"]!.contextWindow, 200_000);
+      assert.equal(registry.families["claude-y.1"]!.maxTokens, 64_000);
+      assert.match(result.notes.join("\n"), /limits left unchanged/);
+      assert.deepEqual(validateRegistry(registry), []);
+    }
+  });
+
   it("strips a dated snapshot to its alias", () => {
     assert.equal(undated("claude-haiku-4-5-20251001"), "claude-haiku-4-5");
     assert.equal(undated("claude-opus-5"), "claude-opus-5");
@@ -863,6 +942,30 @@ function embeddingRetentionCatalog(targetRank: 30 | 31, created = OLD): OpenRout
   });
 }
 
+function resetReadyCatalog(): OpenRouterCatalog {
+  const target = { ...DEEPSEEK_Z_LISTED, canonical_slug: "deepseek/deepseek-z-20260110", created: OLD };
+  const text = textRetentionCatalog(target, 50);
+  const image = imageRetentionCatalog(30);
+  const embedding = embeddingRetentionCatalog(30);
+  return {
+    ...text,
+    imageIds: image.imageIds,
+    imageModels: image.imageModels,
+    imageRankings: image.imageRankings,
+    embeddingModels: embedding.embeddingModels,
+    embeddingRankings: embedding.embeddingRankings,
+    rerankModels: [RERANK_MODEL],
+    rerankRankings: [RERANK_RANKING],
+    transcriptionModels: [TRANSCRIPTION_MODEL],
+    transcriptionRankings: [TRANSCRIPTION_RANKING],
+    endpoints: Object.fromEntries(image.imageModels.map((model) => [model.id, [{
+      context_length: 1024,
+      max_completion_tokens: 1024,
+      pricing: { image_output: "0.00001" },
+    }]])),
+  };
+}
+
 describe("undiscounted / promoteFamily", () => {
   it("puts the list price back and drops the discount", () => {
     assert.deepEqual(undiscounted({ inputPer1M: 2.5, outputPer1M: 15, cachedInputPer1M: 0.25, discount: 0.5 }), {
@@ -898,6 +1001,29 @@ describe("addRoute", () => {
 });
 
 describe("discoverOpenRouter", () => {
+  it("does not overwrite an existing maker when a new specialized vendor uses its id", () => {
+    for (const kind of ["image", "embedding", "rerank", "transcription", "decision"] as const) {
+      const r = fixture();
+      const model = {
+        id: "xai/special",
+        name: "Different maker: Special",
+        context_length: 4096,
+        top_provider: { max_completion_tokens: 1024 },
+        pricing: { prompt: "0.000001", completion: "0", rerank_search: "0.001", transcription_minute: "0.006" },
+        architecture: { output_modalities: [kind === "decision" ? "decisions" : kind] },
+      };
+      const ranking = { model_permaslug: model.id, variant_permaslug: model.id, count: 1, image_output_requests: 1 };
+      const { registry, result } = discoverOpenRouter(r, orCatalog([], {
+        [`${kind}Models`]: [model],
+        ...(kind === "decision" ? {} : { [`${kind}Rankings`]: [ranking] }),
+        endpoints: { [model.id]: [{ context_length: 4096, max_completion_tokens: 1024, pricing: { image_output: "0.000003" } }] },
+      }), TODAY);
+      assert.deepEqual(registry.makers, r.makers, kind);
+      assert.equal(registry.families.special, undefined, kind);
+      assert.match(result.notes.join("\n"), /existing maker "xai" under a different vendor mapping/, kind);
+    }
+  });
+
   it("collects stable decision models without a rankings feed and refreshes input-only pricing", () => {
     const catalog = orCatalog([], {
       decisionModels: [{ ...DECISION_MODEL, id: "~typesafe/jev-latest" }, DECISION_MODEL],
@@ -1169,26 +1295,38 @@ describe("discoverOpenRouter", () => {
   });
 
   it("allows a reset with complete embeddings rankings that include free models", () => {
-    const imageModels = Array.from({ length: 20 }, (_, index) => ({ id: `image/m-${index}` }));
-    const endpoints = Object.fromEntries(imageModels.map((model) => [model.id, [{
-      context_length: 1024,
-      max_completion_tokens: 1024,
-      pricing: { image_output: "0.00001" },
-    }]]));
-    const freeEmbedding = { ...EMBEDDING_MODEL, pricing: { prompt: "0", completion: "0" } };
-    const catalog = orCatalog([], {
-      rankings: [],
-      imageModels,
-      imageRankings: imageModels.map((model, index) => ({
-        model_permaslug: model.id,
-        variant_permaslug: model.id,
-        image_output_requests: 20 - index,
-      })),
-      embeddingModels: [freeEmbedding],
-      embeddingRankings: [EMBEDDING_RANKING],
-      endpoints,
-    });
+    const catalog = resetReadyCatalog();
+    catalog.embeddingModels[0]!.pricing = { prompt: "0", completion: "0" };
     assert.equal(openRouterResetReady(catalog), true);
+    const restored = discoverOpenRouter(resetOpenRouterRegistry(fixture()).registry, catalog, TODAY);
+    assert.equal(restored.registry.offerings.find((offering) => offering.family === "deepseek-z")?.hidden, undefined);
+    assert.equal(restored.registry.offerings.find((offering) => offering.family === "draw-1" && offering.provider === "openrouter")?.hidden, undefined);
+  });
+
+  it("refuses a reset when admission rankings are usable but retention rankings are incomplete", () => {
+    const text = resetReadyCatalog();
+    text.rankings = text.rankings!.filter((_, index) => index < 20 || index >= 50 && index < 70);
+    assert.equal(openRouterResetReady(text), false, "text Top 20 cannot restore the Top 50 retention set");
+
+    const image = resetReadyCatalog();
+    image.imageRankings = image.imageRankings!.slice(0, 20);
+    assert.equal(openRouterResetReady(image), false, "image Top 20 cannot restore the Top 30 retention set");
+
+    const embedding = resetReadyCatalog();
+    embedding.embeddingRankings = embedding.embeddingRankings!.slice(0, 20);
+    assert.equal(openRouterResetReady(embedding), false, "embedding Top 20 cannot restore the Top 30 retention set");
+
+    for (const kind of ["rerank", "transcription"] as const) {
+      const catalog = resetReadyCatalog();
+      catalog[`${kind}Rankings`] = [];
+      assert.equal(openRouterResetReady(catalog), false, `${kind} must cover its smaller catalog`);
+    }
+  });
+
+  it("refuses a reset when a ranked image has unusable endpoint metadata", () => {
+    const catalog = resetReadyCatalog();
+    catalog.endpoints[catalog.imageModels[0]!.id] = null;
+    assert.equal(openRouterResetReady(catalog), false);
   });
 
   it("bootstraps an older ranked model after an OpenRouter reset", () => {
@@ -1401,6 +1539,54 @@ describe("discoverOpenRouter", () => {
     assert.match(result.notes.join("\n"), /x-ai\/grok-q could route family "grok-q", but states a 131072 window/);
   });
 
+  it("requires matching windows for every specialized route to an existing family", () => {
+    for (const kind of ["imageGeneration", "embedding", "rerank", "transcription", "decision"] as const) {
+      for (const window of [undefined, 2048, 4096]) {
+        const r = fixture();
+        r.families.special = {
+          maker: "openai",
+          displayName: "Special",
+          pricing: { inputPer1M: 1, outputPer1M: kind === "imageGeneration" || kind === "transcription" ? 2 : 0,
+            ...(kind === "imageGeneration" ? { imageOutputPer1M: 3 } : {}) },
+          capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, [kind]: true },
+          contextWindow: 4096,
+          maxTokens: kind === "embedding" || kind === "rerank" ? 0 : 1024,
+        };
+        r.offerings.push({ provider: "openai", family: "special" });
+        const limits = window === undefined ? {} : { context_length: window };
+        const model = { id: "openai/special", ...limits };
+        const ranking = { model_permaslug: model.id, variant_permaslug: model.id, count: 1, image_output_requests: 1 };
+        const catalog = orCatalog([], kind === "imageGeneration" ? {
+          imageModels: [model], imageRankings: [ranking],
+          endpoints: { [model.id]: [{ ...limits, pricing: { image_output: "0.000003" } }] },
+        } : {
+          [`${kind}Models`]: [model],
+          ...(kind === "decision" ? {} : { [`${kind}Rankings`]: [ranking] }),
+        });
+        const { registry, result } = discoverOpenRouter(r, catalog, TODAY);
+        assert.equal(registry.offerings.some((offering) => offering.provider === "openrouter" && offering.family === "special"), window === 4096, `${kind}, ${window}`);
+        if (window !== 4096) assert.ok(result.notes.some((note) => note.includes("window against the family's 4096")));
+      }
+    }
+  });
+
+  it("does not route a text listing to a specialized family with the same window", () => {
+    const r = fixture();
+    const { registry } = discoverOpenRouter(r, orCatalog([{
+      ...NEW_TEXT, id: "x-ai/grok-draw", context_length: r.families["grok-draw"]!.contextWindow,
+    }]), TODAY);
+    assert.ok(!registry.offerings.some((offering) => offering.provider === "openrouter" && offering.family === "grok-draw"));
+  });
+
+  it("does not mistake an inherited object property for an existing family", () => {
+    const { registry } = discoverOpenRouter(fixture(), orCatalog([{
+      ...NEW_TEXT, id: "openai/constructor", canonical_slug: "openai/constructor",
+    }]), TODAY);
+    assert.ok(Object.hasOwn(registry.families, "constructor"));
+    assert.ok(registry.offerings.some((offering) => offering.wireId === "openai/constructor"));
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
   it("skips an id it already routes to under another family name", () => {
     const r = fixture();
     r.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grokq" });
@@ -1563,17 +1749,30 @@ describe("vendor route discovery", () => {
     );
   });
 
+  it("Google: keeps a valid pair when a smaller window has missing or conflicting output metadata", () => {
+    for (const outputTokenLimit of [undefined, 128_000, 32_000]) {
+      const r = fixture();
+      r.offerings.push({ provider: "google", family: "gpt-x" });
+      const { registry, result } = applyGoogle(r, [{
+        name: "models/gpt-x", inputTokenLimit: 64_000,
+        ...(outputTokenLimit === undefined ? {} : { outputTokenLimit }),
+        supportedGenerationMethods: ["generateContent"],
+      }], TODAY);
+      const accepted = outputTokenLimit === 32_000;
+      assert.equal(registry.families["gpt-x"]!.contextWindow, accepted ? 64_000 : 1_050_000);
+      assert.equal(registry.families["gpt-x"]!.maxTokens, accepted ? 32_000 : 128_000);
+      assert.equal(result.notes.some((note) => note.includes("limits left unchanged")), !accepted);
+      assert.deepEqual(validateRegistry(registry), []);
+    }
+  });
+
   it("OpenRouter: an empty image catalog is a failed read, not a mass retirement", async () => {
     // Six image routes live only in /images/models; an empty answer read as
     // data would start the retirement clock on all of them at once.
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       const specialized = specializedCatalogBody(target);
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => specialized ?? (
+      return Response.json(specialized ?? (
           target.includes("/images/models")
           ? { data: [] }
           : target === OPENROUTER_EMBEDDING_MODELS_URL
@@ -1581,9 +1780,8 @@ describe("vendor route discovery", () => {
           : target === OPENROUTER_MODELS_URL
             ? { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x" }] }
-        ),
-      };
-    }) as unknown as typeof fetch;
+      ));
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1595,11 +1793,7 @@ describe("vendor route discovery", () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       const specialized = specializedCatalogBody(target);
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => specialized ?? (
+      return Response.json(specialized ?? (
           target === OPENROUTER_EMBEDDING_MODELS_URL
           ? { data: [], total_count: 0, links: { next: null } }
           : target.includes("/images/models")
@@ -1607,9 +1801,8 @@ describe("vendor route discovery", () => {
             : target === OPENROUTER_MODELS_URL
               ? { data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } }
               : { data: [] }
-        ),
-      };
-    }) as unknown as typeof fetch;
+      ));
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_EMBEDDING_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1641,8 +1834,7 @@ describe("vendor route discovery", () => {
 });
 
 describe("fetch guards and snapshot folding", () => {
-  const jsonResponse = (body: unknown) =>
-    ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
+  const jsonResponse = (body: unknown) => Response.json(body);
 
   it("OpenRouter: an empty or truncated decisions catalog is a failed read", async () => {
     for (const body of [
@@ -1697,7 +1889,7 @@ describe("fetch guards and snapshot folding", () => {
       }
       if (target === OPENROUTER_IMAGE_MODELS_URL) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
       return jsonResponse({ data: [] });
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
     assert.equal(catalog.rerankModels[0]?.pricing?.rerank_search, "0.001");
     assert.equal(catalog.transcriptionModels[0]?.pricing?.transcription_minute, "0.006");
@@ -1715,7 +1907,7 @@ describe("fetch guards and snapshot folding", () => {
             ? { data: [{ slug: "renamed-field" }], total_count: 1, links: { next: null } }
             : { data: [{ slug: "renamed-field" }] }),
       );
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
   });
 
@@ -1723,7 +1915,7 @@ describe("fetch guards and snapshot folding", () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       if (target === OPENROUTER_RANKINGS_URL) {
-        return { ok: false, status: 503, statusText: "Unavailable", json: async () => ({}) } as Response;
+        return new Response(null, { status: 503, statusText: "Unavailable" });
       }
       if (target === OPENROUTER_IMAGE_RANKINGS_URL) {
         return jsonResponse({ data: [IMAGE_RANKING] });
@@ -1744,7 +1936,7 @@ describe("fetch guards and snapshot folding", () => {
             ? { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
       );
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
     assert.equal(catalog.rankings, null);
     assert.equal(catalog.imageRankings, null);
@@ -1765,12 +1957,13 @@ describe("fetch guards and snapshot folding", () => {
         return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
       }
       return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], partialFetch), /partial catalog/);
 
+    let endpointData: unknown;
     const malformedEndpoint = (async (url: string | URL | Request) => {
       const target = String(url);
-      if (target.endsWith("/endpoints")) return jsonResponse({ data: {} });
+      if (target.endsWith("/endpoints")) return jsonResponse({ data: { endpoints: endpointData } });
       const specialized = specializedCatalogBody(target);
       if (specialized !== null) {
         return jsonResponse(specialized);
@@ -1782,9 +1975,31 @@ describe("fetch guards and snapshot folding", () => {
       return target === OPENROUTER_MODELS_URL
         ? jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } })
         : jsonResponse({ data: [{ id: "openai/gpt-x" }] });
-    }) as unknown as typeof fetch;
-    const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
-    assert.equal(catalog.endpoints["openai/gpt-x"], null);
+    }) as typeof fetch;
+    for (const malformed of [undefined, [null], [42], [{ pricing: null }], [{ pricing: { discount: "0.5" } }], [{ context_length: "1000" }]]) {
+      endpointData = malformed;
+      const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
+      assert.equal(catalog.endpoints["openai/gpt-x"], null);
+      const r = fixture();
+      r.offerings.find((offering) => offering.wireId === "openai/gpt-x")!.pricing!.discount = 0.5;
+      catalog.models = [GPT_X_LISTED];
+      const applied = applyOpenRouter(r, catalog, TODAY);
+      assert.equal(applied.registry.offerings.find((offering) => offering.wireId === "openai/gpt-x")!.pricing!.discount, 0.5);
+      assert.match(applied.result.notes.join("\n"), /endpoints could not be read; discount left as it was/);
+    }
+
+    // Xiaomi's catalog can quote a promotion while another endpoint reports a StreamLake markup.
+    for (const discount of [0.3, 0.15]) {
+      const endpoints = [
+        { provider_name: "Xiaomi", pricing: { ...GPT_X_LISTED.pricing, discount } },
+        { provider_name: "StreamLake", pricing: { prompt: "0.000005", completion: "0.00003", discount: -0.2 } },
+      ];
+      endpointData = endpoints;
+      const catalog = await fetchOpenRouterCatalog(() => [GPT_X_LISTED.id], malformedEndpoint);
+      assert.deepEqual(catalog.endpoints[GPT_X_LISTED.id], endpoints);
+      assert.equal(catalogDiscount(GPT_X_LISTED, catalog.endpoints[GPT_X_LISTED.id]), discount);
+      assert.equal(catalogDiscount({ ...GPT_X_LISTED, pricing: endpoints[1]!.pricing }, catalog.endpoints[GPT_X_LISTED.id]), null);
+    }
   });
 
   it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {
@@ -1793,20 +2008,38 @@ describe("fetch guards and snapshot folding", () => {
         String(url).includes("image-generation")
           ? { models: [{ modelId: "renamed" }] }
           : { models: [{ id: "grok-x" }] },
-      )) as unknown as typeof fetch;
+      )) as typeof fetch;
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /image-generation-models.*no usable entries/);
   });
 
   it("Google: accepts an embedContent-only catalog", async () => {
     const fetchFn = (async () =>
-      jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as unknown as typeof fetch;
+      jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as typeof fetch;
     assert.deepEqual(await fetchGoogleModels("key", fetchFn), [
       { name: "models/embed-x", supportedGenerationMethods: ["embedContent"] },
     ]);
   });
 
+  it("Google: reads every page and rejects malformed continuation metadata", async () => {
+    const model = { name: "models/embed-x", supportedGenerationMethods: ["embedContent"] };
+    for (const nextPageToken of [null, 42, [], {}]) {
+      await assert.rejects(fetchGoogleModels("key", async () => Response.json({
+        models: [model], nextPageToken,
+      })), /invalid nextPageToken/);
+    }
+    const urls: string[] = [];
+    const models = await fetchGoogleModels("key", async (url) => {
+      urls.push(String(url));
+      return Response.json(urls.length === 1
+        ? { models: [model], nextPageToken: "next/token" }
+        : { models: [{ ...model, name: "models/embed-y" }] });
+    });
+    assert.deepEqual(models.map(({ name }) => name), ["models/embed-x", "models/embed-y"]);
+    assert.match(urls[1]!, /pageToken=next%2Ftoken/);
+  });
+
   it("xAI: language entries that carry no id are the same failed read", async () => {
-    const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as unknown as typeof fetch;
+    const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as typeof fetch;
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /no usable entries/);
   });
 

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import fs, { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -21,6 +22,26 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const registry = loadRegistry(ROOT);
 
 describe("loadRegistry", () => {
+  it("loads family names as data, including prototype property names", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-load-"));
+    try {
+      const r = fixture();
+      const family = r.families["gpt-x"]!;
+      Object.assign(r.families, { constructor: family });
+      r.offerings.push({ provider: "openai", family: "constructor" });
+      writeRegistry(root, r);
+      assert.deepEqual(loadRegistry(root).families.constructor, family);
+
+      const file = join(root, "models/families/openai.json");
+      writeFileSync(file, JSON.stringify(Object.fromEntries([["__proto__", family]])));
+      const loaded = loadRegistry(root);
+      assert.ok(Object.hasOwn(loaded.families, "__proto__"));
+      assert.match(validateRegistry(loaded).join("\n"), /family __proto__: id must be a safe slug/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("names malformed source files before spreading or iterating them", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-load-"));
     const base = join(root, "models");
@@ -189,6 +210,44 @@ describe("validateRegistry", () => {
     assert.ok(
       validateRegistry(registry).some((error) => error.includes('must not carry "selfhosted"')),
     );
+  });
+
+  it("reports malformed nested shapes without dereferencing them", () => {
+    const cases: Array<(r: Registry) => void> = [
+      (r) => { Object.assign(r.offerings[2]!, { capabilities: null }); },
+      (r) => { Object.assign(r.offerings[2]!, { wireId: 123 }); },
+      (r) => { Object.assign(r.families, { "gpt-x": null }); r.offerings[0]!.maxTokens = 10; },
+      (r) => { Object.assign(r.families["gpt-x"]!, { capabilities: null }); r.offerings[0]!.maxTokens = 10; },
+      (r) => { Object.assign(r.families["gpt-x"]!, { capabilities: null }); r.offerings[0]!.capabilities = { embedding: true }; },
+    ];
+    for (const mutate of cases) {
+      const r = fixture();
+      mutate(r);
+      assert.ok(validateRegistry(r).length > 0);
+    }
+    assert.deepEqual(validateRegistry(null as unknown as Registry), ["registry must be an object"]);
+  });
+
+  it("requires own maker and family definitions and unique provider ids", () => {
+    const r = fixture();
+    r.families["gpt-x"]!.maker = "constructor";
+    r.offerings.push({ provider: "openai", family: "constructor" });
+    r.providers.push("openai");
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /maker "constructor" is not in makers.json/);
+    assert.match(errors, /unknown family "constructor"/);
+    assert.match(errors, /duplicate providers/);
+  });
+
+  it("checks identity types before interpolating malformed objects into errors", () => {
+    const r = fixture();
+    Object.assign(r.families["gpt-x"]!, { maker: { toString: null } });
+    Object.assign(r.offerings[0]!, { family: { toString: null } });
+    Object.assign(r.offerings[1]!, { provider: { toString: null } });
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /family gpt-x: maker must be a string/);
+    assert.match(errors, /offerings\[0\]: provider and family must be strings/);
+    assert.match(errors, /offerings\[1\]: provider and family must be strings/);
   });
 
   it("accepts the fixture", () => {
@@ -447,6 +506,35 @@ describe("deriveModels", () => {
 });
 
 describe("writeRegistry", () => {
+  it("preserves the original files when both replacement and rollback fail", (t) => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-rollback-"));
+    const rename = fs.renameSync;
+    try {
+      writeRegistry(root, fixture());
+      const original = readFileSync(join(root, "models/families/openai.json"), "utf8");
+      const failure = t.mock.method(fs, "renameSync", (from: fs.PathLike, to: fs.PathLike) => {
+        if (String(from).includes(".models-write-")) throw new Error("simulated rename failure");
+        return rename(from, to);
+      });
+      syncBuiltinESMExports();
+      const changed = fixture();
+      changed.families["gpt-x"]!.pricing.inputPer1M = 5;
+      assert.throws(() => writeRegistry(root, changed), /original files preserved at/);
+      failure.mock.restore();
+      syncBuiltinESMExports();
+      const transaction = readdirSync(root).find((name) => name.startsWith(".models-write-"));
+      assert.ok(transaction);
+      const backup = join(root, transaction, "previous");
+      assert.equal(readFileSync(join(backup, "families/openai.json"), "utf8"), original);
+      rename(backup, join(root, "models"));
+      assert.deepEqual(validateRegistry(loadRegistry(root)), []);
+    } finally {
+      t.mock.restoreAll();
+      syncBuiltinESMExports();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("validates before writing and cannot escape the models directory", () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-registry-"));
     const sentinel = join(root, "package.json");

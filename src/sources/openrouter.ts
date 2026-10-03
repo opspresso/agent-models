@@ -47,6 +47,7 @@
  */
 
 import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
+import { applyFamilyLimits } from "./limits.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, perMillion, readTextCapped, samePricing, type Change, type SourceResult } from "./types.ts";
@@ -124,7 +125,7 @@ export interface OpenRouterEndpoint {
     completion?: string;
     input_cache_read?: string;
     image_output?: string;
-    /** Promotional discount as a fraction; the endpoint's rates are after it. */
+    /** Signed discount fraction (negative for markup); the endpoint's rates are after it. */
     discount?: number;
   };
 }
@@ -250,6 +251,27 @@ function isEmbeddingRanking(entry: unknown): entry is OpenRouterEmbeddingRanking
     && typeof row.count === "number"
     && Number.isFinite(row.count)
     && row.count >= 0;
+}
+
+function isEndpoint(entry: unknown): entry is OpenRouterEndpoint {
+  if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return false;
+  const endpoint = entry as Record<string, unknown>;
+  for (const field of ["tag", "provider_name"]) {
+    if (endpoint[field] !== undefined && typeof endpoint[field] !== "string") return false;
+  }
+  for (const field of ["context_length", "max_completion_tokens"]) {
+    const value = endpoint[field];
+    if (value !== undefined && value !== null && !isImageLimit(value)) return false;
+  }
+  if (endpoint.pricing === undefined) return true;
+  if (typeof endpoint.pricing !== "object" || endpoint.pricing === null || Array.isArray(endpoint.pricing)) return false;
+  const pricing = endpoint.pricing as Record<string, unknown>;
+  for (const field of ["prompt", "completion", "input_cache_read", "image_output"]) {
+    const value = pricing[field];
+    if (value !== undefined && (typeof value !== "string" || value.trim() === "" || !Number.isFinite(Number(value)) || Number(value) < 0)) return false;
+  }
+  const discount = pricing.discount;
+  return discount === undefined || typeof discount === "number" && Number.isFinite(discount);
 }
 
 function specialPrice(html: string, label: string): number | null {
@@ -502,10 +524,10 @@ export async function fetchOpenRouterCatalog(
           const body = (await fetchJson(openRouterEndpointsUrl(id), {}, fetchFn)) as {
             data?: { endpoints?: unknown };
           };
-          if (!Array.isArray(body.data?.endpoints)) {
-            throw new Error("no endpoints array");
+          if (!Array.isArray(body.data?.endpoints) || !body.data.endpoints.every(isEndpoint)) {
+            throw new Error("invalid endpoints array");
           }
-          endpoints[id] = body.data.endpoints as OpenRouterEndpoint[];
+          endpoints[id] = body.data.endpoints;
         } catch {
           endpoints[id] = null;
         }
@@ -657,13 +679,7 @@ function transcriptionMaxTokens(
 
 /** A reset may only proceed when every policy input and ranked modality model is usable. */
 export function openRouterResetReady(catalog: OpenRouterCatalog): boolean {
-  if (
-    catalog.rankings === null
-    || catalog.imageRankings === null
-    || catalog.embeddingRankings === null
-    || catalog.rerankRankings === null
-    || catalog.transcriptionRankings === null
-  ) return false;
+  if (Object.values(retentionRankings(catalog)).some((ranked) => ranked === null)) return false;
   const ids = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
   if (ids === null || ids.length !== ADDITION_LEADERBOARD_LIMIT) return false;
   const imagesReady = ids.every((id) => {
@@ -777,17 +793,13 @@ export function applyOpenRouter(
         family.pricing = price;
       }
       const window = endpoint?.context_length;
-      if (isImageLimit(window) && window !== family.contextWindow) {
-        changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-        family.contextWindow = window;
-      }
       const maxOut = isImageLimit(endpoint?.max_completion_tokens)
         ? endpoint.max_completion_tokens
         : window;
-      if (isImageLimit(maxOut) && maxOut <= family.contextWindow && maxOut !== family.maxTokens) {
-        changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-        family.maxTokens = maxOut;
-      }
+      applyFamilyLimits(next, offering.family, {
+        contextWindow: isImageLimit(window) ? window : null,
+        maxTokens: isImageLimit(maxOut) ? maxOut : null,
+      }, "openrouter", changes, notes);
       continue;
     }
     observePresence(offering, entry !== undefined, "OpenRouter", today, changes, notes);
@@ -833,26 +845,20 @@ export function applyOpenRouter(
       }
       const window = entry.context_length;
       const kind = family.capabilities.transcription ? "transcription" : family.capabilities.decision ? "decision" : "rerank";
-      if (isSpecializedWindow(window, kind) && window !== family.contextWindow) {
-        changes.push({ target: `family ${offering.family}`, field: "contextWindow", from: family.contextWindow, to: window });
-        family.contextWindow = window;
-      }
+      let maxOut: number | null = null;
       if (family.capabilities.transcription) {
-        const maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
-        if (maxOut !== null && maxOut !== family.maxTokens) {
-          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-          family.maxTokens = maxOut;
-        }
+        maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
       } else if (!family.capabilities.embedding && !family.capabilities.rerank) {
         const aggregateMaxOut = entry.top_provider?.max_completion_tokens;
-        const maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
-        if (maxOut !== null && maxOut !== family.maxTokens) {
-          changes.push({ target: `family ${offering.family}`, field: "maxTokens", from: family.maxTokens, to: maxOut });
-          family.maxTokens = maxOut;
-        } else if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
-          notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${family.contextWindow} window; left alone`);
+        maxOut = textMaxTokens(entry, catalog.endpoints[offering.wireId]);
+        if (maxOut === null && isPositiveInt(aggregateMaxOut)) {
+          notes.push(`${id}: OpenRouter states max_completion_tokens ${aggregateMaxOut} above the ${window ?? family.contextWindow} window; left alone`);
         }
       }
+      applyFamilyLimits(next, offering.family, {
+        contextWindow: isSpecializedWindow(window, kind) ? window : null,
+        maxTokens: maxOut,
+      }, "openrouter", changes, notes);
       if (offering.pricing !== undefined) {
         changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: undefined });
         delete offering.pricing;
@@ -984,6 +990,28 @@ function specializedLeaderboardIds(
   limit = ADDITION_LEADERBOARD_LIMIT,
 ): string[] | null {
   return embeddingLeaderboardIds(models, rankings, limit);
+}
+
+/** The complete retention sets used both to restore reset routes and to retire existing ones. */
+function retentionRankings(catalog: OpenRouterCatalog): {
+  text: Set<string> | null;
+  image: Set<string> | null;
+  embedding: Set<string> | null;
+  rerank: Set<string> | null;
+  transcription: Set<string> | null;
+} {
+  const complete = (ids: Iterable<string> | null, expected: number): Set<string> | null => {
+    if (ids === null) return null;
+    const ranked = new Set(ids);
+    return ranked.size === expected ? ranked : null;
+  };
+  return {
+    text: complete(leaderboardPermaslugs(catalog.models, catalog.rankings, TEXT_RETENTION_LEADERBOARD_LIMIT), TEXT_RETENTION_LEADERBOARD_LIMIT * 2),
+    image: complete(imageLeaderboardIds(catalog.imageModels, catalog.imageRankings, IMAGE_RETENTION_LEADERBOARD_LIMIT), IMAGE_RETENTION_LEADERBOARD_LIMIT),
+    embedding: complete(embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings, EMBEDDING_RETENTION_LEADERBOARD_LIMIT), EMBEDDING_RETENTION_LEADERBOARD_LIMIT),
+    rerank: complete(specializedLeaderboardIds(catalog.rerankModels, catalog.rerankRankings, RERANK_RETENTION_LEADERBOARD_LIMIT), Math.min(RERANK_RETENTION_LEADERBOARD_LIMIT, catalog.rerankModels.length)),
+    transcription: complete(specializedLeaderboardIds(catalog.transcriptionModels, catalog.transcriptionRankings, TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT), Math.min(TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT, catalog.transcriptionModels.length)),
+  };
 }
 
 /** The weekly open/closed leaderboard, with serving variants folded to one model. */
@@ -1153,6 +1181,35 @@ function decisionCapabilitiesOf(model: OpenRouterModel): ModelCapabilities {
   };
 }
 
+function matchesFamilyWindow(id: string, family: ModelFamily, window: unknown, notes: string[]): boolean {
+  if (window === family.contextWindow) return true;
+  notes.push(`openrouter: ${id} could route an existing family, but states a ${window ?? "missing"} window against the family's ${family.contextWindow}; left alone`);
+  return false;
+}
+
+function adoptMaker(
+  registry: Registry,
+  model: OpenRouterImageModel,
+  vendor: string,
+  makerOfVendor: Map<string, string>,
+  changes: Change[],
+  notes: string[],
+): string | undefined {
+  if (!isSafeSlug(vendor)) {
+    notes.push(`openrouter: ${model.id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
+    return undefined;
+  }
+  if (Object.hasOwn(registry.makers, vendor)) {
+    notes.push(`openrouter: ${model.id} names existing maker "${vendor}" under a different vendor mapping; left alone`);
+    return undefined;
+  }
+  const displayName = makerDisplayNameOf(model, vendor);
+  registry.makers[vendor] = { displayName, openrouterVendor: vendor };
+  makerOfVendor.set(vendor, vendor);
+  changes.push({ target: `maker ${vendor}`, field: "added", from: undefined, to: displayName });
+  return vendor;
+}
+
 function discoverRankedImages(
   registry: Registry,
   catalog: OpenRouterCatalog,
@@ -1179,7 +1236,7 @@ function discoverRankedImages(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked image ${id} names family "${slug}" under another maker; left alone`);
@@ -1188,6 +1245,7 @@ function discoverRankedImages(
       if (!family.capabilities.imageGeneration || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, standardImageEndpoint(catalog.endpoints[id])?.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1215,22 +1273,8 @@ function discoverRankedImages(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked image ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const created: ModelFamily & { maker: string } = {
       maker,
@@ -1279,7 +1323,7 @@ function discoverRankedEmbeddings(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked embedding ${id} names family "${slug}" under another maker; left alone`);
@@ -1288,6 +1332,7 @@ function discoverRankedEmbeddings(
       if (!family.capabilities.embedding || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1305,22 +1350,8 @@ function discoverRankedEmbeddings(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked embedding ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
@@ -1373,7 +1404,7 @@ function discoverRankedSpecialized(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked ${kind} ${id} names family "${slug}" under another maker; left alone`);
@@ -1382,6 +1413,7 @@ function discoverRankedSpecialized(
       if (!family.capabilities[kind] || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1400,22 +1432,8 @@ function discoverRankedSpecialized(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: ranked ${kind} ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = {
-        displayName: makerDisplayNameOf(model, vendor),
-        openrouterVendor: vendor,
-      };
-      makerOfVendor.set(vendor, maker);
-      changes.push({
-        target: `maker ${maker}`,
-        field: "added",
-        from: undefined,
-        to: registry.makers[maker]!.displayName,
-      });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
@@ -1455,17 +1473,14 @@ function discoverDecisions(
     if (parts === null || isVariant(parts.slug) || isDated(parts.slug) || routed.has(id)) continue;
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: decision ${id} names family "${slug}" under another maker; left alone`);
         continue;
       }
       if (!family.capabilities.decision || !familyIsLive(registry, slug)) continue;
-      if (model.context_length !== family.contextWindow) {
-        notes.push(`openrouter: decision ${id} states a ${model.context_length ?? "missing"} window against the family's ${family.contextWindow}; left alone`);
-        continue;
-      }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) routed.add(id);
       continue;
     }
@@ -1481,14 +1496,8 @@ function discoverDecisions(
       continue;
     }
     if (maker === undefined) {
-      if (!isSafeSlug(vendor)) {
-        notes.push(`openrouter: decision ${id} comes from vendor "${vendor}", which cannot be a maker id; add the maker by hand`);
-        continue;
-      }
-      maker = vendor;
-      registry.makers[maker] = { displayName: makerDisplayNameOf(model, vendor), openrouterVendor: vendor };
-      makerOfVendor.set(vendor, maker);
-      changes.push({ target: `maker ${maker}`, field: "added", from: undefined, to: registry.makers[maker]!.displayName });
+      maker = adoptMaker(registry, model, vendor, makerOfVendor, changes, notes);
+      if (maker === undefined) continue;
     }
     const discount = catalogDiscount(model, catalog.endpoints[id]);
     const created: ModelFamily & { maker: string } = {
@@ -1564,7 +1573,7 @@ export function discoveryEndpointIds(
         return false;
       }
       const ranked = typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
-      return options.bootstrap === true || ranked || isRecent(model, today) || registry.families[parts.slug] !== undefined;
+      return options.bootstrap === true || ranked || isRecent(model, today) || Object.hasOwn(registry.families, parts.slug);
     })
     .map((model) => model.id);
 }
@@ -1584,62 +1593,29 @@ export function discoverOpenRouter(
   );
   const unknownVendors = new Map<string, string[]>();
   const rankedPermaslugs = leaderboardPermaslugs(catalog.models, catalog.rankings);
-  const textRetention = leaderboardPermaslugs(
-    catalog.models,
-    catalog.rankings,
-    TEXT_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedPermaslugs = textRetention?.size === TEXT_RETENTION_LEADERBOARD_LIMIT * 2
-    ? textRetention
-    : null;
+  const {
+    text: retainedPermaslugs,
+    image: retainedImageIds,
+    embedding: retainedEmbeddingIds,
+    rerank: retainedRerankIds,
+    transcription: retainedTranscriptionIds,
+  } = retentionRankings(catalog);
   if (rankedPermaslugs === null) {
     notes.push("openrouter: weekly rankings could not be read; non-major models and routes were not added");
   } else if (retainedPermaslugs === null) {
     notes.push("openrouter: weekly rankings did not contain a complete open/closed Top 50; ranking retirement did not advance");
   }
   const rankedImageIds = imageLeaderboardIds(catalog.imageModels, catalog.imageRankings);
-  const imageRetention = imageLeaderboardIds(
-    catalog.imageModels,
-    catalog.imageRankings,
-    IMAGE_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedImageIds = imageRetention?.length === IMAGE_RETENTION_LEADERBOARD_LIMIT
-    ? new Set(imageRetention)
-    : null;
   if (rankedImageIds !== null && retainedImageIds === null) {
     notes.push("openrouter: weekly image rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
   const rankedEmbeddingIds = embeddingLeaderboardIds(catalog.embeddingModels, catalog.embeddingRankings);
-  const embeddingRetention = embeddingLeaderboardIds(
-    catalog.embeddingModels,
-    catalog.embeddingRankings,
-    EMBEDDING_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedEmbeddingIds = embeddingRetention?.length === EMBEDDING_RETENTION_LEADERBOARD_LIMIT
-    ? new Set(embeddingRetention)
-    : null;
   if (rankedEmbeddingIds !== null && retainedEmbeddingIds === null) {
     notes.push("openrouter: weekly embeddings rankings did not contain a complete Top 30; ranking retirement did not advance");
   }
-  const rerankRetention = specializedLeaderboardIds(
-    catalog.rerankModels,
-    catalog.rerankRankings,
-    RERANK_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedRerankIds = rerankRetention?.length === Math.min(RERANK_RETENTION_LEADERBOARD_LIMIT, catalog.rerankModels.length)
-    ? new Set(rerankRetention)
-    : null;
   if (catalog.rerankRankings !== null && retainedRerankIds === null) {
     notes.push("openrouter: weekly rerank rankings were incomplete; ranking retirement did not advance");
   }
-  const transcriptionRetention = specializedLeaderboardIds(
-    catalog.transcriptionModels,
-    catalog.transcriptionRankings,
-    TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT,
-  );
-  const retainedTranscriptionIds = transcriptionRetention?.length === Math.min(TRANSCRIPTION_RETENTION_LEADERBOARD_LIMIT, catalog.transcriptionModels.length)
-    ? new Set(transcriptionRetention)
-    : null;
   if (catalog.transcriptionRankings !== null && retainedTranscriptionIds === null) {
     notes.push("openrouter: weekly transcription rankings were incomplete; ranking retirement did not advance");
   }
@@ -1741,7 +1717,7 @@ export function discoverOpenRouter(
       continue;
     }
 
-    const family = next.families[slug];
+    const family = Object.hasOwn(next.families, slug) ? next.families[slug] : undefined;
     if (family !== undefined) {
       if (family.maker !== maker) {
         notes.push(`openrouter: ${model.id} names family "${slug}", which this registry files under ${family.maker}; left alone`);
@@ -1750,6 +1726,8 @@ export function discoverOpenRouter(
       if (!familyIsLive(next, slug) || next.offerings.some((o) => o.provider === "openrouter" && o.family === slug)) {
         continue;
       }
+      if (family.capabilities.imageGeneration || family.capabilities.embedding || family.capabilities.rerank
+        || family.capabilities.transcription || family.capabilities.decision) continue;
       // A slug is a weak name for a model: `qwen/qwen3-235b-a22b` is the
       // original, while this registry's `qwen3-235b-a22b` is the Instruct 2507.
       // The window is the cheapest identity check there is — the same model
