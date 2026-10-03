@@ -239,6 +239,17 @@ describe("validateRegistry", () => {
     assert.match(errors, /duplicate providers/);
   });
 
+  it("checks identity types before interpolating malformed objects into errors", () => {
+    const r = fixture();
+    Object.assign(r.families["gpt-x"]!, { maker: { toString: null } });
+    Object.assign(r.offerings[0]!, { family: { toString: null } });
+    Object.assign(r.offerings[1]!, { provider: { toString: null } });
+    const errors = validateRegistry(r).join("\n");
+    assert.match(errors, /family gpt-x: maker must be a string/);
+    assert.match(errors, /offerings\[0\]: provider and family must be strings/);
+    assert.match(errors, /offerings\[1\]: provider and family must be strings/);
+  });
+
   it("accepts the fixture", () => {
     assert.deepEqual(validateRegistry(fixture()), []);
   });

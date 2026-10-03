@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-for (const broken of ["providers", "removals"]) {
+for (const broken of ["providers", "removals", "offering"]) {
   test(`the update reports unreadable ${broken} before fetching providers`, () => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-update-"));
     try {
@@ -13,9 +13,13 @@ for (const broken of ["providers", "removals"]) {
         cpSync(new URL(`../${directory}`, import.meta.url), join(root, directory), { recursive: true });
       }
       mkdirSync(join(root, "models"));
-      writeFileSync(join(root, "models/providers.json"), broken === "providers" ? "null" : "[]");
+      writeFileSync(join(root, "models/providers.json"), broken === "providers" ? "null" : '["openai"]');
       writeFileSync(join(root, "models/makers.json"), "{}");
       writeFileSync(join(root, "models/removals.json"), broken === "removals" ? "null" : "[]");
+      if (broken === "offering") {
+        mkdirSync(join(root, "models/offerings"));
+        writeFileSync(join(root, "models/offerings/openai.json"), '[{"family":{"toString":null}}]');
+      }
       const summary = join(root, "summary.md");
       const result = spawnSync(process.execPath, [join(root, "scripts/update.ts")], {
         encoding: "utf8", env: { GITHUB_STEP_SUMMARY: summary }, timeout: 10_000,
@@ -25,7 +29,7 @@ for (const broken of ["providers", "removals"]) {
       const report = JSON.parse(readFileSync(join(root, "update-report.json"), "utf8"));
       assert.equal(report.outcomes.length, 1);
       assert.equal(report.outcomes[0].kind, "failed");
-      assert.match(report.outcomes[0].error, new RegExp(`${broken}\\.json`));
+      assert.match(report.outcomes[0].error, broken === "offering" ? /offerings\[0\]/ : new RegExp(`${broken}\\.json`));
       assert.deepEqual(report.removalCandidates, []);
       assert.match(readFileSync(summary, "utf8"), /Registry — failed/);
     } finally {

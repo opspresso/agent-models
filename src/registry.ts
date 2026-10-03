@@ -693,7 +693,9 @@ export function validateRegistry(registry: Registry): string[] {
       continue;
     }
     const { maker, ...own } = family;
-    if (typeof maker !== "string" || !Object.hasOwn(registry.makers, maker)) {
+    if (typeof maker !== "string") {
+      errors.push(`${where}: maker must be a string`);
+    } else if (!Object.hasOwn(registry.makers, maker)) {
       errors.push(`${where}: maker "${maker}" is not in makers.json`);
     }
     for (const key of unknownKeys(own as Plain, FAMILY_KEYS)) {
@@ -733,6 +735,10 @@ export function validateRegistry(registry: Registry): string[] {
       errors.push(`offerings[${index}]: not an object`);
       continue;
     }
+    if (typeof offering.provider !== "string" || typeof offering.family !== "string") {
+      errors.push(`offerings[${index}]: provider and family must be strings`);
+      continue;
+    }
     const id = `${offering.provider}/${offering.family}`;
     const where = `offering ${id}`;
     if (!registry.providers.includes(offering.provider)) {
@@ -746,7 +752,7 @@ export function validateRegistry(registry: Registry): string[] {
     for (const key of unknownKeys(own as Plain, OFFERING_KEYS)) {
       errors.push(`${where}: unknown field "${key}"`);
     }
-    if (typeof offering.family !== "string" || !Object.hasOwn(registry.families, offering.family)) {
+    if (!Object.hasOwn(registry.families, offering.family)) {
       errors.push(`${where}: unknown family "${offering.family}"`);
       continue;
     }
