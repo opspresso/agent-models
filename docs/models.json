@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-02T01:13:27.383Z",
+  "updatedAt": "2026-10-03T00:52:32.598Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2304,9 +2304,10 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.16,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.0595,
+        "outputPer1M": 0.17,
+        "cachedInputPer1M": 0.02975,
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -2315,7 +2316,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 32768,
+      "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2873,7 +2874,8 @@
       },
       "contextWindow": 400000,
       "maxTokens": 128000,
-      "wireId": "openai/gpt-chat-latest"
+      "wireId": "openai/gpt-chat-latest",
+      "hidden": true
     },
     {
       "id": "openrouter/grok-4.3",
@@ -2966,10 +2968,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.042,
-        "outputPer1M": 0.084,
-        "cachedInputPer1M": 0.0084,
-        "discount": 0.7
+        "inputPer1M": 0.028,
+        "outputPer1M": 0.056,
+        "cachedInputPer1M": 0.0056,
+        "discount": 0.8
       },
       "capabilities": {
         "tools": true,
@@ -3051,9 +3053,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.0765,
-        "outputPer1M": 0.255,
-        "cachedInputPer1M": 0.0425
+        "inputPer1M": 0.0675,
+        "outputPer1M": 0.225,
+        "cachedInputPer1M": 0.0375,
+        "discount": 0.25
       },
       "capabilities": {
         "tools": true,
@@ -3417,7 +3420,8 @@
       },
       "contextWindow": 128000,
       "maxTokens": 32000,
-      "wireId": "openai/gpt-5.2-chat"
+      "wireId": "openai/gpt-5.2-chat",
+      "hidden": true
     },
     {
       "id": "openrouter/gpt-5.2-pro",
@@ -3584,7 +3588,8 @@
       },
       "contextWindow": 131072,
       "maxTokens": 65536,
-      "wireId": "openai/gpt-oss-safeguard-20b"
+      "wireId": "openai/gpt-oss-safeguard-20b",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-haiku-4.5",
@@ -3709,7 +3714,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 32000,
-      "wireId": "anthropic/claude-opus-4.1"
+      "wireId": "anthropic/claude-opus-4.1",
+      "hidden": true
     },
     {
       "id": "openrouter/gemini-2.5-pro",
@@ -3771,7 +3777,8 @@
       },
       "contextWindow": 1048576,
       "maxTokens": 65536,
-      "wireId": "google/gemini-2.5-pro-preview"
+      "wireId": "google/gemini-2.5-pro-preview",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-opus-4",
@@ -3814,7 +3821,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 64000,
-      "wireId": "anthropic/claude-sonnet-4"
+      "wireId": "anthropic/claude-sonnet-4",
+      "hidden": true
     },
     {
       "id": "openrouter/gemini-2.5-pro-preview-05-06",
@@ -3857,7 +3865,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 100000,
-      "wireId": "openai/o4-mini-high"
+      "wireId": "openai/o4-mini-high",
+      "hidden": true
     },
     {
       "id": "openrouter/o3",
@@ -4002,7 +4011,8 @@
       },
       "contextWindow": 131072,
       "maxTokens": 16384,
-      "wireId": "google/gemma-3-4b-it"
+      "wireId": "google/gemma-3-4b-it",
+      "hidden": true
     },
     {
       "id": "openrouter/gemma-3-12b-it",
@@ -4022,7 +4032,8 @@
       },
       "contextWindow": 131072,
       "maxTokens": 16384,
-      "wireId": "google/gemma-3-12b-it"
+      "wireId": "google/gemma-3-12b-it",
+      "hidden": true
     },
     {
       "id": "openrouter/gemma-3-27b-it",
@@ -4064,7 +4075,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 100000,
-      "wireId": "openai/o3-mini-high"
+      "wireId": "openai/o3-mini-high",
+      "hidden": true
     },
     {
       "id": "openrouter/o3-mini",
@@ -4147,7 +4159,8 @@
       },
       "contextWindow": 8192,
       "maxTokens": 2048,
-      "wireId": "google/gemma-2-27b-it"
+      "wireId": "google/gemma-2-27b-it",
+      "hidden": true
     },
     {
       "id": "openrouter/gpt-4o",
@@ -4209,7 +4222,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 4096,
-      "wireId": "anthropic/claude-3-haiku"
+      "wireId": "anthropic/claude-3-haiku",
+      "hidden": true
     },
     {
       "id": "openrouter/gpt-4-turbo-preview",
@@ -4335,7 +4349,7 @@
         "imageGeneration": true
       },
       "contextWindow": 32768,
-      "maxTokens": 29491,
+      "maxTokens": 8192,
       "wireId": "google/gemini-2.5-flash-image"
     },
     {
@@ -4750,9 +4764,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.355,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.355
+        "inputPer1M": 2.7,
+        "outputPer1M": 13.5,
+        "cachedInputPer1M": 0.27
       },
       "capabilities": {
         "tools": true,
@@ -6042,9 +6056,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.03,
-        "outputPer1M": 0.5,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.006
       },
       "capabilities": {
         "tools": true,

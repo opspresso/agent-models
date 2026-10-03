@@ -451,7 +451,7 @@
       "imageGeneration": true
     },
     "contextWindow": 32768,
-    "maxTokens": 29491,
+    "maxTokens": 8192,
     "note": "Added automatically on 2026-08-23 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   },
   "gemini-3.1-flash-image-preview": {
