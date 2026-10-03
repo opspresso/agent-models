@@ -1437,6 +1437,54 @@ describe("discoverOpenRouter", () => {
     assert.match(result.notes.join("\n"), /x-ai\/grok-q could route family "grok-q", but states a 131072 window/);
   });
 
+  it("requires matching windows for every specialized route to an existing family", () => {
+    for (const kind of ["imageGeneration", "embedding", "rerank", "transcription", "decision"] as const) {
+      for (const window of [undefined, 2048, 4096]) {
+        const r = fixture();
+        r.families.special = {
+          maker: "openai",
+          displayName: "Special",
+          pricing: { inputPer1M: 1, outputPer1M: kind === "imageGeneration" || kind === "transcription" ? 2 : 0,
+            ...(kind === "imageGeneration" ? { imageOutputPer1M: 3 } : {}) },
+          capabilities: { tools: false, structuredOutput: false, imageInput: false, reasoning: false, [kind]: true },
+          contextWindow: 4096,
+          maxTokens: kind === "embedding" || kind === "rerank" ? 0 : 1024,
+        };
+        r.offerings.push({ provider: "openai", family: "special" });
+        const limits = window === undefined ? {} : { context_length: window };
+        const model = { id: "openai/special", ...limits };
+        const ranking = { model_permaslug: model.id, variant_permaslug: model.id, count: 1, image_output_requests: 1 };
+        const catalog = orCatalog([], kind === "imageGeneration" ? {
+          imageModels: [model], imageRankings: [ranking],
+          endpoints: { [model.id]: [{ ...limits, pricing: { image_output: "0.000003" } }] },
+        } : {
+          [`${kind}Models`]: [model],
+          ...(kind === "decision" ? {} : { [`${kind}Rankings`]: [ranking] }),
+        });
+        const { registry, result } = discoverOpenRouter(r, catalog, TODAY);
+        assert.equal(registry.offerings.some((offering) => offering.provider === "openrouter" && offering.family === "special"), window === 4096, `${kind}, ${window}`);
+        if (window !== 4096) assert.ok(result.notes.some((note) => note.includes("window against the family's 4096")));
+      }
+    }
+  });
+
+  it("does not route a text listing to a specialized family with the same window", () => {
+    const r = fixture();
+    const { registry } = discoverOpenRouter(r, orCatalog([{
+      ...NEW_TEXT, id: "x-ai/grok-draw", context_length: r.families["grok-draw"]!.contextWindow,
+    }]), TODAY);
+    assert.ok(!registry.offerings.some((offering) => offering.provider === "openrouter" && offering.family === "grok-draw"));
+  });
+
+  it("does not mistake an inherited object property for an existing family", () => {
+    const { registry } = discoverOpenRouter(fixture(), orCatalog([{
+      ...NEW_TEXT, id: "openai/constructor", canonical_slug: "openai/constructor",
+    }]), TODAY);
+    assert.ok(Object.hasOwn(registry.families, "constructor"));
+    assert.ok(registry.offerings.some((offering) => offering.wireId === "openai/constructor"));
+    assert.deepEqual(validateRegistry(registry), []);
+  });
+
   it("skips an id it already routes to under another family name", () => {
     const r = fixture();
     r.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grokq" });

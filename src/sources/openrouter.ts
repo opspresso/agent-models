@@ -1169,6 +1169,12 @@ function decisionCapabilitiesOf(model: OpenRouterModel): ModelCapabilities {
   };
 }
 
+function matchesFamilyWindow(id: string, family: ModelFamily, window: unknown, notes: string[]): boolean {
+  if (window === family.contextWindow) return true;
+  notes.push(`openrouter: ${id} could route an existing family, but states a ${window ?? "missing"} window against the family's ${family.contextWindow}; left alone`);
+  return false;
+}
+
 function discoverRankedImages(
   registry: Registry,
   catalog: OpenRouterCatalog,
@@ -1195,7 +1201,7 @@ function discoverRankedImages(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked image ${id} names family "${slug}" under another maker; left alone`);
@@ -1204,6 +1210,7 @@ function discoverRankedImages(
       if (!family.capabilities.imageGeneration || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, standardImageEndpoint(catalog.endpoints[id])?.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1295,7 +1302,7 @@ function discoverRankedEmbeddings(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked embedding ${id} names family "${slug}" under another maker; left alone`);
@@ -1304,6 +1311,7 @@ function discoverRankedEmbeddings(
       if (!family.capabilities.embedding || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1389,7 +1397,7 @@ function discoverRankedSpecialized(
     }
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: ranked ${kind} ${id} names family "${slug}" under another maker; left alone`);
@@ -1398,6 +1406,7 @@ function discoverRankedSpecialized(
       if (!family.capabilities[kind] || !familyIsLive(registry, slug)) {
         continue;
       }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) {
         routed.add(id);
       }
@@ -1471,17 +1480,14 @@ function discoverDecisions(
     if (parts === null || isVariant(parts.slug) || isDated(parts.slug) || routed.has(id)) continue;
     const { vendor, slug } = parts;
     let maker = makerOfVendor.get(vendor);
-    const family = registry.families[slug];
+    const family = Object.hasOwn(registry.families, slug) ? registry.families[slug] : undefined;
     if (family !== undefined) {
       if (maker === undefined || family.maker !== maker) {
         notes.push(`openrouter: decision ${id} names family "${slug}" under another maker; left alone`);
         continue;
       }
       if (!family.capabilities.decision || !familyIsLive(registry, slug)) continue;
-      if (model.context_length !== family.contextWindow) {
-        notes.push(`openrouter: decision ${id} states a ${model.context_length ?? "missing"} window against the family's ${family.contextWindow}; left alone`);
-        continue;
-      }
+      if (!matchesFamilyWindow(id, family, model.context_length, notes)) continue;
       if (addRoute(registry, { provider: "openrouter", family: slug, wireId: id }, changes)) routed.add(id);
       continue;
     }
@@ -1580,7 +1586,7 @@ export function discoveryEndpointIds(
         return false;
       }
       const ranked = typeof model.canonical_slug === "string" && rankedPermaslugs?.has(model.canonical_slug) === true;
-      return options.bootstrap === true || ranked || isRecent(model, today) || registry.families[parts.slug] !== undefined;
+      return options.bootstrap === true || ranked || isRecent(model, today) || Object.hasOwn(registry.families, parts.slug);
     })
     .map((model) => model.id);
 }
@@ -1724,7 +1730,7 @@ export function discoverOpenRouter(
       continue;
     }
 
-    const family = next.families[slug];
+    const family = Object.hasOwn(next.families, slug) ? next.families[slug] : undefined;
     if (family !== undefined) {
       if (family.maker !== maker) {
         notes.push(`openrouter: ${model.id} names family "${slug}", which this registry files under ${family.maker}; left alone`);
@@ -1733,6 +1739,8 @@ export function discoverOpenRouter(
       if (!familyIsLive(next, slug) || next.offerings.some((o) => o.provider === "openrouter" && o.family === slug)) {
         continue;
       }
+      if (family.capabilities.imageGeneration || family.capabilities.embedding || family.capabilities.rerank
+        || family.capabilities.transcription || family.capabilities.decision) continue;
       // A slug is a weak name for a model: `qwen/qwen3-235b-a22b` is the
       // original, while this registry's `qwen3-235b-a22b` is the Instruct 2507.
       // The window is the cheapest identity check there is — the same model
