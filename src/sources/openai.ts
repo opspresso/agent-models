@@ -7,7 +7,7 @@
 
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
 
 export const OPENAI_MODELS_URL = "https://api.openai.com/v1/models";
@@ -54,12 +54,12 @@ export function applyOpenAi(
 }
 
 /**
- * An `openai/` route for a live OpenAI-made non-image family that already has
- * a non-router price. A router-only family's native price needs manual review.
+ * An `openai/` route for a live OpenAI-made non-image family. Without a
+ * verified native quote, its existing OpenRouter price remains the fallback.
  * Dated snapshots fold to their alias exactly as they do for presence: a route the
  * retirement clock counts as alive is one discovery must be willing to add.
- * OpenAI's catalog does not publish a price; a first native route must not
- * infer one from OpenRouter's discount.
+ * OpenAI's catalog does not publish prices; a router discount is never
+ * reversed to invent a native rate.
  */
 export function discoverOpenAi(registry: Registry, ids: string[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
@@ -71,10 +71,6 @@ export function discoverOpenAi(registry: Registry, ids: string[]): { registry: R
       continue;
     }
     if (familyHasRoute(next, id, "openai") || !familyIsLive(next, id) || !served.has(id)) {
-      continue;
-    }
-    if (familyIsRouterOnly(next, id)) {
-      notes.push(`openai/${id}: verify the native price before adding this first vendor route`);
       continue;
     }
     addRoute(next, { provider: "openai", family: id }, changes);

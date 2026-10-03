@@ -506,6 +506,24 @@ describe("deriveModels", () => {
 });
 
 describe("writeRegistry", () => {
+  it("persists pricing provenance without adding it to the published catalog", () => {
+    const root = mkdtempSync(join(tmpdir(), "agent-models-pricing-"));
+    try {
+      const r = fixture();
+      r.families["gpt-x"]!.pricingSource = "openrouter";
+      r.families["claude-y.1"]!.pricingSource = "native";
+      writeRegistry(root, r);
+      const loaded = loadRegistry(root);
+      assert.equal(loaded.families["gpt-x"]!.pricingSource, "openrouter");
+      assert.equal(loaded.families["claude-y.1"]!.pricingSource, "native");
+      assert.ok(deriveModels(loaded).every((model) => !("pricingSource" in model)));
+      Object.assign(r.families["gpt-x"]!, { pricingSource: "unknown" });
+      assert.match(validateRegistry(r).join("\n"), /pricingSource must be native or openrouter/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("preserves the original files when both replacement and rollback fail", (t) => {
     const root = mkdtempSync(join(tmpdir(), "agent-models-rollback-"));
     const rename = fs.renameSync;

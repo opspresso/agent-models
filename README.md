@@ -98,7 +98,7 @@ What a model *is* and who *serves* it are two lists, resolved into the catalog a
 models/
   providers.json              the routes a model id may be prefixed with, in catalog order
   makers.json                 maker id → { displayName, openrouterVendor? }
-  families/<maker>.json       { "<family>": { displayName, pricing, capabilities, contextWindow, maxTokens, note? } }
+  families/<maker>.json       { "<family>": { displayName, pricing, pricingSource?, capabilities, contextWindow, maxTokens, note? } }
   offerings/<provider>.json   route overrides plus hidden/presence/ranking lifecycle bookkeeping
   removals.json               exact published ids proposed for permanent removal through a PR
 ```
@@ -157,11 +157,14 @@ Numbers come from a published source, not from memory: OpenRouter's `/api/v1/mod
 xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
 `/v1/models` (`max_input_tokens`, `max_tokens`), the AWS Pricing API for Bedrock (mind the
 unit — `1K tokens` and `1M tokens` rows are mixed), and the pricing pages for OpenAI and
-Google, which publish no API for it. A newly discovered OpenRouter-only family starts
-with OpenRouter's price. Its first OpenAI, Anthropic or Google direct route requires a
-manual check against that provider's pricing page; the model-list APIs alone do not
-establish the native price. xAI publishes token prices in its catalog and can add the
-direct route after reading them.
+Google, which publish no API for it. Verified native prices take priority. When a native
+quote is unavailable, a newly added direct route uses its existing OpenRouter price,
+including any discount, and the family carries `pricingSource: "openrouter"` so that
+price keeps refreshing. A verified official quote uses `pricingSource: "native"` and
+records its source in `note`; OpenRouter then updates only its own route's price.
+These source fields are internal and are not published in `docs/models.json`. Existing
+families without the field retain their route-based pricing ownership. xAI's catalog
+publishes native token prices and automatically replaces a fallback when one is available.
 
 ## Keeping it current
 
@@ -181,7 +184,7 @@ applies stops the run from writing `models/` at all.
 
 | Source | Needs | May change | May add |
 |---|---|---|---|
-| OpenRouter `/api/v1/models`, `/images/models`, `/embeddings/models`, modality-filtered catalogs, `/models/{id}/endpoints`, public model pages and weekly rankings feeds | nothing | a **router-only** family's price, discount and window, plus generated output cap where applicable; an OpenRouter offering's price override, discount included (set while the router's rate differs from the family's, dropped when they agree) | eligible text, image, embedding, rerank, transcription and decision families; OpenRouter routes to existing families |
+| OpenRouter `/api/v1/models`, `/images/models`, `/embeddings/models`, modality-filtered catalogs, `/models/{id}/endpoints`, public model pages and weekly rankings feeds | nothing | OpenRouter-owned family prices and discounts, including native-route fallbacks; a **router-only** family's window and output cap; an OpenRouter offering's price override when a native quote owns the family | eligible text, image, embedding, rerank, transcription and decision families; OpenRouter routes to existing families |
 | xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
 | Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
 | OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
@@ -267,10 +270,11 @@ when its context window equals the family's, the one cheap identity check there 
 (`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
 Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
 Image, embedding, rerank and transcription routes are added only while their model is in the corresponding weekly
-Top 20. The first OpenAI, Anthropic or Google route to a router-only family waits for
-manual native-price verification; the updater reports it in *needs a look*. xAI may add
-the route automatically when its catalog states a usable price, then moves any router
-discount to the OpenRouter offering.
+Top 20. A first eligible native route is added as soon as its provider lists it. It uses a verified
+native price when available, otherwise the existing OpenRouter quote without reversing
+its discount. Fallback prices keep following OpenRouter; native catalog limits remain
+authoritative once a direct route exists. When an API supplies a native quote, the updater
+preserves the OpenRouter route's existing price and discount as route overrides.
 Decision routes follow their complete catalog and the same identity check.
 
 ### Retirement

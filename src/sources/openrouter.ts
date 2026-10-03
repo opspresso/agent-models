@@ -783,12 +783,12 @@ export function applyOpenRouter(
       const routerOnly = next.offerings
         .filter((other) => other.family === offering.family)
         .every((other) => other.provider === "openrouter");
-      if (!routerOnly) {
+      if (!routerOnly && family.pricingSource !== "openrouter") {
         continue;
       }
       const endpoint = standardImageEndpoint(catalog.endpoints[offering.wireId]);
       const price = imagePricing(catalog.endpoints[offering.wireId]);
-      if (price !== null && !samePricing({ ...family.pricing }, { ...price })) {
+      if (family.pricingSource !== "native" && price !== null && !samePricing({ ...family.pricing }, { ...price })) {
         changes.push({ target: `family ${offering.family}`, field: "pricing", from: family.pricing, to: price });
         family.pricing = price;
       }
@@ -796,10 +796,12 @@ export function applyOpenRouter(
       const maxOut = isImageLimit(endpoint?.max_completion_tokens)
         ? endpoint.max_completion_tokens
         : window;
-      applyFamilyLimits(next, offering.family, {
-        contextWindow: isImageLimit(window) ? window : null,
-        maxTokens: isImageLimit(maxOut) ? maxOut : null,
-      }, "openrouter", changes, notes);
+      if (routerOnly) {
+        applyFamilyLimits(next, offering.family, {
+          contextWindow: isImageLimit(window) ? window : null,
+          maxTokens: isImageLimit(maxOut) ? maxOut : null,
+        }, "openrouter", changes, notes);
+      }
       continue;
     }
     observePresence(offering, entry !== undefined, "OpenRouter", today, changes, notes);
@@ -836,15 +838,13 @@ export function applyOpenRouter(
       .filter((other) => other.family === offering.family)
       .every((other) => other.provider === "openrouter");
 
+    const window = entry.context_length;
+    const kind = family.capabilities.transcription ? "transcription" : family.capabilities.decision ? "decision" : "rerank";
+    if (!routerOnly && isSpecializedWindow(window, kind) && window !== family.contextWindow) {
+      notes.push(`${id}: OpenRouter states a ${window} window; the family says ${family.contextWindow}`);
+    }
+
     if (routerOnly) {
-      const familyPrice = pickTokenPricing(family.pricing);
-      const price = withDiscount(routerPrice, discount, family.pricing.discount);
-      if (!samePricing(familyPrice, price)) {
-        changes.push({ target: `family ${offering.family}`, field: "pricing", from: familyPrice, to: price });
-        family.pricing = { ...price };
-      }
-      const window = entry.context_length;
-      const kind = family.capabilities.transcription ? "transcription" : family.capabilities.decision ? "decision" : "rerank";
       let maxOut: number | null = null;
       if (family.capabilities.transcription) {
         maxOut = transcriptionMaxTokens(entry, catalog.endpoints[offering.wireId]);
@@ -859,6 +859,15 @@ export function applyOpenRouter(
         contextWindow: isSpecializedWindow(window, kind) ? window : null,
         maxTokens: maxOut,
       }, "openrouter", changes, notes);
+    }
+
+    if (family.pricingSource === "openrouter" || routerOnly && family.pricingSource !== "native") {
+      const familyPrice = pickTokenPricing(family.pricing);
+      const price = withDiscount(routerPrice, discount, family.pricing.discount);
+      if (!samePricing(familyPrice, price)) {
+        changes.push({ target: `family ${offering.family}`, field: "pricing", from: familyPrice, to: price });
+        family.pricing = { ...price };
+      }
       if (offering.pricing !== undefined) {
         changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: undefined });
         delete offering.pricing;
@@ -876,11 +885,6 @@ export function applyOpenRouter(
     } else if (!samePricing(offering.pricing, price)) {
       changes.push({ target: `offering ${id}`, field: "pricing", from: offering.pricing, to: price });
       offering.pricing = { ...price };
-    }
-    const window = entry.context_length;
-    const kind = family.capabilities.transcription ? "transcription" : family.capabilities.decision ? "decision" : "rerank";
-    if (isSpecializedWindow(window, kind) && window !== family.contextWindow) {
-      notes.push(`${id}: OpenRouter states a ${window} window; the family says ${family.contextWindow}`);
     }
   }
 

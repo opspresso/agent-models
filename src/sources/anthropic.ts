@@ -12,7 +12,7 @@
 import type { Registry } from "../registry.ts";
 import { applyFamilyLimits } from "./limits.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, isPositiveInt, snapshotAlias, type Change, type SourceResult } from "./types.ts";
 
 export const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models";
@@ -137,10 +137,6 @@ export function discoverAnthropic(
     }
     const wire = id.replaceAll(".", "-");
     if (!names.has(wire)) {
-      continue;
-    }
-    if (familyIsRouterOnly(next, id)) {
-      notes.push(`anthropic/${id}: verify the native price before adding this first vendor route`);
       continue;
     }
     addRoute(next, { provider: "anthropic", family: id, ...(wire !== id ? { wireId: wire } : {}) }, changes);

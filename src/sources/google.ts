@@ -12,7 +12,7 @@
 import type { Registry } from "../registry.ts";
 import { applyFamilyLimits } from "./limits.ts";
 import { observePresence, offeringNames } from "./presence.ts";
-import { addRoute, familyHasRoute, familyIsLive, familyIsRouterOnly } from "./routes.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
 
 export const GOOGLE_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -120,7 +120,7 @@ export function applyGoogle(
   return { registry: next, result: { source: "Google", changes, notes } };
 }
 
-/** Add a Google route only when a non-router price already anchors the family. */
+/** Add a supported Google route, retaining OpenRouter pricing until a native quote is verified. */
 export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { registry: Registry; result: SourceResult } {
   const next = structuredClone(registry);
   const changes: Change[] = [];
@@ -137,10 +137,6 @@ export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { re
       || entry === undefined
       || !supports(entry, family.capabilities.embedding === true)
     ) {
-      continue;
-    }
-    if (familyIsRouterOnly(next, id)) {
-      notes.push(`google/${id}: verify the native price before adding this first vendor route`);
       continue;
     }
     addRoute(next, { provider: "google", family: id }, changes);

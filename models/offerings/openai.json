@@ -147,5 +147,9 @@
   },
   {
     "family": "gpt-6-sol"
+  },
+  {
+    "family": "gpt-6.1-sol",
+    "note": "Tool calling requires the Responses API; Chat Completions supports this model without tools."
   }
 ]
