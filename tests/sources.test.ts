@@ -178,6 +178,28 @@ describe("fetchJson", () => {
     });
     await assert.rejects(readTextCapped(new Response(body), "https://example.test/page"), /response is larger than/);
     assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  });
+
+  it("cancels a response rejected by its content length and releases its reader", async () => {
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({ cancel() { cancelled = true; } });
+    await assert.rejects(readTextCapped(new Response(body, {
+      headers: { "content-length": String(MAX_JSON_BYTES + 1) },
+    }), "https://example.test/catalog"), /response is larger than/);
+    assert.equal(cancelled, true);
+    assert.equal(body.locked, false);
+  });
+
+  it("uses readable response bodies for JSON and releases readers after success or failure", async () => {
+    const response = Response.json({ data: [1] });
+    assert.deepEqual(await fetchJson("https://example.test/catalog", {}, async () => response), { data: [1] });
+    assert.equal(response.body!.locked, false);
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(null)), /no readable response body/);
+
+    const body = new ReadableStream<Uint8Array>({ start(controller) { controller.error(new Error("interrupted stream")); } });
+    await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(body)), /interrupted stream/);
+    assert.equal(body.locked, false);
   });
 
   it("refuses redirects and applies a request timeout", async () => {
@@ -210,6 +232,27 @@ describe("fetchJson", () => {
       assert.ok(!error.message.includes("API key not valid"));
       return true;
     });
+  });
+
+  it("cancels unread HTTP error bodies without replacing their status if cleanup fails", async () => {
+    for (const errored of [false, true]) {
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          if (errored) controller.error(new Error("body already failed"));
+        },
+        cancel() { cancelled = true; },
+      });
+      await assert.rejects(fetchJson("https://example.test/catalog", {}, async () => new Response(body, {
+        status: 401, statusText: "Unauthorized",
+      })), (error: Error) => {
+        assert.ok(error instanceof HttpError);
+        assert.equal(error.status, 401);
+        return true;
+      });
+      assert.equal(cancelled, !errored);
+      assert.equal(body.locked, false);
+    }
   });
 });
 
@@ -1729,11 +1772,7 @@ describe("vendor route discovery", () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       const specialized = specializedCatalogBody(target);
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => specialized ?? (
+      return Response.json(specialized ?? (
           target.includes("/images/models")
           ? { data: [] }
           : target === OPENROUTER_EMBEDDING_MODELS_URL
@@ -1741,9 +1780,8 @@ describe("vendor route discovery", () => {
           : target === OPENROUTER_MODELS_URL
             ? { data: [{ id: "openai/gpt-x", pricing: { prompt: "0.000005", completion: "0.00003" } }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x" }] }
-        ),
-      };
-    }) as unknown as typeof fetch;
+      ));
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_IMAGE_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1755,11 +1793,7 @@ describe("vendor route discovery", () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       const specialized = specializedCatalogBody(target);
-      return {
-        ok: true,
-        status: 200,
-        statusText: "OK",
-        json: async () => specialized ?? (
+      return Response.json(specialized ?? (
           target === OPENROUTER_EMBEDDING_MODELS_URL
           ? { data: [], total_count: 0, links: { next: null } }
           : target.includes("/images/models")
@@ -1767,9 +1801,8 @@ describe("vendor route discovery", () => {
             : target === OPENROUTER_MODELS_URL
               ? { data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } }
               : { data: [] }
-        ),
-      };
-    }) as unknown as typeof fetch;
+      ));
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), (error: Error) => {
       assert.ok(error.message.includes(OPENROUTER_EMBEDDING_MODELS_URL));
       assert.ok(error.message.includes("empty catalog"));
@@ -1801,8 +1834,7 @@ describe("vendor route discovery", () => {
 });
 
 describe("fetch guards and snapshot folding", () => {
-  const jsonResponse = (body: unknown) =>
-    ({ ok: true, status: 200, statusText: "OK", json: async () => body }) as unknown as Response;
+  const jsonResponse = (body: unknown) => Response.json(body);
 
   it("OpenRouter: an empty or truncated decisions catalog is a failed read", async () => {
     for (const body of [
@@ -1857,7 +1889,7 @@ describe("fetch guards and snapshot folding", () => {
       }
       if (target === OPENROUTER_IMAGE_MODELS_URL) return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
       return jsonResponse({ data: [] });
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
     assert.equal(catalog.rerankModels[0]?.pricing?.rerank_search, "0.001");
     assert.equal(catalog.transcriptionModels[0]?.pricing?.transcription_minute, "0.006");
@@ -1875,7 +1907,7 @@ describe("fetch guards and snapshot folding", () => {
             ? { data: [{ slug: "renamed-field" }], total_count: 1, links: { next: null } }
             : { data: [{ slug: "renamed-field" }] }),
       );
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], fetchFn), /no usable entries/);
   });
 
@@ -1883,7 +1915,7 @@ describe("fetch guards and snapshot folding", () => {
     const fetchFn = (async (url: string | URL | Request) => {
       const target = String(url);
       if (target === OPENROUTER_RANKINGS_URL) {
-        return { ok: false, status: 503, statusText: "Unavailable", json: async () => ({}) } as Response;
+        return new Response(null, { status: 503, statusText: "Unavailable" });
       }
       if (target === OPENROUTER_IMAGE_RANKINGS_URL) {
         return jsonResponse({ data: [IMAGE_RANKING] });
@@ -1904,7 +1936,7 @@ describe("fetch guards and snapshot folding", () => {
             ? { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }], total_count: 1, links: { next: null } }
             : { data: [{ id: "openai/gpt-x", canonical_slug: "openai/gpt-x-20260815" }] },
       );
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     const catalog = await fetchOpenRouterCatalog(() => [], fetchFn);
     assert.equal(catalog.rankings, null);
     assert.equal(catalog.imageRankings, null);
@@ -1925,7 +1957,7 @@ describe("fetch guards and snapshot folding", () => {
         return jsonResponse({ data: [EMBEDDING_MODEL], total_count: 1, links: { next: null } });
       }
       return jsonResponse({ data: [{ id: "openai/gpt-image-2" }] });
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], partialFetch), /partial catalog/);
 
     let endpointData: unknown;
@@ -1943,7 +1975,7 @@ describe("fetch guards and snapshot folding", () => {
       return target === OPENROUTER_MODELS_URL
         ? jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } })
         : jsonResponse({ data: [{ id: "openai/gpt-x" }] });
-    }) as unknown as typeof fetch;
+    }) as typeof fetch;
     for (const malformed of [undefined, [null], [42], [{ pricing: null }], [{ pricing: { discount: "0.5" } }], [{ context_length: "1000" }]]) {
       endpointData = malformed;
       const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
@@ -1963,20 +1995,20 @@ describe("fetch guards and snapshot folding", () => {
         String(url).includes("image-generation")
           ? { models: [{ modelId: "renamed" }] }
           : { models: [{ id: "grok-x" }] },
-      )) as unknown as typeof fetch;
+      )) as typeof fetch;
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /image-generation-models.*no usable entries/);
   });
 
   it("Google: accepts an embedContent-only catalog", async () => {
     const fetchFn = (async () =>
-      jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as unknown as typeof fetch;
+      jsonResponse({ models: [{ name: "models/embed-x", supportedGenerationMethods: ["embedContent"] }] })) as typeof fetch;
     assert.deepEqual(await fetchGoogleModels("key", fetchFn), [
       { name: "models/embed-x", supportedGenerationMethods: ["embedContent"] },
     ]);
   });
 
   it("xAI: language entries that carry no id are the same failed read", async () => {
-    const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as unknown as typeof fetch;
+    const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as typeof fetch;
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /no usable entries/);
   });
 
