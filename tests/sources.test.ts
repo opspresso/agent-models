@@ -2007,6 +2007,24 @@ describe("fetch guards and snapshot folding", () => {
     ]);
   });
 
+  it("Google: reads every page and rejects malformed continuation metadata", async () => {
+    const model = { name: "models/embed-x", supportedGenerationMethods: ["embedContent"] };
+    for (const nextPageToken of [null, 42, [], {}]) {
+      await assert.rejects(fetchGoogleModels("key", async () => Response.json({
+        models: [model], nextPageToken,
+      })), /invalid nextPageToken/);
+    }
+    const urls: string[] = [];
+    const models = await fetchGoogleModels("key", async (url) => {
+      urls.push(String(url));
+      return Response.json(urls.length === 1
+        ? { models: [model], nextPageToken: "next/token" }
+        : { models: [{ ...model, name: "models/embed-y" }] });
+    });
+    assert.deepEqual(models.map(({ name }) => name), ["models/embed-x", "models/embed-y"]);
+    assert.match(urls[1]!, /pageToken=next%2Ftoken/);
+  });
+
   it("xAI: language entries that carry no id are the same failed read", async () => {
     const fetchFn = (async () => jsonResponse({ models: [{ modelId: "renamed-field" }] })) as typeof fetch;
     await assert.rejects(fetchXaiCatalog("key", fetchFn), /no usable entries/);

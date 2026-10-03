@@ -44,8 +44,11 @@ export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = 
     })) {
       throw new Error(`GET ${url} → invalid entry (shape drift?)`);
     }
+    if (body.nextPageToken !== undefined && typeof body.nextPageToken !== "string") {
+      throw new Error(`GET ${url} → invalid nextPageToken (shape drift?)`);
+    }
     collected.push(...(body.models as GoogleModel[]));
-    if (typeof body.nextPageToken !== "string" || body.nextPageToken === "") {
+    if (body.nextPageToken === undefined || body.nextPageToken === "") {
       if (collected.length === 0) {
         throw new Error(`GET ${GOOGLE_MODELS_URL} → empty catalog`);
       }
