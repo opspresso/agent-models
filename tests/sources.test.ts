@@ -1905,9 +1905,10 @@ describe("fetch guards and snapshot folding", () => {
     }) as unknown as typeof fetch;
     await assert.rejects(fetchOpenRouterCatalog(() => [], partialFetch), /partial catalog/);
 
+    let endpointData: unknown;
     const malformedEndpoint = (async (url: string | URL | Request) => {
       const target = String(url);
-      if (target.endsWith("/endpoints")) return jsonResponse({ data: {} });
+      if (target.endsWith("/endpoints")) return jsonResponse({ data: { endpoints: endpointData } });
       const specialized = specializedCatalogBody(target);
       if (specialized !== null) {
         return jsonResponse(specialized);
@@ -1920,8 +1921,17 @@ describe("fetch guards and snapshot folding", () => {
         ? jsonResponse({ data: [{ id: "openai/gpt-x" }], total_count: 1, links: { next: null } })
         : jsonResponse({ data: [{ id: "openai/gpt-x" }] });
     }) as unknown as typeof fetch;
-    const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
-    assert.equal(catalog.endpoints["openai/gpt-x"], null);
+    for (const malformed of [undefined, [null], [42], [{ pricing: null }], [{ pricing: { discount: "0.5" } }], [{ context_length: "1000" }]]) {
+      endpointData = malformed;
+      const catalog = await fetchOpenRouterCatalog(() => ["openai/gpt-x"], malformedEndpoint);
+      assert.equal(catalog.endpoints["openai/gpt-x"], null);
+      const r = fixture();
+      r.offerings.find((offering) => offering.wireId === "openai/gpt-x")!.pricing!.discount = 0.5;
+      catalog.models = [GPT_X_LISTED];
+      const applied = applyOpenRouter(r, catalog, TODAY);
+      assert.equal(applied.registry.offerings.find((offering) => offering.wireId === "openai/gpt-x")!.pricing!.discount, 0.5);
+      assert.match(applied.result.notes.join("\n"), /endpoints could not be read; discount left as it was/);
+    }
   });
 
   it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {

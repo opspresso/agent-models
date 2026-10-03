@@ -253,6 +253,27 @@ function isEmbeddingRanking(entry: unknown): entry is OpenRouterEmbeddingRanking
     && row.count >= 0;
 }
 
+function isEndpoint(entry: unknown): entry is OpenRouterEndpoint {
+  if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return false;
+  const endpoint = entry as Record<string, unknown>;
+  for (const field of ["tag", "provider_name"]) {
+    if (endpoint[field] !== undefined && typeof endpoint[field] !== "string") return false;
+  }
+  for (const field of ["context_length", "max_completion_tokens"]) {
+    const value = endpoint[field];
+    if (value !== undefined && value !== null && !isImageLimit(value)) return false;
+  }
+  if (endpoint.pricing === undefined) return true;
+  if (typeof endpoint.pricing !== "object" || endpoint.pricing === null || Array.isArray(endpoint.pricing)) return false;
+  const pricing = endpoint.pricing as Record<string, unknown>;
+  for (const field of ["prompt", "completion", "input_cache_read", "image_output"]) {
+    const value = pricing[field];
+    if (value !== undefined && (typeof value !== "string" || value.trim() === "" || !Number.isFinite(Number(value)) || Number(value) < 0)) return false;
+  }
+  const discount = pricing.discount;
+  return discount === undefined || typeof discount === "number" && Number.isFinite(discount) && discount >= 0 && discount <= 1;
+}
+
 function specialPrice(html: string, label: string): number | null {
   const escaped = label.replaceAll(" ", "\\s");
   const match = new RegExp(`sku_label\\\\\":\\\\\"${escaped}\\\\\",\\\\\"price\\\\\":\\\\\"([0-9.eE+-]+)\\\\\"`).exec(html);
@@ -503,10 +524,10 @@ export async function fetchOpenRouterCatalog(
           const body = (await fetchJson(openRouterEndpointsUrl(id), {}, fetchFn)) as {
             data?: { endpoints?: unknown };
           };
-          if (!Array.isArray(body.data?.endpoints)) {
-            throw new Error("no endpoints array");
+          if (!Array.isArray(body.data?.endpoints) || !body.data.endpoints.every(isEndpoint)) {
+            throw new Error("invalid endpoints array");
           }
-          endpoints[id] = body.data.endpoints as OpenRouterEndpoint[];
+          endpoints[id] = body.data.endpoints;
         } catch {
           endpoints[id] = null;
         }
