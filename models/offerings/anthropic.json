@@ -44,5 +44,9 @@
   {
     "family": "claude-opus-5.5",
     "wireId": "claude-opus-5-5"
+  },
+  {
+    "family": "claude-sonnet-5.5",
+    "wireId": "claude-sonnet-5-5"
   }
 ]

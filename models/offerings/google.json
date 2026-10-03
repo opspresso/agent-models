@@ -80,5 +80,8 @@
   },
   {
     "family": "gemini-3.8-flash"
+  },
+  {
+    "family": "gemini-3.5-transcribe"
   }
 ]
