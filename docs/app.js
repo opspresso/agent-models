@@ -1,27 +1,22 @@
 (async () => {
   const $ = (id) => document.getElementById(id);
   let catalog;
+  let icons = {};
   const iconRequest = fetch("icons/brands/manifest.json", { cache: "no-cache" }).then(async (response) => {
     if (!response.ok) throw new Error(`icons/brands/manifest.json → ${response.status} ${response.statusText}`);
-    const icons = await response.json();
-    if (typeof icons !== "object" || icons === null || Array.isArray(icons)
-      || !Object.values(icons).every((file) => typeof file === "string" && /^[a-z0-9._-]+\.svg$/.test(file))) {
+    const availableIcons = await response.json();
+    if (typeof availableIcons !== "object" || availableIcons === null || Array.isArray(availableIcons)
+      || !Object.values(availableIcons).every((file) => typeof file === "string" && /^[a-z0-9._-]+\.svg$/.test(file))) {
       throw new Error("brand icon manifest has an invalid shape");
     }
-    return icons;
+    icons = availableIcons;
   }).catch((error) => {
     console.error("Could not load brand icons", error);
-    return {};
   });
-  let icons;
   try {
-    const [catalogResponse, availableIcons] = await Promise.all([
-      fetch("models.json", { cache: "no-cache" }),
-      iconRequest,
-    ]);
+    const catalogResponse = await fetch("models.json", { cache: "no-cache" });
     if (!catalogResponse.ok) throw new Error(`models.json → ${catalogResponse.status} ${catalogResponse.statusText}`);
     catalog = await catalogResponse.json();
-    icons = availableIcons;
     if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
       throw new Error("models.json has an invalid catalog shape");
     }
@@ -233,5 +228,9 @@
     persist(); render();
   });
   paintSort();
+  const initialIcons = icons;
   render();
+  // Optional marks must not delay the catalog or its controls.
+  await iconRequest;
+  if (icons !== initialIcons) render();
 })();
