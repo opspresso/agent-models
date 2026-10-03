@@ -6,6 +6,7 @@
       "outputPer1M": 6,
       "cachedInputPer1M": 0.3
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
@@ -22,6 +23,7 @@
       "outputPer1M": 6,
       "cachedInputPer1M": 0.5
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
@@ -38,6 +40,7 @@
       "outputPer1M": 2.5,
       "cachedInputPer1M": 0.2
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
@@ -55,6 +58,7 @@
       "outputPer1M": 2.5,
       "cachedInputPer1M": 0.2
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
@@ -71,6 +75,7 @@
       "outputPer1M": 2,
       "cachedInputPer1M": 0.2
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
@@ -196,6 +201,7 @@
       "outputPer1M": 6,
       "cachedInputPer1M": 0.5
     },
+    "pricingSource": "native",
     "capabilities": {
       "tools": true,
       "structuredOutput": true,
