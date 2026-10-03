@@ -1987,6 +1987,19 @@ describe("fetch guards and snapshot folding", () => {
       assert.equal(applied.registry.offerings.find((offering) => offering.wireId === "openai/gpt-x")!.pricing!.discount, 0.5);
       assert.match(applied.result.notes.join("\n"), /endpoints could not be read; discount left as it was/);
     }
+
+    // Xiaomi's catalog can quote a promotion while another endpoint reports a StreamLake markup.
+    for (const discount of [0.3, 0.15]) {
+      const endpoints = [
+        { provider_name: "Xiaomi", pricing: { ...GPT_X_LISTED.pricing, discount } },
+        { provider_name: "StreamLake", pricing: { prompt: "0.000005", completion: "0.00003", discount: -0.2 } },
+      ];
+      endpointData = endpoints;
+      const catalog = await fetchOpenRouterCatalog(() => [GPT_X_LISTED.id], malformedEndpoint);
+      assert.deepEqual(catalog.endpoints[GPT_X_LISTED.id], endpoints);
+      assert.equal(catalogDiscount(GPT_X_LISTED, catalog.endpoints[GPT_X_LISTED.id]), discount);
+      assert.equal(catalogDiscount({ ...GPT_X_LISTED, pricing: endpoints[1]!.pricing }, catalog.endpoints[GPT_X_LISTED.id]), null);
+    }
   });
 
   it("xAI: an image catalog whose entries carry no id is a failed read too", async () => {

@@ -125,7 +125,7 @@ export interface OpenRouterEndpoint {
     completion?: string;
     input_cache_read?: string;
     image_output?: string;
-    /** Promotional discount as a fraction; the endpoint's rates are after it. */
+    /** Signed discount fraction (negative for markup); the endpoint's rates are after it. */
     discount?: number;
   };
 }
@@ -271,7 +271,7 @@ function isEndpoint(entry: unknown): entry is OpenRouterEndpoint {
     if (value !== undefined && (typeof value !== "string" || value.trim() === "" || !Number.isFinite(Number(value)) || Number(value) < 0)) return false;
   }
   const discount = pricing.discount;
-  return discount === undefined || typeof discount === "number" && Number.isFinite(discount) && discount >= 0 && discount <= 1;
+  return discount === undefined || typeof discount === "number" && Number.isFinite(discount);
 }
 
 function specialPrice(html: string, label: string): number | null {
