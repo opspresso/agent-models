@@ -1,0 +1,36 @@
+{
+  "clef-flash": {
+    "displayName": "Clef Flash",
+    "pricing": {
+      "inputPer1M": 0.09,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 58982,
+    "note": "Added automatically on 2026-10-04 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  },
+  "clef": {
+    "displayName": "Clef",
+    "pricing": {
+      "inputPer1M": 0.24,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 58982,
+    "note": "Added automatically on 2026-10-04 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}

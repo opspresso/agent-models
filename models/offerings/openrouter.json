@@ -109,10 +109,7 @@
   },
   {
     "family": "step-3.7-flash",
-    "wireId": "stepfun/step-3.7-flash",
-    "rankMissingSince": "2026-09-17",
-    "rankMissingObservations": 14,
-    "lastRankMissingAt": "2026-10-03"
+    "wireId": "stepfun/step-3.7-flash"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -559,8 +556,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 5,
-    "lastRankMissingAt": "2026-10-03"
+    "rankMissingObservations": 6,
+    "lastRankMissingAt": "2026-10-04"
   },
   {
     "family": "gpt-5-image-mini",
@@ -935,5 +932,17 @@
   {
     "family": "d1",
     "wireId": "liquid/d1"
+  },
+  {
+    "family": "pplx-decider-v1-27b",
+    "wireId": "perplexity/pplx-decider-v1-27b"
+  },
+  {
+    "family": "clef-flash",
+    "wireId": "cloudflare/clef-flash"
+  },
+  {
+    "family": "clef",
+    "wireId": "cloudflare/clef"
   }
 ]

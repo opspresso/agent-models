@@ -67,8 +67,8 @@
   "glm-5.2": {
     "displayName": "GLM 5.2",
     "pricing": {
-      "inputPer1M": 0.41,
-      "outputPer1M": 3.99,
+      "inputPer1M": 0.3,
+      "outputPer1M": 3.49,
       "cachedInputPer1M": 0.26
     },
     "capabilities": {
