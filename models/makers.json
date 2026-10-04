@@ -134,5 +134,9 @@
   "liquid": {
     "displayName": "LiquidAI",
     "openrouterVendor": "liquid"
+  },
+  "cloudflare": {
+    "displayName": "Cloudflare",
+    "openrouterVendor": "cloudflare"
   }
 }
