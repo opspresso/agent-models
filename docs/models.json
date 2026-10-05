@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-04T00:17:46.970Z",
+  "updatedAt": "2026-10-05T00:20:54.554Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2366,10 +2366,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.0595,
-        "outputPer1M": 0.17,
-        "cachedInputPer1M": 0.02975,
-        "discount": 0.15
+        "inputPer1M": 0.06,
+        "outputPer1M": 0.16,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -2378,7 +2377,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 131072,
+      "maxTokens": 32768,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2603,9 +2602,9 @@
       "maker": "openai",
       "displayName": "GPT-5.6 Sol Pro",
       "pricing": {
-        "inputPer1M": 4,
-        "outputPer1M": 20,
-        "cachedInputPer1M": 0.4,
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.2,
         "discount": 0.5
       },
       "capabilities": {
@@ -2711,9 +2710,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 3.49,
-        "cachedInputPer1M": 0.26
+        "inputPer1M": 0.104,
+        "outputPer1M": 8,
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -2722,7 +2721,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -3030,10 +3029,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.028,
-        "outputPer1M": 0.056,
-        "cachedInputPer1M": 0.0056,
-        "discount": 0.8
+        "inputPer1M": 0.0224,
+        "outputPer1M": 1.28,
+        "cachedInputPer1M": 0.0224
       },
       "capabilities": {
         "tools": true,
@@ -3042,7 +3040,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 384000,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4-flash"
     },
     {
@@ -4826,9 +4824,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.499,
-        "outputPer1M": 13,
-        "cachedInputPer1M": 0.49
+        "inputPer1M": 0.72,
+        "outputPer1M": 14,
+        "cachedInputPer1M": 0.7
       },
       "capabilities": {
         "tools": true,
@@ -6118,9 +6116,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.006
+        "inputPer1M": 0.003,
+        "outputPer1M": 2.4,
+        "cachedInputPer1M": 0.003
       },
       "capabilities": {
         "tools": true,

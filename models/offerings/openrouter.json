@@ -556,8 +556,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 6,
-    "lastRankMissingAt": "2026-10-04"
+    "rankMissingObservations": 7,
+    "lastRankMissingAt": "2026-10-05"
   },
   {
     "family": "gpt-5-image-mini",
