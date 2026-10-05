@@ -19,7 +19,7 @@
   "bge-base-en-v1.5": {
     "displayName": "bge-base-en-v1.5",
     "pricing": {
-      "inputPer1M": 0.005,
+      "inputPer1M": 0.01,
       "outputPer1M": 0
     },
     "capabilities": {

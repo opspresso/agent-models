@@ -2,7 +2,7 @@
   "jev-1.13": {
     "displayName": "Jev 1.13",
     "pricing": {
-      "inputPer1M": 0.042,
+      "inputPer1M": 0.04,
       "outputPer1M": 0
     },
     "capabilities": {
