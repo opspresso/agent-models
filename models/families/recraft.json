@@ -4,7 +4,7 @@
     "pricing": {
       "inputPer1M": 0,
       "outputPer1M": 0,
-      "imageOutputPer1M": 8.38323353
+      "imageOutputPer1M": 8.38
     },
     "capabilities": {
       "tools": false,
@@ -22,7 +22,7 @@
     "pricing": {
       "inputPer1M": 0,
       "outputPer1M": 0,
-      "imageOutputPer1M": 1.67664671
+      "imageOutputPer1M": 1.68
     },
     "capabilities": {
       "tools": false,

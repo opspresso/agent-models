@@ -2,7 +2,7 @@
   "mimo-v2.5-pro": {
     "displayName": "MiMo-V2.5-Pro",
     "pricing": {
-      "inputPer1M": 0.435,
+      "inputPer1M": 0.44,
       "outputPer1M": 0.87,
       "cachedInputPer1M": 0.0036
     },
@@ -53,7 +53,7 @@
   "mimo-v2.6-pro": {
     "displayName": "MiMo-V2.6-Pro",
     "pricing": {
-      "inputPer1M": 0.435,
+      "inputPer1M": 0.44,
       "outputPer1M": 0.87,
       "cachedInputPer1M": 0.0036
     },

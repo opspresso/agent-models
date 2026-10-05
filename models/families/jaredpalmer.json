@@ -2,7 +2,7 @@
   "kev-4b": {
     "displayName": "Kev 4B",
     "pricing": {
-      "inputPer1M": 0.042,
+      "inputPer1M": 0.04,
       "outputPer1M": 0
     },
     "capabilities": {

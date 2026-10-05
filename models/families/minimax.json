@@ -38,7 +38,7 @@
     "pricing": {
       "inputPer1M": 0.21,
       "outputPer1M": 0.84,
-      "cachedInputPer1M": 0.042,
+      "cachedInputPer1M": 0.04,
       "discount": 0.3
     },
     "capabilities": {

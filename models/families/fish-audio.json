@@ -4,7 +4,7 @@
     "pricing": {
       "inputPer1M": 0,
       "outputPer1M": 0,
-      "perAudioMinute": 0.006
+      "perAudioMinute": 0.01
     },
     "capabilities": {
       "tools": false,
@@ -22,7 +22,7 @@
     "pricing": {
       "inputPer1M": 0,
       "outputPer1M": 0,
-      "perAudioMinute": 0.006
+      "perAudioMinute": 0.01
     },
     "capabilities": {
       "tools": false,

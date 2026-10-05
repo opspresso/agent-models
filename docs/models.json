@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T00:20:54.554Z",
+  "updatedAt": "2026-10-05T00:40:58.236Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2325,7 +2325,7 @@
       "pricing": {
         "inputPer1M": 0.75,
         "outputPer1M": 3.75,
-        "cachedInputPer1M": 0.075,
+        "cachedInputPer1M": 0.08,
         "discount": 0.5
       },
       "capabilities": {
@@ -2389,7 +2389,7 @@
       "pricing": {
         "inputPer1M": 0.09,
         "outputPer1M": 0.36,
-        "cachedInputPer1M": 0.018,
+        "cachedInputPer1M": 0.02,
         "discount": 0.7
       },
       "capabilities": {
@@ -2476,7 +2476,7 @@
       "pricing": {
         "inputPer1M": 0.75,
         "outputPer1M": 3.75,
-        "cachedInputPer1M": 0.075
+        "cachedInputPer1M": 0.08
       },
       "capabilities": {
         "tools": true,
@@ -2668,9 +2668,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.132,
-        "outputPer1M": 0.528,
-        "cachedInputPer1M": 0.033
+        "inputPer1M": 0.13,
+        "outputPer1M": 0.53,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -2710,7 +2710,7 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.104,
+        "inputPer1M": 0.1,
         "outputPer1M": 8,
         "cachedInputPer1M": 0.1
       },
@@ -2904,7 +2904,7 @@
       "pricing": {
         "inputPer1M": 0.25,
         "outputPer1M": 1.5,
-        "cachedInputPer1M": 0.025
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3007,9 +3007,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.2088,
-        "outputPer1M": 0.4176,
-        "cachedInputPer1M": 0.0174,
+        "inputPer1M": 0.21,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.02,
         "discount": 0.88
       },
       "capabilities": {
@@ -3029,9 +3029,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.0224,
+        "inputPer1M": 0.02,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.0224
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -3050,7 +3050,7 @@
       "maker": "xiaomimimo",
       "displayName": "MiMo-V2.5-Pro",
       "pricing": {
-        "inputPer1M": 0.435,
+        "inputPer1M": 0.44,
         "outputPer1M": 0.87,
         "cachedInputPer1M": 0.0036
       },
@@ -3113,9 +3113,9 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.0675,
-        "outputPer1M": 0.225,
-        "cachedInputPer1M": 0.0375,
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.23,
+        "cachedInputPer1M": 0.04,
         "discount": 0.25
       },
       "capabilities": {
@@ -3158,7 +3158,7 @@
       "pricing": {
         "inputPer1M": 0.21,
         "outputPer1M": 0.84,
-        "cachedInputPer1M": 0.042,
+        "cachedInputPer1M": 0.04,
         "discount": 0.3
       },
       "capabilities": {
@@ -3201,7 +3201,7 @@
       "pricing": {
         "inputPer1M": 0.75,
         "outputPer1M": 4.5,
-        "cachedInputPer1M": 0.075
+        "cachedInputPer1M": 0.08
       },
       "capabilities": {
         "tools": true,
@@ -3283,7 +3283,7 @@
       "pricing": {
         "inputPer1M": 0.25,
         "outputPer1M": 1.5,
-        "cachedInputPer1M": 0.025
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3325,7 +3325,7 @@
       "pricing": {
         "inputPer1M": 1.75,
         "outputPer1M": 14,
-        "cachedInputPer1M": 0.175
+        "cachedInputPer1M": 0.18
       },
       "capabilities": {
         "tools": true,
@@ -3428,7 +3428,7 @@
       "pricing": {
         "inputPer1M": 1.75,
         "outputPer1M": 14,
-        "cachedInputPer1M": 0.175
+        "cachedInputPer1M": 0.18
       },
       "capabilities": {
         "tools": true,
@@ -3512,7 +3512,7 @@
       "pricing": {
         "inputPer1M": 1.75,
         "outputPer1M": 14,
-        "cachedInputPer1M": 0.175
+        "cachedInputPer1M": 0.18
       },
       "capabilities": {
         "tools": true,
@@ -3533,7 +3533,7 @@
       "pricing": {
         "inputPer1M": 1.25,
         "outputPer1M": 10,
-        "cachedInputPer1M": 0.125
+        "cachedInputPer1M": 0.13
       },
       "capabilities": {
         "tools": true,
@@ -3554,7 +3554,7 @@
       "pricing": {
         "inputPer1M": 0.28,
         "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.028
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3722,7 +3722,7 @@
       "pricing": {
         "inputPer1M": 1.25,
         "outputPer1M": 10,
-        "cachedInputPer1M": 0.125
+        "cachedInputPer1M": 0.13
       },
       "capabilities": {
         "tools": true,
@@ -3743,7 +3743,7 @@
       "pricing": {
         "inputPer1M": 0.05,
         "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.005
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -3786,7 +3786,7 @@
       "pricing": {
         "inputPer1M": 1.25,
         "outputPer1M": 10,
-        "cachedInputPer1M": 0.125
+        "cachedInputPer1M": 0.13
       },
       "capabilities": {
         "tools": true,
@@ -3958,7 +3958,7 @@
       "pricing": {
         "inputPer1M": 1.1,
         "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.275
+        "cachedInputPer1M": 0.28
       },
       "capabilities": {
         "tools": true,
@@ -4021,7 +4021,7 @@
       "pricing": {
         "inputPer1M": 0.1,
         "outputPer1M": 0.4,
-        "cachedInputPer1M": 0.025
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4189,7 +4189,7 @@
       "pricing": {
         "inputPer1M": 0.15,
         "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.075
+        "cachedInputPer1M": 0.08
       },
       "capabilities": {
         "tools": true,
@@ -4559,7 +4559,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 9.58083832
+        "imageOutputPer1M": 9.58
       },
       "capabilities": {
         "tools": false,
@@ -4604,7 +4604,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 7.32421875
+        "imageOutputPer1M": 7.32
       },
       "capabilities": {
         "tools": false,
@@ -4671,7 +4671,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 3.41796875
+        "imageOutputPer1M": 3.42
       },
       "capabilities": {
         "tools": false,
@@ -4693,7 +4693,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 10.77844311
+        "imageOutputPer1M": 10.78
       },
       "capabilities": {
         "tools": false,
@@ -4715,7 +4715,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 7.18562874
+        "imageOutputPer1M": 7.19
       },
       "capabilities": {
         "tools": false,
@@ -4737,7 +4737,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 7.18562874
+        "imageOutputPer1M": 7.19
       },
       "capabilities": {
         "tools": false,
@@ -4759,7 +4759,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 17.08984375
+        "imageOutputPer1M": 17.09
       },
       "capabilities": {
         "tools": false,
@@ -4804,7 +4804,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 3.59281437
+        "imageOutputPer1M": 3.59
       },
       "capabilities": {
         "tools": false,
@@ -4912,7 +4912,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 8.38323353
+        "imageOutputPer1M": 8.38
       },
       "capabilities": {
         "tools": false,
@@ -4932,9 +4932,9 @@
       "maker": "tencent",
       "displayName": "Hy4 preview",
       "pricing": {
-        "inputPer1M": 0.834,
-        "outputPer1M": 2.501,
-        "cachedInputPer1M": 0.042
+        "inputPer1M": 0.83,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.04
       },
       "capabilities": {
         "tools": true,
@@ -5100,7 +5100,7 @@
       "maker": "sentence-transformers",
       "displayName": "all-MiniLM-L12-v2",
       "pricing": {
-        "inputPer1M": 0.005,
+        "inputPer1M": 0.01,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -5247,7 +5247,7 @@
       "maker": "sentence-transformers",
       "displayName": "all-MiniLM-L6-v2",
       "pricing": {
-        "inputPer1M": 0.005,
+        "inputPer1M": 0.01,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -5289,7 +5289,7 @@
       "maker": "baai",
       "displayName": "bge-base-en-v1.5",
       "pricing": {
-        "inputPer1M": 0.005,
+        "inputPer1M": 0.01,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -5375,7 +5375,7 @@
       "pricing": {
         "inputPer1M": 0.75,
         "outputPer1M": 3.75,
-        "cachedInputPer1M": 0.075,
+        "cachedInputPer1M": 0.08,
         "discount": 0.5
       },
       "capabilities": {
@@ -5657,7 +5657,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.006
+        "perAudioMinute": 0.01
       },
       "capabilities": {
         "tools": false,
@@ -5788,7 +5788,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.006
+        "perAudioMinute": 0.01
       },
       "capabilities": {
         "tools": false,
@@ -5854,7 +5854,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.016
+        "perAudioMinute": 0.02
       },
       "capabilities": {
         "tools": false,
@@ -5876,7 +5876,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.006
+        "perAudioMinute": 0.01
       },
       "capabilities": {
         "tools": false,
@@ -6004,9 +6004,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash Vision Exp",
       "pricing": {
-        "inputPer1M": 0.2156,
-        "outputPer1M": 0.6468,
-        "cachedInputPer1M": 0.00686,
+        "inputPer1M": 0.22,
+        "outputPer1M": 0.65,
+        "cachedInputPer1M": 0.01,
         "discount": 0.51
       },
       "capabilities": {
@@ -6182,7 +6182,7 @@
       "pricing": {
         "inputPer1M": 0.15,
         "outputPer1M": 0.47,
-        "cachedInputPer1M": 0.016
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -6225,7 +6225,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 8.38323353
+        "imageOutputPer1M": 8.38
       },
       "capabilities": {
         "tools": false,
@@ -6247,7 +6247,7 @@
       "pricing": {
         "inputPer1M": 0.03,
         "outputPer1M": 0.13,
-        "cachedInputPer1M": 0.006
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -6268,7 +6268,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.0075
+        "perAudioMinute": 0.01
       },
       "capabilities": {
         "tools": false,
@@ -6435,7 +6435,7 @@
       "maker": "typesafe",
       "displayName": "Jev 1.13",
       "pricing": {
-        "inputPer1M": 0.042,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6456,7 +6456,7 @@
       "maker": "xiaomimimo",
       "displayName": "MiMo-V2.6-Pro",
       "pricing": {
-        "inputPer1M": 0.435,
+        "inputPer1M": 0.44,
         "outputPer1M": 0.87,
         "cachedInputPer1M": 0.0036
       },
@@ -6477,7 +6477,7 @@
       "maker": "jaredpalmer",
       "displayName": "Kev 4B",
       "pricing": {
-        "inputPer1M": 0.042,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6628,7 +6628,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 1.67664671
+        "imageOutputPer1M": 1.68
       },
       "capabilities": {
         "tools": false,
@@ -6692,7 +6692,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.006
+        "perAudioMinute": 0.01
       },
       "capabilities": {
         "tools": false,
@@ -6712,7 +6712,7 @@
       "maker": "togethercomputer",
       "displayName": "Tev1 4B Experimental",
       "pricing": {
-        "inputPer1M": 0.042,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {

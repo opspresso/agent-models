@@ -2,9 +2,9 @@
   "hy3": {
     "displayName": "Hy3",
     "pricing": {
-      "inputPer1M": 0.132,
-      "outputPer1M": 0.528,
-      "cachedInputPer1M": 0.033
+      "inputPer1M": 0.13,
+      "outputPer1M": 0.53,
+      "cachedInputPer1M": 0.03
     },
     "capabilities": {
       "tools": true,
@@ -19,9 +19,9 @@
   "hy4-preview": {
     "displayName": "Hy4 preview",
     "pricing": {
-      "inputPer1M": 0.834,
-      "outputPer1M": 2.501,
-      "cachedInputPer1M": 0.042
+      "inputPer1M": 0.83,
+      "outputPer1M": 2.5,
+      "cachedInputPer1M": 0.04
     },
     "capabilities": {
       "tools": true,

@@ -9,7 +9,7 @@
     "pricing": {
       "inputPer1M": 0.75,
       "outputPer1M": 3.75,
-      "cachedInputPer1M": 0.075,
+      "cachedInputPer1M": 0.08,
       "discount": 0.5
     }
   },
@@ -47,7 +47,12 @@
   },
   {
     "family": "gemini-3.6-flash",
-    "wireId": "google/gemini-3.6-flash"
+    "wireId": "google/gemini-3.6-flash",
+    "pricing": {
+      "inputPer1M": 0.75,
+      "outputPer1M": 3.75,
+      "cachedInputPer1M": 0.08
+    }
   },
   {
     "family": "gemini-3.5-flash-lite",
@@ -141,7 +146,12 @@
   },
   {
     "family": "gemini-3.1-flash-lite",
-    "wireId": "google/gemini-3.1-flash-lite"
+    "wireId": "google/gemini-3.1-flash-lite",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.5,
+      "cachedInputPer1M": 0.03
+    }
   },
   {
     "family": "gpt-chat-latest",
@@ -186,9 +196,9 @@
     "family": "gemma-4-26b-a4b-it",
     "wireId": "google/gemma-4-26b-a4b-it",
     "pricing": {
-      "inputPer1M": 0.0675,
-      "outputPer1M": 0.225,
-      "cachedInputPer1M": 0.0375,
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.23,
+      "cachedInputPer1M": 0.04,
       "discount": 0.25
     }
   },
@@ -211,7 +221,12 @@
   },
   {
     "family": "gpt-5.4-mini",
-    "wireId": "openai/gpt-5.4-mini"
+    "wireId": "openai/gpt-5.4-mini",
+    "pricing": {
+      "inputPer1M": 0.75,
+      "outputPer1M": 4.5,
+      "cachedInputPer1M": 0.08
+    }
   },
   {
     "family": "nemotron-3-super-120b-a12b",
@@ -227,7 +242,12 @@
   },
   {
     "family": "gemini-3.1-flash-lite-preview",
-    "wireId": "google/gemini-3.1-flash-lite-preview"
+    "wireId": "google/gemini-3.1-flash-lite-preview",
+    "pricing": {
+      "inputPer1M": 0.25,
+      "outputPer1M": 1.5,
+      "cachedInputPer1M": 0.03
+    }
   },
   {
     "family": "gemini-3.1-pro-preview-customtools",
@@ -235,7 +255,12 @@
   },
   {
     "family": "gpt-5.3-codex",
-    "wireId": "openai/gpt-5.3-codex"
+    "wireId": "openai/gpt-5.3-codex",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.18
+    }
   },
   {
     "family": "gemini-3.1-pro-preview",
@@ -255,7 +280,12 @@
   },
   {
     "family": "gpt-5.2-codex",
-    "wireId": "openai/gpt-5.2-codex"
+    "wireId": "openai/gpt-5.2-codex",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.18
+    }
   },
   {
     "family": "gemini-3-flash-preview",
@@ -274,11 +304,21 @@
   },
   {
     "family": "gpt-5.2",
-    "wireId": "openai/gpt-5.2"
+    "wireId": "openai/gpt-5.2",
+    "pricing": {
+      "inputPer1M": 1.75,
+      "outputPer1M": 14,
+      "cachedInputPer1M": 0.18
+    }
   },
   {
     "family": "gpt-5.1-codex-max",
-    "wireId": "openai/gpt-5.1-codex-max"
+    "wireId": "openai/gpt-5.1-codex-max",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.13
+    }
   },
   {
     "family": "deepseek-v3.2",
@@ -286,7 +326,7 @@
     "pricing": {
       "inputPer1M": 0.28,
       "outputPer1M": 0.42,
-      "cachedInputPer1M": 0.028
+      "cachedInputPer1M": 0.03
     }
   },
   {
@@ -322,11 +362,21 @@
   },
   {
     "family": "gpt-5",
-    "wireId": "openai/gpt-5"
+    "wireId": "openai/gpt-5",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.13
+    }
   },
   {
     "family": "gpt-5-nano",
-    "wireId": "openai/gpt-5-nano"
+    "wireId": "openai/gpt-5-nano",
+    "pricing": {
+      "inputPer1M": 0.05,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.01
+    }
   },
   {
     "family": "claude-opus-4.1",
@@ -337,7 +387,12 @@
   },
   {
     "family": "gemini-2.5-pro",
-    "wireId": "google/gemini-2.5-pro"
+    "wireId": "google/gemini-2.5-pro",
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 10,
+      "cachedInputPer1M": 0.13
+    }
   },
   {
     "family": "o3-pro",
@@ -386,7 +441,12 @@
   },
   {
     "family": "o4-mini",
-    "wireId": "openai/o4-mini"
+    "wireId": "openai/o4-mini",
+    "pricing": {
+      "inputPer1M": 1.1,
+      "outputPer1M": 4.4,
+      "cachedInputPer1M": 0.28
+    }
   },
   {
     "family": "gpt-4.1",
@@ -398,7 +458,12 @@
   },
   {
     "family": "gpt-4.1-nano",
-    "wireId": "openai/gpt-4.1-nano"
+    "wireId": "openai/gpt-4.1-nano",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.4,
+      "cachedInputPer1M": 0.03
+    }
   },
   {
     "family": "o1-pro",
@@ -439,7 +504,12 @@
   },
   {
     "family": "gpt-4o-mini",
-    "wireId": "openai/gpt-4o-mini"
+    "wireId": "openai/gpt-4o-mini",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.6,
+      "cachedInputPer1M": 0.08
+    }
   },
   {
     "family": "gemma-2-27b-it",
@@ -677,7 +747,7 @@
     "pricing": {
       "inputPer1M": 0.75,
       "outputPer1M": 3.75,
-      "cachedInputPer1M": 0.075,
+      "cachedInputPer1M": 0.08,
       "discount": 0.5
     }
   },
@@ -731,7 +801,12 @@
   },
   {
     "family": "whisper-1",
-    "wireId": "openai/whisper-1"
+    "wireId": "openai/whisper-1",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.01
+    }
   },
   {
     "family": "qwen3-asr-1.7b",
