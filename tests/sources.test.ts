@@ -30,7 +30,7 @@ import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
 import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
 import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
 import { addRoute, setNativePricing } from "../src/sources/routes.ts";
-import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, type Change } from "../src/sources/types.ts";
+import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, roundPrice, type Change } from "../src/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
 const TODAY = "2026-08-20";
@@ -155,11 +155,28 @@ function allListed(): OpenRouterCatalog {
   return orCatalog([GPT_X_LISTED, DEEPSEEK_Z_LISTED], { imageIds: ["openai/draw-1"] });
 }
 
+describe("roundPrice", () => {
+  it("rounds to two decimal places, including decimal halfway values", () => {
+    for (const [input, expected] of [[0.044, 0.04], [0.045, 0.05], [0.046, 0.05], [1.005, 1.01], [10.075, 10.08], [0.005, 0.01], [0, 0], [5, 5]] as const) {
+      assert.equal(roundPrice(input), expected, String(input));
+    }
+  });
+
+  it("retains small positive rates instead of making them free", () => {
+    assert.equal(roundPrice(0.001), 0.001);
+    assert.equal(roundPrice(0.0049), 0.0049);
+    assert.equal(roundPrice(1e-7), 1e-7);
+  });
+});
+
 describe("perMillion", () => {
-  it("turns a per-token string into a per-million number without float noise", () => {
-    assert.equal(perMillion(Number("0.0000000826")), 0.0826);
+  it("converts units before rounding and removes float noise", () => {
+    assert.equal(perMillion(Number("0.0000000826")), 0.08);
     assert.equal(perMillion(Number("0.000005")), 5);
-    assert.equal(perMillion(Number("0.00000001652")), 0.01652);
+    assert.equal(perMillion(Number("0.00000001652")), 0.02);
+    assert.equal(perMillion(Number("0.000000046")), 0.05);
+    assert.equal(perMillion(Number("0.000001005")), 1.01);
+    assert.equal(perMillion(Number("0.000000001")), 0.001);
   });
 });
 
@@ -374,15 +391,23 @@ describe("catalogDiscount", () => {
     assert.equal(catalogDiscount(listed, null), undefined);
     assert.equal(catalogDiscount(listed, undefined), undefined);
   });
+
+  it("matches unrounded rates and preserves the published discount fraction", () => {
+    const pricing = { prompt: "0.000000046", completion: "0.0000001652" };
+    assert.equal(catalogDiscount({ ...listed, pricing }, [
+      { pricing: { prompt: "0.000000047", completion: "0.0000001653", discount: 0.5 } },
+      { pricing: { ...pricing, discount: 0.1234 } },
+    ]), 0.1234);
+  });
 });
 
 describe("applyOpenRouter", () => {
   it("lets a router-only family follow the catalog and drops the route's own override", () => {
     const { registry, result } = applyOpenRouter(fixture(), allListed(), TODAY);
     assert.deepEqual(registry.families["deepseek-z"]!.pricing, {
-      inputPer1M: 0.0826,
-      outputPer1M: 0.1652,
-      cachedInputPer1M: 0.01652,
+      inputPer1M: 0.08,
+      outputPer1M: 0.17,
+      cachedInputPer1M: 0.02,
     });
     const route = registry.offerings.find((o) => o.provider === "openrouter" && o.family === "deepseek-z");
     assert.equal(route?.pricing, undefined);
@@ -391,6 +416,8 @@ describe("applyOpenRouter", () => {
       ["family deepseek-z pricing", "offering openrouter/deepseek-z pricing"],
     );
     assert.deepEqual(result.notes, []);
+    assert.deepEqual(validateRegistry(registry), []);
+    assert.deepEqual(applyOpenRouter(registry, allListed(), TODAY).result.changes, []);
   });
 
   it("moves a router-only family's window and output cap with the catalog", () => {
@@ -619,7 +646,7 @@ describe("applyOpenRouter", () => {
     assert.deepEqual(registry.families["whisper-1"]!.pricing, {
       inputPer1M: 0,
       outputPer1M: 0,
-      perAudioMinute: 0.006,
+      perAudioMinute: 0.01,
     });
   });
 
@@ -650,6 +677,31 @@ describe("applyXai", () => {
     assert.deepEqual(result.changes.map((change) => change.field), ["pricing", "pricingSource"]);
     assert.equal(registry.families["grok-q"]!.pricingSource, "native");
     assert.deepEqual(result.notes, []);
+  });
+
+  it("rounds native quotes consistently during discovery and updates", () => {
+    const roundedCatalog = {
+      ...catalog,
+      language: [{
+        id: "grok-q",
+        prompt_text_token_price: 10_050,
+        cached_prompt_text_token_price: 460,
+        completion_text_token_price: 100_750,
+      }],
+    };
+    const expected = { inputPer1M: 1.01, outputPer1M: 10.08, cachedInputPer1M: 0.05 };
+    const applied = applyXai(fixture(), roundedCatalog, TODAY);
+    assert.deepEqual(applied.registry.families["grok-q"]!.pricing, expected);
+    assert.deepEqual(validateRegistry(applied.registry), []);
+    assert.deepEqual(applyXai(applied.registry, roundedCatalog, TODAY).result.changes, []);
+
+    const input = fixture();
+    input.offerings = input.offerings.filter((offering) => offering.family !== "grok-q");
+    input.offerings.push({ provider: "openrouter", family: "grok-q", wireId: "x-ai/grok-q" });
+    const discovered = discoverXai(input, roundedCatalog);
+    assert.deepEqual(discovered.registry.families["grok-q"]!.pricing, expected);
+    assert.ok(discovered.registry.offerings.some((offering) => offering.provider === "xai" && offering.family === "grok-q"));
+    assert.deepEqual(validateRegistry(discovered.registry), []);
   });
 
   it("leaves a hidden route alone", () => {
@@ -1036,7 +1088,7 @@ describe("discoverOpenRouter", () => {
     });
     const discovered = discoverOpenRouter(fixture(), catalog, TODAY);
     assert.deepEqual(discovered.registry.makers.typesafe, { displayName: "TypeSafe", openrouterVendor: "typesafe" });
-    assert.deepEqual(discovered.registry.families["jev-1.13"]?.pricing, { inputPer1M: 0.042, outputPer1M: 0 });
+    assert.deepEqual(discovered.registry.families["jev-1.13"]?.pricing, { inputPer1M: 0.04, outputPer1M: 0 });
     assert.equal(discovered.registry.families["jev-1.13"]?.capabilities.decision, true);
     assert.equal(discovered.registry.families["jev-1.13"]?.maxTokens, 28_800);
     assert.ok(discovered.registry.offerings.some((offering) => offering.wireId === DECISION_MODEL.id));
@@ -1084,7 +1136,7 @@ describe("discoverOpenRouter", () => {
     assert.deepEqual(registry.families["whisper-1"], {
       maker: "openai",
       displayName: "Whisper 1",
-      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.006 },
+      pricing: { inputPer1M: 0, outputPer1M: 0, perAudioMinute: 0.01 },
       capabilities: {
         tools: false,
         structuredOutput: false,

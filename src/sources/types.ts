@@ -33,9 +33,17 @@ export function samePricing(
   return true;
 }
 
-/** USD per million tokens, trimmed of float noise: 0.0000000826 $/token → 0.0826. */
+/** Round collected USD rates to cents, retaining positive rates that would become zero. */
+export function roundPrice(value: number): number {
+  // Shift in decimal notation so halfway values such as 1.005 round up.
+  const [coefficient, exponent = "0"] = String(value).split("e");
+  const rounded = Math.round(Number(`${coefficient}e${Number(exponent) + 2}`)) / 100;
+  return value > 0 && rounded === 0 ? value : rounded;
+}
+
+/** Convert to USD per million tokens before rounding: 0.000000046 $/token → 0.05. */
 export function perMillion(perToken: number): number {
-  return Number((perToken * 1_000_000).toFixed(8));
+  return roundPrice(Number((perToken * 1_000_000).toFixed(8)));
 }
 
 export function isPositiveInt(value: unknown): value is number {

@@ -50,7 +50,7 @@ import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing
 import { applyFamilyLimits } from "./limits.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
-import { fetchJson, isExternalId, isPositiveInt, perMillion, readTextCapped, samePricing, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, isPositiveInt, perMillion, readTextCapped, roundPrice, samePricing, type Change, type SourceResult } from "./types.ts";
 
 /** How far back a first listing counts as new. Older listings are the backlog, which is a person's. */
 export const DISCOVERY_WINDOW_DAYS = 30;
@@ -596,7 +596,7 @@ function rerankPricing(model: OpenRouterModel): Omit<TokenPricing, "discount"> |
     return { inputPer1M: perMillion(input), outputPer1M: 0 };
   }
   if (search > 0) {
-    return { inputPer1M: 0, outputPer1M: 0, perSearch: search };
+    return { inputPer1M: 0, outputPer1M: 0, perSearch: roundPrice(search) };
   }
   return null;
 }
@@ -610,7 +610,7 @@ function transcriptionPricing(model: OpenRouterModel): Omit<TokenPricing, "disco
     return { inputPer1M: perMillion(input), outputPer1M: perMillion(output) };
   }
   if (minute > 0) {
-    return { inputPer1M: 0, outputPer1M: 0, perAudioMinute: minute };
+    return { inputPer1M: 0, outputPer1M: 0, perAudioMinute: roundPrice(minute) };
   }
   return null;
 }

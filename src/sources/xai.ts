@@ -17,7 +17,7 @@
 import type { Registry } from "../registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive, setNativePricing } from "./routes.ts";
-import { fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";
+import { fetchJson, isExternalId, roundPrice, type Change, type SourceResult } from "./types.ts";
 
 export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
 /** The drawing models' own catalog — read for existence; their per-image price stays hand-kept. */
@@ -90,7 +90,7 @@ function ticksToPerMillion(ticks: number | undefined): number | undefined {
   if (typeof ticks !== "number" || !Number.isFinite(ticks) || ticks < 0) {
     return undefined;
   }
-  return Number((ticks / TICKS_PER_USD_PER_MILLION).toFixed(8));
+  return roundPrice(Number((ticks / TICKS_PER_USD_PER_MILLION).toFixed(8)));
 }
 
 function nativePricing(model: XaiLanguageModel): { inputPer1M: number; outputPer1M: number; cachedInputPer1M?: number } | null {

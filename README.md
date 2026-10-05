@@ -76,6 +76,9 @@ because they produce vectors rather than generated tokens.
 Rerank models charge per million input tokens or per search unit. Transcription models
 charge per million input/output tokens or per audio minute, depending on the upstream
 provider's billing contract.
+Collected USD rates are rounded to two decimal places after unit conversion
+(`0.046` becomes `0.05`). Positive rates that would round to zero retain their precision
+(`0.001` stays `0.001`). Discount fractions are kept as published.
 Decision models return typed choices or scores through OpenRouter's Decisions API. The API
 reports output tokens but charges only for input tokens, so the published output cap is retained.
 
