@@ -196,10 +196,10 @@
     "family": "gemma-4-26b-a4b-it",
     "wireId": "google/gemma-4-26b-a4b-it",
     "pricing": {
-      "inputPer1M": 0.07,
-      "outputPer1M": 0.23,
+      "inputPer1M": 0.08,
+      "outputPer1M": 0.26,
       "cachedInputPer1M": 0.04,
-      "discount": 0.25
+      "discount": 0.15
     }
   },
   {
@@ -626,8 +626,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 7,
-    "lastRankMissingAt": "2026-10-05"
+    "rankMissingObservations": 8,
+    "lastRankMissingAt": "2026-10-06"
   },
   {
     "family": "gpt-5-image-mini",
@@ -910,7 +910,10 @@
   },
   {
     "family": "recraft-v4.1",
-    "wireId": "recraft/recraft-v4.1"
+    "wireId": "recraft/recraft-v4.1",
+    "rankMissingSince": "2026-10-06",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-10-06"
   },
   {
     "family": "qwen3.7-flash",
@@ -1019,5 +1022,13 @@
   {
     "family": "clef",
     "wireId": "cloudflare/clef"
+  },
+  {
+    "family": "seedream-5-0-flash",
+    "wireId": "bytedance-seed/seedream-5-0-flash"
+  },
+  {
+    "family": "solar-mini4",
+    "wireId": "upstage/solar-mini4"
   }
 ]

@@ -52,5 +52,23 @@
     "contextWindow": 0,
     "maxTokens": 0,
     "note": "Added automatically on 2026-08-30 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "seedream-5-0-flash": {
+    "displayName": "Seedream 5.0 Flash",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "imageOutputPer1M": 4.31
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-10-06 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }

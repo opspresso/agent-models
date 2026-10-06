@@ -34,9 +34,9 @@
   "kimi-k3": {
     "displayName": "Kimi K3",
     "pricing": {
-      "inputPer1M": 0.72,
+      "inputPer1M": 0.86,
       "outputPer1M": 14,
-      "cachedInputPer1M": 0.7
+      "cachedInputPer1M": 0.28
     },
     "capabilities": {
       "tools": true,
