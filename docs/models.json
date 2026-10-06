@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T00:40:58.236Z",
+  "updatedAt": "2026-10-06T01:59:58.901Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2302,9 +2302,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 1.4,
-        "outputPer1M": 4.4,
-        "cachedInputPer1M": 0.14
+        "inputPer1M": 0.07,
+        "outputPer1M": 7,
+        "cachedInputPer1M": 0.07
       },
       "capabilities": {
         "tools": true,
@@ -2313,7 +2313,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3"
     },
     {
@@ -2710,9 +2710,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.1,
-        "outputPer1M": 8,
-        "cachedInputPer1M": 0.1
+        "inputPer1M": 0.03,
+        "outputPer1M": 12,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3029,9 +3029,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.02,
+        "inputPer1M": 0.03,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.02
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3113,10 +3113,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.23,
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.26,
         "cachedInputPer1M": 0.04,
-        "discount": 0.25
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -4824,9 +4824,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.72,
+        "inputPer1M": 0.86,
         "outputPer1M": 14,
-        "cachedInputPer1M": 0.7
+        "cachedInputPer1M": 0.28
       },
       "capabilities": {
         "tools": true,
@@ -4889,9 +4889,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
+        "inputPer1M": 0.04,
         "outputPer1M": 0.5,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -4900,7 +4900,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943717,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6116,9 +6116,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.003,
-        "outputPer1M": 2.4,
-        "cachedInputPer1M": 0.003
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -6810,6 +6810,50 @@
       "contextWindow": 65536,
       "maxTokens": 58982,
       "wireId": "cloudflare/clef"
+    },
+    {
+      "id": "openrouter/seedream-5-0-flash",
+      "provider": "openrouter",
+      "family": "seedream-5-0-flash",
+      "maker": "bytedance-seed",
+      "displayName": "Seedream 5.0 Flash",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 4.31
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "bytedance-seed/seedream-5-0-flash"
+    },
+    {
+      "id": "openrouter/solar-mini4",
+      "provider": "openrouter",
+      "family": "solar-mini4",
+      "maker": "upstage",
+      "displayName": "Solar Mini 4",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.2,
+        "cachedInputPer1M": 0.01,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": false,
+        "reasoning": true
+      },
+      "contextWindow": 524288,
+      "maxTokens": 131072,
+      "wireId": "upstage/solar-mini4"
     }
   ]
 }
