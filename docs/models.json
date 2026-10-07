@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-06T01:59:58.901Z",
+  "updatedAt": "2026-10-07T01:09:38.603Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2710,9 +2710,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.03,
+        "inputPer1M": 0.15,
         "outputPer1M": 12,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -4824,9 +4824,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.86,
-        "outputPer1M": 14,
-        "cachedInputPer1M": 0.28
+        "inputPer1M": 0.69,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.34
       },
       "capabilities": {
         "tools": true,
@@ -4889,9 +4889,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.15,
         "outputPer1M": 0.5,
-        "cachedInputPer1M": 0.02
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4900,7 +4900,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6116,8 +6116,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
+        "inputPer1M": 0.04,
+        "outputPer1M": 0.3,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -6127,7 +6127,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 393216,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6854,6 +6854,70 @@
       "contextWindow": 524288,
       "maxTokens": 131072,
       "wireId": "upstage/solar-mini4"
+    },
+    {
+      "id": "openrouter/flux-3-image",
+      "provider": "openrouter",
+      "family": "flux-3-image",
+      "maker": "black-forest-labs",
+      "displayName": "FLUX.3 Image",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 4.91
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 46864,
+      "maxTokens": 42177,
+      "wireId": "black-forest-labs/flux-3-image"
+    },
+    {
+      "id": "openrouter/gpt-6-luna-decisions",
+      "provider": "openrouter",
+      "family": "gpt-6-luna-decisions",
+      "maker": "openai",
+      "displayName": "GPT-6 Luna Decisions",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 1050000,
+      "maxTokens": 945000,
+      "wireId": "openai/gpt-6-luna-decisions"
+    },
+    {
+      "id": "openrouter/qwen3.8-27b",
+      "provider": "openrouter",
+      "family": "qwen3.8-27b",
+      "maker": "qwen",
+      "displayName": "Qwen3.8 27B",
+      "pricing": {
+        "inputPer1M": 0.43,
+        "outputPer1M": 2.55,
+        "cachedInputPer1M": 0.09
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 131072,
+      "wireId": "qwen/qwen3.8-27b"
     }
   ]
 }

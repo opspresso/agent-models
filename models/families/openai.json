@@ -1245,5 +1245,22 @@
     "contextWindow": 1050000,
     "maxTokens": 128000,
     "note": "OpenAI's standard short-context pricing and limits, verified 2026-10-03 at https://developers.openai.com/api/docs/models/gpt-6.1-sol."
+  },
+  "gpt-6-luna-decisions": {
+    "displayName": "GPT-6 Luna Decisions",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 1050000,
+    "maxTokens": 945000,
+    "note": "Added automatically on 2026-10-07 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   }
 }
