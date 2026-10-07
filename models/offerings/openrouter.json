@@ -626,8 +626,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 8,
-    "lastRankMissingAt": "2026-10-06"
+    "rankMissingObservations": 9,
+    "lastRankMissingAt": "2026-10-07"
   },
   {
     "family": "gpt-5-image-mini",
@@ -912,8 +912,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-06"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-07"
   },
   {
     "family": "qwen3.7-flash",
@@ -1030,5 +1030,17 @@
   {
     "family": "solar-mini4",
     "wireId": "upstage/solar-mini4"
+  },
+  {
+    "family": "flux-3-image",
+    "wireId": "black-forest-labs/flux-3-image"
+  },
+  {
+    "family": "gpt-6-luna-decisions",
+    "wireId": "openai/gpt-6-luna-decisions"
+  },
+  {
+    "family": "qwen3.8-27b",
+    "wireId": "qwen/qwen3.8-27b"
   }
 ]
