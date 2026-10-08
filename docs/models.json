@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-07T01:09:38.603Z",
+  "updatedAt": "2026-10-08T01:28:20.277Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -1250,7 +1250,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 200000,
       "maxTokens": 64000,
       "wireId": "claude-sonnet-4-5"
     },
@@ -1316,6 +1316,27 @@
       "contextWindow": 1000000,
       "maxTokens": 128000,
       "wireId": "claude-sonnet-5-5"
+    },
+    {
+      "id": "anthropic/claude-haiku-5.5",
+      "provider": "anthropic",
+      "family": "claude-haiku-5.5",
+      "maker": "anthropic",
+      "displayName": "Claude Haiku 5.5",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "claude-haiku-5-5"
     },
     {
       "id": "google/gemini-3.1-pro",
@@ -2302,9 +2323,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 7,
-        "cachedInputPer1M": 0.07
+        "inputPer1M": 0.05,
+        "outputPer1M": 3.39,
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -2366,9 +2387,10 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.16,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.14,
+        "cachedInputPer1M": 0.02,
+        "discount": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -2377,7 +2399,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 32768,
+      "maxTokens": 131072,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2710,7 +2732,7 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.15,
+        "inputPer1M": 0.17,
         "outputPer1M": 12,
         "cachedInputPer1M": 0.15
       },
@@ -3220,8 +3242,8 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Super",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.45
+        "inputPer1M": 0.09,
+        "outputPer1M": 0.4
       },
       "capabilities": {
         "tools": true,
@@ -3230,7 +3252,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 235929,
+      "maxTokens": 16384,
       "wireId": "nvidia/nemotron-3-super-120b-a12b"
     },
     {
@@ -3552,9 +3574,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V3.2",
       "pricing": {
-        "inputPer1M": 0.28,
+        "inputPer1M": 0.26,
         "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.14
       },
       "capabilities": {
         "tools": true,
@@ -3709,7 +3731,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 200000,
       "maxTokens": 64000,
       "wireId": "anthropic/claude-sonnet-4.5"
     },
@@ -4824,9 +4846,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.69,
+        "inputPer1M": 0.65,
         "outputPer1M": 15,
-        "cachedInputPer1M": 0.34
+        "cachedInputPer1M": 0.43
       },
       "capabilities": {
         "tools": true,
@@ -6116,8 +6138,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.3,
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -6127,7 +6149,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6565,7 +6587,7 @@
       "pricing": {
         "inputPer1M": 2,
         "outputPer1M": 10,
-        "cachedInputPer1M": 0.2
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -6918,6 +6940,93 @@
       "contextWindow": 1000000,
       "maxTokens": 131072,
       "wireId": "qwen/qwen3.8-27b"
+    },
+    {
+      "id": "openrouter/gemini-nano-banana-2.1",
+      "provider": "openrouter",
+      "family": "gemini-nano-banana-2.1",
+      "maker": "google",
+      "displayName": "Nano Banana 2.1",
+      "pricing": {
+        "inputPer1M": 1.5,
+        "outputPer1M": 7.5,
+        "imageOutputPer1M": 30
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 58982,
+      "wireId": "google/gemini-nano-banana-2.1"
+    },
+    {
+      "id": "openrouter/solar-decide-flash",
+      "provider": "openrouter",
+      "family": "solar-decide-flash",
+      "maker": "upstage",
+      "displayName": "Solar Decide Flash",
+      "pricing": {
+        "inputPer1M": 0.05,
+        "outputPer1M": 0,
+        "cachedInputPer1M": 0.05,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 524288,
+      "maxTokens": 471859,
+      "wireId": "upstage/solar-decide-flash"
+    },
+    {
+      "id": "openrouter/pplx-decider-v1.1-27b",
+      "provider": "openrouter",
+      "family": "pplx-decider-v1.1-27b",
+      "maker": "perplexity",
+      "displayName": "Decider V1.1 27B",
+      "pricing": {
+        "inputPer1M": 0.02,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 235929,
+      "wireId": "perplexity/pplx-decider-v1.1-27b"
+    },
+    {
+      "id": "openrouter/claude-haiku-5.5",
+      "provider": "openrouter",
+      "family": "claude-haiku-5.5",
+      "maker": "anthropic",
+      "displayName": "Claude Haiku 5.5",
+      "pricing": {
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.01
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-haiku-5.5"
     }
   ]
 }
