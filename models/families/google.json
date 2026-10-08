@@ -594,5 +594,23 @@
     "contextWindow": 98304,
     "maxTokens": 32768,
     "note": "Google's standard paid-tier audio-input and text-output token rates, verified 2026-10-03 at https://ai.google.dev/gemini-api/docs/pricing#gemini-3.5-transcribe; token limits are from the model catalog."
+  },
+  "gemini-nano-banana-2.1": {
+    "displayName": "Nano Banana 2.1",
+    "pricing": {
+      "inputPer1M": 1.5,
+      "outputPer1M": 7.5,
+      "imageOutputPer1M": 30
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "imageGeneration": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 58982,
+    "note": "Added automatically on 2026-10-08 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
   }
 }

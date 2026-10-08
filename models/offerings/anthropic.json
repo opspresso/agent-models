@@ -48,5 +48,9 @@
   {
     "family": "claude-sonnet-5.5",
     "wireId": "claude-sonnet-5-5"
+  },
+  {
+    "family": "claude-haiku-5.5",
+    "wireId": "claude-haiku-5-5"
   }
 ]

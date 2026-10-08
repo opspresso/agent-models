@@ -211,7 +211,7 @@
       "imageInput": true,
       "reasoning": true
     },
-    "contextWindow": 1000000,
+    "contextWindow": 200000,
     "maxTokens": 64000,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-09-29); numbers and flags are OpenRouter's."
   },
@@ -334,5 +334,23 @@
     "contextWindow": 1000000,
     "maxTokens": 128000,
     "note": "Anthropic's standard Claude API pricing and limits, verified 2026-10-03 at https://platform.claude.com/docs/en/models/sonnet-5-5/overview."
+  },
+  "claude-haiku-5.5": {
+    "displayName": "Claude Haiku 5.5",
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.5,
+      "cachedInputPer1M": 0.01
+    },
+    "pricingSource": "openrouter",
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 128000,
+    "note": "Added automatically on 2026-10-08 from OpenRouter's catalog (listed 2026-10-07); numbers and flags are OpenRouter's."
   }
 }

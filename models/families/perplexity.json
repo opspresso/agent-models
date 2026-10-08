@@ -49,5 +49,22 @@
     "contextWindow": 262144,
     "maxTokens": 235929,
     "note": "Added automatically on 2026-10-04 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  },
+  "pplx-decider-v1.1-27b": {
+    "displayName": "Decider V1.1 27B",
+    "pricing": {
+      "inputPer1M": 0.02,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 235929,
+    "note": "Added automatically on 2026-10-08 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   }
 }
