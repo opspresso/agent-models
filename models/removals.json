@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "openrouter/claude-opus-4.7-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-08"
+  },
+  {
+    "id": "openrouter/claude-opus-4.8-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-08"
+  },
+  {
+    "id": "openrouter/claude-opus-5-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-08"
+  }
+]

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-08T01:28:20.277Z",
+  "updatedAt": "2026-10-08T01:28:32.583Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2447,28 +2447,6 @@
       "hidden": true
     },
     {
-      "id": "openrouter/claude-opus-5-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-5-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 5 (Fast)",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 50,
-        "cachedInputPer1M": 1
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-5-fast",
-      "hidden": true
-    },
-    {
       "id": "openrouter/claude-opus-5",
       "provider": "openrouter",
       "family": "claude-opus-5",
@@ -2811,28 +2789,6 @@
       "wireId": "stepfun/step-3.7-flash"
     },
     {
-      "id": "openrouter/claude-opus-4.8-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-4.8-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 4.8 (Fast)",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 50,
-        "cachedInputPer1M": 1
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.8-fast",
-      "hidden": true
-    },
-    {
       "id": "openrouter/claude-opus-4.8",
       "provider": "openrouter",
       "family": "claude-opus-4.8",
@@ -2894,28 +2850,6 @@
       "contextWindow": 1048576,
       "maxTokens": 65536,
       "wireId": "google/gemini-3.5-flash"
-    },
-    {
-      "id": "openrouter/claude-opus-4.7-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-4.7-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 4.7 (Fast)",
-      "pricing": {
-        "inputPer1M": 30,
-        "outputPer1M": 150,
-        "cachedInputPer1M": 3
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.7-fast",
-      "hidden": true
     },
     {
       "id": "openrouter/gemini-3.1-flash-lite",
