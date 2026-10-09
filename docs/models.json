@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-08T01:28:32.583Z",
+  "updatedAt": "2026-10-09T01:36:13.323Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -45,7 +45,9 @@
     "jaredpalmer": "Jared Palmer",
     "togethercomputer": "Together",
     "liquid": "LiquidAI",
-    "cloudflare": "Cloudflare"
+    "cloudflare": "Cloudflare",
+    "elevenlabs": "ElevenLabs",
+    "inception": "Inception"
   },
   "models": [
     {
@@ -2323,9 +2325,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.05,
+        "inputPer1M": 0.04,
         "outputPer1M": 3.39,
-        "cachedInputPer1M": 0.05
+        "cachedInputPer1M": 0.04
       },
       "capabilities": {
         "tools": true,
@@ -2710,9 +2712,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.17,
-        "outputPer1M": 12,
-        "cachedInputPer1M": 0.15
+        "inputPer1M": 0.08,
+        "outputPer1M": 4.3,
+        "cachedInputPer1M": 0.08
       },
       "capabilities": {
         "tools": true,
@@ -2721,7 +2723,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.2"
     },
     {
@@ -2963,10 +2965,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.21,
-        "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.02,
-        "discount": 0.88
+        "inputPer1M": 0.96,
+        "outputPer1M": 1.91,
+        "cachedInputPer1M": 0.08,
+        "discount": 0.451
       },
       "capabilities": {
         "tools": true,
@@ -2985,9 +2987,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.03,
+        "inputPer1M": 0.01,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -3176,8 +3178,8 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Super",
       "pricing": {
-        "inputPer1M": 0.09,
-        "outputPer1M": 0.4
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.45
       },
       "capabilities": {
         "tools": true,
@@ -3186,7 +3188,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 16384,
+      "maxTokens": 235929,
       "wireId": "nvidia/nemotron-3-super-120b-a12b"
     },
     {
@@ -4780,9 +4782,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.65,
-        "outputPer1M": 15,
-        "cachedInputPer1M": 0.43
+        "inputPer1M": 0.76,
+        "outputPer1M": 13,
+        "cachedInputPer1M": 0.31
       },
       "capabilities": {
         "tools": true,
@@ -6401,8 +6403,8 @@
         "reasoning": false,
         "decision": true
       },
-      "contextWindow": 32000,
-      "maxTokens": 28800,
+      "contextWindow": 64000,
+      "maxTokens": 57600,
       "wireId": "typesafe/jev-1.13"
     },
     {
@@ -6732,7 +6734,7 @@
       "maker": "cloudflare",
       "displayName": "Clef Flash",
       "pricing": {
-        "inputPer1M": 0.09,
+        "inputPer1M": 0.02,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6743,7 +6745,7 @@
         "decision": true
       },
       "contextWindow": 65536,
-      "maxTokens": 58982,
+      "maxTokens": 14745,
       "wireId": "cloudflare/clef-flash"
     },
     {
@@ -6820,7 +6822,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "imageOutputPer1M": 4.91
+        "imageOutputPer1M": 9.82
       },
       "capabilities": {
         "tools": false,
@@ -6961,6 +6963,72 @@
       "contextWindow": 1000000,
       "maxTokens": 128000,
       "wireId": "anthropic/claude-haiku-5.5"
+    },
+    {
+      "id": "openrouter/scribe-v2",
+      "provider": "openrouter",
+      "family": "scribe-v2",
+      "maker": "elevenlabs",
+      "displayName": "Scribe v2",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00183333,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "elevenlabs/scribe-v2"
+    },
+    {
+      "id": "openrouter/mercury-decide",
+      "provider": "openrouter",
+      "family": "mercury-decide",
+      "maker": "inception",
+      "displayName": "Mercury Decide",
+      "pricing": {
+        "inputPer1M": 0.02,
+        "outputPer1M": 0,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 58982,
+      "wireId": "inception/mercury-decide"
+    },
+    {
+      "id": "openrouter/step-5-preview",
+      "provider": "openrouter",
+      "family": "step-5-preview",
+      "maker": "stepfun",
+      "displayName": "Step 5 Preview",
+      "pricing": {
+        "inputPer1M": 1,
+        "outputPer1M": 2.7,
+        "cachedInputPer1M": 0.05
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 64000,
+      "wireId": "stepfun/step-5-preview"
     }
   ]
 }

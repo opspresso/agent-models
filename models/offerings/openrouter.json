@@ -62,8 +62,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-08"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-09"
   },
   {
     "family": "gpt-5.6-terra",
@@ -73,8 +73,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-08"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-09"
   },
   {
     "family": "gpt-5.6-sol",
@@ -608,8 +608,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 10,
-    "lastRankMissingAt": "2026-10-08"
+    "rankMissingObservations": 11,
+    "lastRankMissingAt": "2026-10-09"
   },
   {
     "family": "gpt-5-image-mini",
@@ -894,8 +894,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-10-08"
+    "rankMissingObservations": 4,
+    "lastRankMissingAt": "2026-10-09"
   },
   {
     "family": "qwen3.7-flash",
@@ -1002,8 +1002,8 @@
     "family": "pplx-decider-v1-27b",
     "wireId": "perplexity/pplx-decider-v1-27b",
     "missingSince": "2026-10-08",
-    "missingObservations": 1,
-    "lastMissingAt": "2026-10-08"
+    "missingObservations": 2,
+    "lastMissingAt": "2026-10-09"
   },
   {
     "family": "clef-flash",
@@ -1048,5 +1048,17 @@
   {
     "family": "claude-haiku-5.5",
     "wireId": "anthropic/claude-haiku-5.5"
+  },
+  {
+    "family": "scribe-v2",
+    "wireId": "elevenlabs/scribe-v2"
+  },
+  {
+    "family": "mercury-decide",
+    "wireId": "inception/mercury-decide"
+  },
+  {
+    "family": "step-5-preview",
+    "wireId": "stepfun/step-5-preview"
   }
 ]

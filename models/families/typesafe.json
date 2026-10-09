@@ -12,8 +12,8 @@
       "reasoning": false,
       "decision": true
     },
-    "contextWindow": 32000,
-    "maxTokens": 28800,
+    "contextWindow": 64000,
+    "maxTokens": 57600,
     "note": "OpenRouter's decisions catalog and endpoint list, verified 2026-09-24; input-only pricing, typed decisions via /api/alpha/decisions."
   }
 }
