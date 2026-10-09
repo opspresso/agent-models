@@ -15,5 +15,22 @@
     "contextWindow": 262144,
     "maxTokens": 230400,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-28); numbers and flags are OpenRouter's."
+  },
+  "step-5-preview": {
+    "displayName": "Step 5 Preview",
+    "pricing": {
+      "inputPer1M": 1,
+      "outputPer1M": 2.7,
+      "cachedInputPer1M": 0.05
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 64000,
+    "note": "Added automatically on 2026-10-09 from OpenRouter's catalog (listed 2026-10-08); numbers and flags are OpenRouter's."
   }
 }

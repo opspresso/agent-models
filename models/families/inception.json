@@ -1,0 +1,20 @@
+{
+  "mercury-decide": {
+    "displayName": "Mercury Decide",
+    "pricing": {
+      "inputPer1M": 0.02,
+      "outputPer1M": 0,
+      "discount": 0.5
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 65536,
+    "maxTokens": 58982,
+    "note": "Added automatically on 2026-10-09 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}
