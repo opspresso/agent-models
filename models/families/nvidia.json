@@ -19,9 +19,9 @@
     "displayName": "Nemotron 3.5 Lightning",
     "pricing": {
       "inputPer1M": 0.05,
-      "outputPer1M": 0.14,
+      "outputPer1M": 0.13,
       "cachedInputPer1M": 0.02,
-      "discount": 0.3
+      "discount": 0.33
     },
     "capabilities": {
       "tools": true,

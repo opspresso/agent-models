@@ -1,0 +1,19 @@
+{
+  "drex-v1.5": {
+    "displayName": "Drex v1.5",
+    "pricing": {
+      "inputPer1M": 0.04,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 131072,
+    "maxTokens": 117964,
+    "note": "Added automatically on 2026-10-10 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}

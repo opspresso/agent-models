@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-09T01:36:13.323Z",
+  "updatedAt": "2026-10-10T01:25:40.572Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -47,7 +47,8 @@
     "liquid": "LiquidAI",
     "cloudflare": "Cloudflare",
     "elevenlabs": "ElevenLabs",
-    "inception": "Inception"
+    "inception": "Inception",
+    "nace-ai": "Nace.AI"
   },
   "models": [
     {
@@ -2326,7 +2327,7 @@
       "displayName": "GLM 5.3",
       "pricing": {
         "inputPer1M": 0.04,
-        "outputPer1M": 3.39,
+        "outputPer1M": 6,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -2390,9 +2391,9 @@
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
         "inputPer1M": 0.05,
-        "outputPer1M": 0.14,
+        "outputPer1M": 0.13,
         "cachedInputPer1M": 0.02,
-        "discount": 0.3
+        "discount": 0.33
       },
       "capabilities": {
         "tools": true,
@@ -2712,9 +2713,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 4.3,
-        "cachedInputPer1M": 0.08
+        "inputPer1M": 0.06,
+        "outputPer1M": 7,
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,
@@ -2965,10 +2966,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.96,
-        "outputPer1M": 1.91,
-        "cachedInputPer1M": 0.08,
-        "discount": 0.451
+        "inputPer1M": 0.21,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.02,
+        "discount": 0.88
       },
       "capabilities": {
         "tools": true,
@@ -2987,9 +2988,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.01,
+        "inputPer1M": 0.02,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.01
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -3071,10 +3072,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.26,
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.23,
         "cachedInputPer1M": 0.04,
-        "discount": 0.15
+        "discount": 0.25
       },
       "capabilities": {
         "tools": true,
@@ -4782,9 +4783,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.76,
-        "outputPer1M": 13,
-        "cachedInputPer1M": 0.31
+        "inputPer1M": 0.8,
+        "outputPer1M": 13.5,
+        "cachedInputPer1M": 0.55
       },
       "capabilities": {
         "tools": true,
@@ -6734,7 +6735,7 @@
       "maker": "cloudflare",
       "displayName": "Clef Flash",
       "pricing": {
-        "inputPer1M": 0.02,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -7029,6 +7030,69 @@
       "contextWindow": 1000000,
       "maxTokens": 64000,
       "wireId": "stepfun/step-5-preview"
+    },
+    {
+      "id": "openrouter/microsoft-decision-1",
+      "provider": "openrouter",
+      "family": "microsoft-decision-1",
+      "maker": "microsoft",
+      "displayName": "Microsoft-Decision-1",
+      "pricing": {
+        "inputPer1M": 0.04,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 32768,
+      "maxTokens": 29491,
+      "wireId": "microsoft/microsoft-decision-1"
+    },
+    {
+      "id": "openrouter/drex-v1.5",
+      "provider": "openrouter",
+      "family": "drex-v1.5",
+      "maker": "nace-ai",
+      "displayName": "Drex v1.5",
+      "pricing": {
+        "inputPer1M": 0.04,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 131072,
+      "maxTokens": 117964,
+      "wireId": "nace-ai/drex-v1.5"
+    },
+    {
+      "id": "openrouter/clef-omni",
+      "provider": "openrouter",
+      "family": "clef-omni",
+      "maker": "cloudflare",
+      "displayName": "Clef Omni",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 65536,
+      "maxTokens": 58982,
+      "wireId": "cloudflare/clef-omni"
     }
   ]
 }
