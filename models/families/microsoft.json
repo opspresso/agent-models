@@ -70,5 +70,22 @@
     "contextWindow": 4096,
     "maxTokens": 1024,
     "note": "Added automatically on 2026-09-17 from OpenRouter's weekly image top 20; numbers and flags are OpenRouter's."
+  },
+  "microsoft-decision-1": {
+    "displayName": "Microsoft-Decision-1",
+    "pricing": {
+      "inputPer1M": 0.04,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 32768,
+    "maxTokens": 29491,
+    "note": "Added automatically on 2026-10-10 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   }
 }
