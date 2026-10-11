@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-10T01:25:40.572Z",
+  "updatedAt": "2026-10-11T00:36:33.969Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2327,7 +2327,7 @@
       "displayName": "GLM 5.3",
       "pricing": {
         "inputPer1M": 0.04,
-        "outputPer1M": 6,
+        "outputPer1M": 4.8,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -2390,10 +2390,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3.5 Lightning",
       "pricing": {
-        "inputPer1M": 0.05,
-        "outputPer1M": 0.13,
-        "cachedInputPer1M": 0.02,
-        "discount": 0.33
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.2,
+        "cachedInputPer1M": 0.04
       },
       "capabilities": {
         "tools": true,
@@ -2402,7 +2401,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 131072,
+      "maxTokens": 235929,
       "wireId": "nvidia/nemotron-3.5-lightning"
     },
     {
@@ -2988,9 +2987,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.02,
+        "inputPer1M": 0.03,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.02
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3512,7 +3511,7 @@
       "displayName": "DeepSeek V3.2",
       "pricing": {
         "inputPer1M": 0.26,
-        "outputPer1M": 0.42,
+        "outputPer1M": 0.8,
         "cachedInputPer1M": 0.14
       },
       "capabilities": {
@@ -4784,7 +4783,7 @@
       "displayName": "Kimi K3",
       "pricing": {
         "inputPer1M": 0.8,
-        "outputPer1M": 13.5,
+        "outputPer1M": 15,
         "cachedInputPer1M": 0.55
       },
       "capabilities": {
@@ -6767,7 +6766,7 @@
         "decision": true
       },
       "contextWindow": 65536,
-      "maxTokens": 58982,
+      "maxTokens": 14745,
       "wireId": "cloudflare/clef"
     },
     {
@@ -6864,9 +6863,9 @@
       "maker": "qwen",
       "displayName": "Qwen3.8 27B",
       "pricing": {
-        "inputPer1M": 0.43,
-        "outputPer1M": 2.55,
-        "cachedInputPer1M": 0.09
+        "inputPer1M": 0.04,
+        "outputPer1M": 2.3,
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -6875,7 +6874,7 @@
         "reasoning": true
       },
       "contextWindow": 1000000,
-      "maxTokens": 131072,
+      "maxTokens": 235929,
       "wireId": "qwen/qwen3.8-27b"
     },
     {

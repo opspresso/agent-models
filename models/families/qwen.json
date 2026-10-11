@@ -208,9 +208,9 @@
   "qwen3.8-27b": {
     "displayName": "Qwen3.8 27B",
     "pricing": {
-      "inputPer1M": 0.43,
-      "outputPer1M": 2.55,
-      "cachedInputPer1M": 0.09
+      "inputPer1M": 0.04,
+      "outputPer1M": 2.3,
+      "cachedInputPer1M": 0.02
     },
     "capabilities": {
       "tools": true,
@@ -219,7 +219,7 @@
       "reasoning": true
     },
     "contextWindow": 1000000,
-    "maxTokens": 131072,
+    "maxTokens": 235929,
     "note": "Added automatically on 2026-10-07 from OpenRouter's catalog (listed 2026-08-14); numbers and flags are OpenRouter's."
   }
 }
