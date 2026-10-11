@@ -34,14 +34,6 @@
     "note": "Hidden automatically on 2026-09-12: absent from OpenRouter's catalog since 2026-09-05."
   },
   {
-    "family": "claude-opus-5-fast",
-    "wireId": "anthropic/claude-opus-5-fast",
-    "hidden": true,
-    "hiddenReason": "catalog",
-    "hiddenAt": "2026-09-08",
-    "note": "Hidden automatically on 2026-09-08: absent from OpenRouter's catalog since 2026-09-01."
-  },
-  {
     "family": "claude-opus-5",
     "wireId": "anthropic/claude-opus-5"
   },
@@ -123,14 +115,6 @@
     "wireId": "stepfun/step-3.7-flash"
   },
   {
-    "family": "claude-opus-4.8-fast",
-    "wireId": "anthropic/claude-opus-4.8-fast",
-    "hidden": true,
-    "hiddenReason": "catalog",
-    "hiddenAt": "2026-09-08",
-    "note": "Hidden automatically on 2026-09-08: absent from OpenRouter's catalog since 2026-09-01."
-  },
-  {
     "family": "claude-opus-4.8",
     "wireId": "anthropic/claude-opus-4.8"
   },
@@ -141,14 +125,6 @@
   {
     "family": "gemini-3.5-flash",
     "wireId": "google/gemini-3.5-flash"
-  },
-  {
-    "family": "claude-opus-4.7-fast",
-    "wireId": "anthropic/claude-opus-4.7-fast",
-    "hidden": true,
-    "hiddenReason": "catalog",
-    "hiddenAt": "2026-09-08",
-    "note": "Hidden automatically on 2026-09-08: absent from OpenRouter's catalog since 2026-09-01."
   },
   {
     "family": "gemini-3.1-flash-lite",
