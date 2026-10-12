@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-11T00:36:19.971Z",
+  "updatedAt": "2026-10-12T00:52:44.488Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2326,9 +2326,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.07,
         "outputPer1M": 4.8,
-        "cachedInputPer1M": 0.04
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -3031,10 +3031,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.21,
-        "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.02,
-        "discount": 0.88
+        "inputPer1M": 0.95,
+        "outputPer1M": 1.9,
+        "cachedInputPer1M": 0.08,
+        "discount": 0.455
       },
       "capabilities": {
         "tools": true,
@@ -3053,9 +3053,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.03,
+        "inputPer1M": 0.01,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.03
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -4848,8 +4848,8 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.8,
-        "outputPer1M": 15,
+        "inputPer1M": 0.73,
+        "outputPer1M": 13.5,
         "cachedInputPer1M": 0.55
       },
       "capabilities": {
@@ -4869,9 +4869,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Ultra",
       "pricing": {
-        "inputPer1M": 0.5,
-        "outputPer1M": 2.2,
-        "cachedInputPer1M": 0.1
+        "inputPer1M": 0.6,
+        "outputPer1M": 2.4,
+        "cachedInputPer1M": 0.12
       },
       "capabilities": {
         "tools": true,
@@ -4880,7 +4880,7 @@
         "reasoning": true
       },
       "contextWindow": 262144,
-      "maxTokens": 16384,
+      "maxTokens": 182520,
       "wireId": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     {
