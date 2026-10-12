@@ -50,9 +50,9 @@
   "glm-5.3": {
     "displayName": "GLM 5.3",
     "pricing": {
-      "inputPer1M": 0.04,
+      "inputPer1M": 0.07,
       "outputPer1M": 4.8,
-      "cachedInputPer1M": 0.04
+      "cachedInputPer1M": 0.05
     },
     "capabilities": {
       "tools": true,
