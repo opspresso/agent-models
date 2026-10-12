@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 4,
-    "lastRankMissingAt": "2026-10-11"
+    "rankMissingObservations": 5,
+    "lastRankMissingAt": "2026-10-12"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,8 +81,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 4,
-    "lastRankMissingAt": "2026-10-11"
+    "rankMissingObservations": 5,
+    "lastRankMissingAt": "2026-10-12"
   },
   {
     "family": "gpt-5.6-sol",
@@ -632,8 +632,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 13,
-    "lastRankMissingAt": "2026-10-11"
+    "rankMissingObservations": 14,
+    "lastRankMissingAt": "2026-10-12"
   },
   {
     "family": "gpt-5-image-mini",
@@ -801,8 +801,8 @@
     "family": "qwen3-asr-flash-2026-02-10",
     "wireId": "qwen/qwen3-asr-flash-2026-02-10",
     "missingSince": "2026-10-10",
-    "missingObservations": 2,
-    "lastMissingAt": "2026-10-11"
+    "missingObservations": 3,
+    "lastMissingAt": "2026-10-12"
   },
   {
     "family": "voxtral-mini-transcribe",
@@ -921,8 +921,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 6,
-    "lastRankMissingAt": "2026-10-11"
+    "rankMissingObservations": 7,
+    "lastRankMissingAt": "2026-10-12"
   },
   {
     "family": "qwen3.7-flash",
@@ -1029,8 +1029,8 @@
     "family": "pplx-decider-v1-27b",
     "wireId": "perplexity/pplx-decider-v1-27b",
     "missingSince": "2026-10-08",
-    "missingObservations": 4,
-    "lastMissingAt": "2026-10-11"
+    "missingObservations": 5,
+    "lastMissingAt": "2026-10-12"
   },
   {
     "family": "clef-flash",
