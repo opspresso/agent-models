@@ -27,9 +27,9 @@ const previous = readCatalog(CATALOG_PATH);
 const catalog = buildCatalog(registry, previous, new Date());
 
 // The routine update only hides. Its separate deletion proposal, or a person's
-// edit, can drop a published id — which re-prices every consumer's past usage
-// of it at $0. A build therefore fails unless that exact removal is requested
-// in models/removals.json.
+// edit, can drop a published id and remove pricing evidence for historical usage.
+// Missing evidence is unknown, never a zero-price fallback. A build fails unless
+// that exact removal is requested in models/removals.json.
 if (previous === null && existsSync(CATALOG_PATH)) {
   // A corrupt or truncated docs/models.json must not read as "first publish"
   // and wave the removal tripwire through.

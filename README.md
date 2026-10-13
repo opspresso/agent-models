@@ -1,7 +1,8 @@
 # agent-models
 
-A curated AI model registry — per-model pricing, context window, output cap and
-capability flags — published as one static JSON:
+A versioned model catalog and specification repository — per-model pricing,
+context window, output cap and capabilities — published as one static JSON. It
+does not run inference, store credentials or grant model access:
 
 ```
 https://models.opspresso.com/models.json
@@ -9,11 +10,12 @@ https://models.opspresso.com/models.json
 
 (`https://opspresso.github.io/agent-models/models.json` redirects there.)
 
-[Agent Studio](https://github.com/opspresso/agent-studio) is the original consumer it is
-shaped for: the text and image fields mirror its `src/domain/llm/models.ts`, and the catalog
-is the list that registry will load instead of carrying the numbers in code. Specialized
-models are identified by the `embedding`, `rerank`, `transcription`, or `decision` capability; consumers
-that do not support them can skip those entries. Anything that can read JSON can use it the same way. A
+[Agent Studio](https://github.com/opspresso/agent-studio),
+[Agent Forge](https://github.com/opspresso/agent-forge) and
+[Agent Librio](https://github.com/opspresso/agent-librio) consume the catalog.
+Each service keeps its own allowed model connections, endpoint, wire protocol,
+credentials and execution policy. See the [consumer contract](docs/consumer-contract.md)
+and [version 1 JSON schema](docs/catalog-v1.schema.json). A
 browsable view of the same file is at
 <https://models.opspresso.com/> — `docs/index.html` contains the markup, `docs/styles.css`
 the styling, and `docs/app.js` the catalog-driven behavior. The viewer mirrors the

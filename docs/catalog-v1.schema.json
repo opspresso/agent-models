@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://models.opspresso.com/catalog-v1.schema.json",
+  "title": "Agent Models catalog version 1",
+  "type": "object",
+  "required": [
+    "version",
+    "updatedAt",
+    "source",
+    "providers",
+    "makers",
+    "models"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri"
+    },
+    "providers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "makers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/model"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "pricing": {
+      "type": "object",
+      "required": [
+        "inputPer1M",
+        "outputPer1M"
+      ],
+      "properties": {
+        "inputPer1M": {
+          "type": "number",
+          "minimum": 0
+        },
+        "outputPer1M": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cachedInputPer1M": {
+          "type": "number",
+          "minimum": 0
+        },
+        "imageInputPer1M": {
+          "type": "number",
+          "minimum": 0
+        },
+        "imageOutputPer1M": {
+          "type": "number",
+          "minimum": 0
+        },
+        "perImage": {
+          "type": "number",
+          "minimum": 0
+        },
+        "perInputImage": {
+          "type": "number",
+          "minimum": 0
+        },
+        "perSearch": {
+          "type": "number",
+          "minimum": 0
+        },
+        "perAudioMinute": {
+          "type": "number",
+          "minimum": 0
+        },
+        "discount": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "tools",
+        "structuredOutput",
+        "imageInput",
+        "reasoning"
+      ],
+      "properties": {
+        "tools": {
+          "type": "boolean"
+        },
+        "structuredOutput": {
+          "type": "boolean"
+        },
+        "imageInput": {
+          "type": "boolean"
+        },
+        "reasoning": {
+          "type": "boolean"
+        },
+        "imageGeneration": {
+          "type": "boolean"
+        },
+        "embedding": {
+          "type": "boolean"
+        },
+        "rerank": {
+          "type": "boolean"
+        },
+        "transcription": {
+          "type": "boolean"
+        },
+        "decision": {
+          "type": "boolean"
+        },
+        "reasoningWithTools": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "imageGeneration": {
+                "const": true
+              },
+              "embedding": {
+                "const": true
+              }
+            },
+            "required": [
+              "imageGeneration",
+              "embedding"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "imageGeneration": {
+                "const": true
+              },
+              "rerank": {
+                "const": true
+              }
+            },
+            "required": [
+              "imageGeneration",
+              "rerank"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "imageGeneration": {
+                "const": true
+              },
+              "transcription": {
+                "const": true
+              }
+            },
+            "required": [
+              "imageGeneration",
+              "transcription"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "imageGeneration": {
+                "const": true
+              },
+              "decision": {
+                "const": true
+              }
+            },
+            "required": [
+              "imageGeneration",
+              "decision"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "embedding": {
+                "const": true
+              },
+              "rerank": {
+                "const": true
+              }
+            },
+            "required": [
+              "embedding",
+              "rerank"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "embedding": {
+                "const": true
+              },
+              "transcription": {
+                "const": true
+              }
+            },
+            "required": [
+              "embedding",
+              "transcription"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "embedding": {
+                "const": true
+              },
+              "decision": {
+                "const": true
+              }
+            },
+            "required": [
+              "embedding",
+              "decision"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "rerank": {
+                "const": true
+              },
+              "transcription": {
+                "const": true
+              }
+            },
+            "required": [
+              "rerank",
+              "transcription"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "rerank": {
+                "const": true
+              },
+              "decision": {
+                "const": true
+              }
+            },
+            "required": [
+              "rerank",
+              "decision"
+            ]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "transcription": {
+                "const": true
+              },
+              "decision": {
+                "const": true
+              }
+            },
+            "required": [
+              "transcription",
+              "decision"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "id",
+        "provider",
+        "family",
+        "maker",
+        "displayName",
+        "pricing",
+        "capabilities",
+        "contextWindow",
+        "maxTokens"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "maker": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "wireId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pricing": {
+          "$ref": "#/$defs/pricing"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/capabilities"
+        },
+        "contextWindow": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
