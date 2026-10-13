@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-12T00:52:58.723Z",
+  "updatedAt": "2026-10-13T02:48:00.943Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2326,9 +2326,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.07,
+        "inputPer1M": 0.08,
         "outputPer1M": 4.8,
-        "cachedInputPer1M": 0.05
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,
@@ -2943,10 +2943,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.95,
-        "outputPer1M": 1.9,
+        "inputPer1M": 0.96,
+        "outputPer1M": 1.91,
         "cachedInputPer1M": 0.08,
-        "discount": 0.455
+        "discount": 0.451
       },
       "capabilities": {
         "tools": true,
@@ -2965,9 +2965,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.01,
+        "inputPer1M": 0.02,
         "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.01
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -3049,10 +3049,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.23,
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.26,
         "cachedInputPer1M": 0.04,
-        "discount": 0.25
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -3092,10 +3092,9 @@
       "maker": "minimax",
       "displayName": "MiniMax M2.7",
       "pricing": {
-        "inputPer1M": 0.21,
-        "outputPer1M": 0.84,
-        "cachedInputPer1M": 0.04,
-        "discount": 0.3
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.06
       },
       "capabilities": {
         "tools": true,
@@ -3104,7 +3103,7 @@
         "reasoning": true
       },
       "contextWindow": 204800,
-      "maxTokens": 176947,
+      "maxTokens": 131072,
       "wireId": "minimax/minimax-m2.7"
     },
     {
@@ -4761,7 +4760,7 @@
       "displayName": "Kimi K3",
       "pricing": {
         "inputPer1M": 0.73,
-        "outputPer1M": 13.5,
+        "outputPer1M": 15,
         "cachedInputPer1M": 0.55
       },
       "capabilities": {
@@ -4825,9 +4824,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.5,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.03,
+        "outputPer1M": 0.9,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -4836,7 +4835,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943717,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6063,7 +6062,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 393216,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6712,7 +6711,7 @@
       "maker": "cloudflare",
       "displayName": "Clef Flash",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.02,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6733,7 +6732,7 @@
       "maker": "cloudflare",
       "displayName": "Clef",
       "pricing": {
-        "inputPer1M": 0.24,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -7070,6 +7069,50 @@
       "contextWindow": 65536,
       "maxTokens": 58982,
       "wireId": "cloudflare/clef-omni"
+    },
+    {
+      "id": "openrouter/scribe-v2-medical",
+      "provider": "openrouter",
+      "family": "scribe-v2-medical",
+      "maker": "elevenlabs",
+      "displayName": "Scribe v2 Medical",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.00183333,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "elevenlabs/scribe-v2-medical"
+    },
+    {
+      "id": "openrouter/drex-v2.0",
+      "provider": "openrouter",
+      "family": "drex-v2.0",
+      "maker": "nace-ai",
+      "displayName": "Drex v2.0",
+      "pricing": {
+        "inputPer1M": 0.06,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 131072,
+      "maxTokens": 117964,
+      "wireId": "nace-ai/drex-v2.0"
     }
   ]
 }
