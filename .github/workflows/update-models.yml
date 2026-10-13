@@ -15,7 +15,7 @@ name: Update models
 # The workflow's token merges routine changes through a pull request. A model
 # removals accumulate separately in one draft pull request for human review.
 # The resulting `main` update republishes the classic Pages site at
-# models.opspresso.com. The same token keeps the rolling "needs a look" issue.
+# models.agrt.dev. The same token keeps the rolling "needs a look" issue.
 on:
   schedule:
     - cron: "0 22 * * *"
