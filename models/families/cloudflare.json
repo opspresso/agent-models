@@ -2,7 +2,7 @@
   "clef-flash": {
     "displayName": "Clef Flash",
     "pricing": {
-      "inputPer1M": 0.04,
+      "inputPer1M": 0.02,
       "outputPer1M": 0
     },
     "capabilities": {
@@ -19,7 +19,7 @@
   "clef": {
     "displayName": "Clef",
     "pricing": {
-      "inputPer1M": 0.24,
+      "inputPer1M": 0.04,
       "outputPer1M": 0
     },
     "capabilities": {

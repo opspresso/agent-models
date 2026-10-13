@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 5,
-    "lastRankMissingAt": "2026-10-12"
+    "rankMissingObservations": 6,
+    "lastRankMissingAt": "2026-10-13"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,8 +81,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 5,
-    "lastRankMissingAt": "2026-10-12"
+    "rankMissingObservations": 6,
+    "lastRankMissingAt": "2026-10-13"
   },
   {
     "family": "gpt-5.6-sol",
@@ -202,10 +202,10 @@
     "family": "gemma-4-26b-a4b-it",
     "wireId": "google/gemma-4-26b-a4b-it",
     "pricing": {
-      "inputPer1M": 0.07,
-      "outputPer1M": 0.23,
+      "inputPer1M": 0.08,
+      "outputPer1M": 0.26,
       "cachedInputPer1M": 0.04,
-      "discount": 0.25
+      "discount": 0.15
     }
   },
   {
@@ -632,8 +632,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 14,
-    "lastRankMissingAt": "2026-10-12"
+    "rankMissingObservations": 15,
+    "lastRankMissingAt": "2026-10-13"
   },
   {
     "family": "gpt-5-image-mini",
@@ -801,8 +801,8 @@
     "family": "qwen3-asr-flash-2026-02-10",
     "wireId": "qwen/qwen3-asr-flash-2026-02-10",
     "missingSince": "2026-10-10",
-    "missingObservations": 3,
-    "lastMissingAt": "2026-10-12"
+    "missingObservations": 4,
+    "lastMissingAt": "2026-10-13"
   },
   {
     "family": "voxtral-mini-transcribe",
@@ -921,8 +921,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 7,
-    "lastRankMissingAt": "2026-10-12"
+    "rankMissingObservations": 8,
+    "lastRankMissingAt": "2026-10-13"
   },
   {
     "family": "qwen3.7-flash",
@@ -1029,8 +1029,8 @@
     "family": "pplx-decider-v1-27b",
     "wireId": "perplexity/pplx-decider-v1-27b",
     "missingSince": "2026-10-08",
-    "missingObservations": 5,
-    "lastMissingAt": "2026-10-12"
+    "missingObservations": 6,
+    "lastMissingAt": "2026-10-13"
   },
   {
     "family": "clef-flash",
@@ -1099,5 +1099,13 @@
   {
     "family": "clef-omni",
     "wireId": "cloudflare/clef-omni"
+  },
+  {
+    "family": "scribe-v2-medical",
+    "wireId": "elevenlabs/scribe-v2-medical"
+  },
+  {
+    "family": "drex-v2.0",
+    "wireId": "nace-ai/drex-v2.0"
   }
 ]
