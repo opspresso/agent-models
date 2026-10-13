@@ -5,7 +5,7 @@ context window, output cap and capabilities — published as one static JSON. It
 does not run inference, store credentials or grant model access:
 
 ```
-https://models.opspresso.com/models.json
+https://models.agrt.dev/models.json
 ```
 
 (`https://opspresso.github.io/agent-models/models.json` redirects there.)
@@ -17,9 +17,9 @@ Each service keeps its own allowed model connections, endpoint, wire protocol,
 credentials and execution policy. See the [consumer contract](docs/consumer-contract.md)
 and [version 1 JSON schema](docs/catalog-v1.schema.json). A
 browsable view of the same file is at
-<https://models.opspresso.com/> — `docs/index.html` contains the markup, `docs/styles.css`
+<https://models.agrt.dev/> — `docs/index.html` contains the markup, `docs/styles.css`
 the styling, and `docs/app.js` the catalog-driven behavior. The viewer mirrors the
-console's own Models page (<https://studio.opspresso.com/models>): the same
+console's own Models page (<https://studio.agrt.dev/models>): the same
 catalog header, filter row (search, provider, capabilities, sort) and one card per route,
 drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
 Icons). The studio's mark is re-hued green for this site's logo and favicon, so the two
@@ -175,7 +175,7 @@ publishes native token prices and automatically replaces a fallback when one is 
 
 `.github/workflows/update-models.yml` runs every day at 22:00 UTC (and on demand), validates whatever
 moved and merges routine updates through a pull request — which republishes the Pages site (`main:/docs`, served at
-`models.opspresso.com`) — and tells people about it. Three phases, every source
+`models.agrt.dev`) — and tells people about it. Three phases, every source
 independent of the others:
 
 1. **fetch** — each source reads its catalog; one failing is reported and the rest go on;

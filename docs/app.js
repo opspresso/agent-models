@@ -94,7 +94,7 @@
   $("updated").title = catalog.updatedAt;
   $("copy").addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText("https://models.opspresso.com/models.json");
+      await navigator.clipboard.writeText("https://models.agrt.dev/models.json");
       $("copy").classList.add("light"); setTimeout(() => $("copy").classList.remove("light"), 1200);
     } catch {}
   });
