@@ -17,7 +17,7 @@
     const catalogResponse = await fetch("models.json", { cache: "no-cache" });
     if (!catalogResponse.ok) throw new Error(`models.json → ${catalogResponse.status} ${catalogResponse.statusText}`);
     catalog = await catalogResponse.json();
-    if (!Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
+    if (catalog.version !== 1 || !Array.isArray(catalog.models) || !Array.isArray(catalog.providers) || typeof catalog.makers !== "object" || catalog.makers === null || Array.isArray(catalog.makers)) {
       throw new Error("models.json has an invalid catalog shape");
     }
   } catch (error) {
@@ -52,7 +52,8 @@
   };
   const modelPriceLabel = (m, multiplier = 1) => {
     const p = m.pricing;
-    const price = (value) => formatUsd(value * multiplier);
+    if (!p || typeof p !== "object") return "Price not provided";
+    const price = (value) => Number.isFinite(value) && value >= 0 ? formatUsd(value * multiplier) : "Price not provided";
     const { inputPer1M, outputPer1M, imageOutputPer1M, perImage, perSearch, perAudioMinute } = p;
     if (m.capabilities.embedding || m.capabilities.decision) return `${price(inputPer1M)} in per 1M`;
     if (m.capabilities.rerank) return perSearch !== undefined ? `${price(perSearch)} / search` : `${price(inputPer1M)} in per 1M`;
@@ -75,9 +76,14 @@
     routesByFamily.set(model.family, routes);
   }
   const otherRoutes = (m) => (routesByFamily.get(m.family) ?? []).filter((provider) => provider !== m.provider);
-  const primaryPrice = (m) => m.pricing.perSearch ?? m.pricing.perAudioMinute
-    ?? (m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision ? m.pricing.inputPer1M
-      : m.pricing.perImage ?? m.pricing.imageOutputPer1M ?? m.pricing.outputPer1M);
+  const primaryPrice = (m) => {
+    const p = m.pricing;
+    if (!p) return undefined;
+    const value = p.perSearch ?? p.perAudioMinute
+      ?? (m.capabilities.embedding || m.capabilities.rerank || m.capabilities.decision ? p.inputPer1M
+        : p.perImage ?? p.imageOutputPer1M ?? p.outputPer1M);
+    return Number.isFinite(value) && value >= 0 ? value : undefined;
+  };
 
   // ---- header ----
   const live = catalog.models.filter((m) => !m.hidden);
@@ -88,7 +94,7 @@
   $("updated").title = catalog.updatedAt;
   $("copy").addEventListener("click", async () => {
     try {
-      await navigator.clipboard.writeText("https://models.opspresso.com/models.json");
+      await navigator.clipboard.writeText("https://models.agrt.dev/models.json");
       $("copy").classList.add("light"); setTimeout(() => $("copy").classList.remove("light"), 1200);
     } catch {}
   });
@@ -155,6 +161,10 @@
     );
     const dir = state.direction === "asc" ? 1 : -1;
     return rows.sort((a, b) => {
+      if (state.sortKey === "price") {
+        const left = primaryPrice(a), right = primaryPrice(b);
+        if (left === undefined || right === undefined) return left === right ? a.id.localeCompare(b.id) : left === undefined ? 1 : -1;
+      }
       const c = state.sortKey === "provider" ? a.provider.localeCompare(b.provider)
         : state.sortKey === "name" ? a.displayName.localeCompare(b.displayName)
         : primaryPrice(a) - primaryPrice(b);
@@ -176,10 +186,10 @@
     const type = modelType(m);
     const typeBadge = `<span class="badge type-${type}">${typeLabel(type)}</span>`;
     const caps = CAPABILITY_COLUMNS.filter(([k]) => m.capabilities[k]).map(([, l]) => `<span class="badge outline">${l}</span>`).join("");
-    const d = m.pricing.discount;
+    const d = m.pricing?.discount;
     const promo = d ? `<span class="badge promo" title="Promotional rate at the route's default endpoint: ${Math.round(d * 100)}% off — list ${esc(modelPriceLabel(m, 1 / (1 - d)))}">−${Math.round(d * 100)}%</span>` : "";
     const routes = otherRoutes(m);
-    const cached = m.pricing.cachedInputPer1M !== undefined && !m.capabilities.imageGeneration ? `cached ${formatUsd(m.pricing.cachedInputPer1M)}` : "";
+    const cached = m.pricing?.cachedInputPer1M !== undefined && !m.capabilities.imageGeneration ? `cached ${formatUsd(m.pricing.cachedInputPer1M)}` : "";
     const wire = m.wireId ? `<code title="Sent to ${esc(m.provider)} as ${esc(m.wireId)}">${esc(m.wireId)}</code>` : "<span></span>";
     return `<article class="card${m.hidden ? " retired" : ""}">
       <div>
