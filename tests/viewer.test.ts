@@ -38,7 +38,7 @@ class Element {
   querySelectorAll() { return []; }
 }
 
-function startViewer(iconResponse: Promise<Response>, models = catalog.models) {
+function startViewer(iconResponse: Promise<Response>, models: unknown[] = catalog.models) {
   const elements = new Map<string, Element>();
   const element = (id: string) => {
     if (!elements.has(id)) elements.set(id, new Element());
@@ -112,3 +112,16 @@ for (const fixture of priceCases) {
     assert.ok(card.includes(`50% off — list ${fixture.list}"`));
   });
 }
+
+
+test("absent pricing remains unknown while explicit zero remains visible", async () => {
+  const base = catalog.models[0]!;
+  const viewer = startViewer(Promise.resolve(Response.json({})), [
+    { ...base, id: "maker/unknown", pricing: undefined },
+    { ...base, id: "maker/zero", pricing: { inputPer1M: 0, outputPer1M: 0 } },
+  ]);
+  await viewer.complete;
+  assert.match(viewer.element("grid").innerHTML, /Price not provided/);
+  assert.match(viewer.element("grid").innerHTML, /\$0\.00 in · \$0\.00 out per 1M/);
+  assert.deepEqual(viewer.errors, []);
+});

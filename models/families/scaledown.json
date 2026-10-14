@@ -1,0 +1,20 @@
+{
+  "classify-1": {
+    "displayName": "Classify-1",
+    "pricing": {
+      "inputPer1M": 0.04,
+      "outputPer1M": 0,
+      "discount": 0.2
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 1000000,
+    "maxTokens": 900000,
+    "note": "Added automatically on 2026-10-14 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}
