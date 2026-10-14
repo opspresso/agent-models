@@ -24,6 +24,10 @@ catalog header, filter row (search, provider, capabilities, sort) and one card p
 drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
 Icons). The studio's mark is re-hued green for this site's logo and favicon, so the two
 are recognisably siblings and never mistaken for each other.
+`docs/` also contains the 16–256 px ICO, 32/180/192/256/512 px PNG icons,
+`site.webmanifest`, and the 1200×630 sharing card (`og.png`; editable layout
+in `og.svg`). Open Graph and Twitter metadata use the canonical
+`https://models.agrt.dev/` origin.
 
 ## The catalog
 
