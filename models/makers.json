@@ -150,5 +150,9 @@
   "nace-ai": {
     "displayName": "Nace.AI",
     "openrouterVendor": "nace-ai"
+  },
+  "scaledown": {
+    "displayName": "ScaleDown",
+    "openrouterVendor": "scaledown"
   }
 }

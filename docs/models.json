@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-13T02:47:44.577Z",
+  "updatedAt": "2026-10-14T00:46:44.533Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -48,7 +48,8 @@
     "cloudflare": "Cloudflare",
     "elevenlabs": "ElevenLabs",
     "inception": "Inception",
-    "nace-ai": "Nace.AI"
+    "nace-ai": "Nace.AI",
+    "scaledown": "ScaleDown"
   },
   "models": [
     {
@@ -1852,6 +1853,27 @@
       "maxTokens": 32768
     },
     {
+      "id": "google/gemini-4-argon",
+      "provider": "google",
+      "family": "gemini-4-argon",
+      "maker": "google",
+      "displayName": "Gemini 4 Argon",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.1,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 32768
+    },
+    {
       "id": "xai/grok-4.6",
       "provider": "xai",
       "family": "grok-4.6",
@@ -2326,9 +2348,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.08,
+        "inputPer1M": 0.07,
         "outputPer1M": 4.8,
-        "cachedInputPer1M": 0.06
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -2734,9 +2756,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.06,
+        "inputPer1M": 0.05,
         "outputPer1M": 7,
-        "cachedInputPer1M": 0.06
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -3053,9 +3075,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Flash 0423",
       "pricing": {
-        "inputPer1M": 0.02,
-        "outputPer1M": 1.28,
-        "cachedInputPer1M": 0.02
+        "inputPer1M": 0.09,
+        "outputPer1M": 0.18,
+        "cachedInputPer1M": 0.02,
+        "discount": 0.35
       },
       "capabilities": {
         "tools": true,
@@ -3064,7 +3087,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 943717,
       "wireId": "deepseek/deepseek-v4-flash"
     },
     {
@@ -4848,7 +4871,7 @@
       "displayName": "Kimi K3",
       "pricing": {
         "inputPer1M": 0.73,
-        "outputPer1M": 15,
+        "outputPer1M": 10,
         "cachedInputPer1M": 0.55
       },
       "capabilities": {
@@ -4912,7 +4935,7 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.03,
+        "inputPer1M": 0.04,
         "outputPer1M": 0.9,
         "cachedInputPer1M": 0.01
       },
@@ -6139,9 +6162,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.003
       },
       "capabilities": {
         "tools": true,
@@ -6756,9 +6779,9 @@
       "maker": "liquid",
       "displayName": "D1",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.02,
         "outputPer1M": 0,
-        "cachedInputPer1M": 0.04
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": false,
@@ -6790,7 +6813,8 @@
       },
       "contextWindow": 262144,
       "maxTokens": 235929,
-      "wireId": "perplexity/pplx-decider-v1-27b"
+      "wireId": "perplexity/pplx-decider-v1-27b",
+      "hidden": true
     },
     {
       "id": "openrouter/clef-flash",
@@ -6809,7 +6833,7 @@
         "reasoning": false,
         "decision": true
       },
-      "contextWindow": 65536,
+      "contextWindow": 24576,
       "maxTokens": 14745,
       "wireId": "cloudflare/clef-flash"
     },
@@ -7201,6 +7225,72 @@
       "contextWindow": 131072,
       "maxTokens": 117964,
       "wireId": "nace-ai/drex-v2.0"
+    },
+    {
+      "id": "openrouter/hy-image-v3.5-preview",
+      "provider": "openrouter",
+      "family": "hy-image-v3.5-preview",
+      "maker": "tencent",
+      "displayName": "Hy Image 3.5 Preview",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 1.6
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 100000,
+      "maxTokens": 90000,
+      "wireId": "tencent/hy-image-v3.5-preview"
+    },
+    {
+      "id": "openrouter/classify-1",
+      "provider": "openrouter",
+      "family": "classify-1",
+      "maker": "scaledown",
+      "displayName": "Classify-1",
+      "pricing": {
+        "inputPer1M": 0.04,
+        "outputPer1M": 0,
+        "discount": 0.2
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 900000,
+      "wireId": "scaledown/classify-1"
+    },
+    {
+      "id": "openrouter/gemini-4-argon",
+      "provider": "openrouter",
+      "family": "gemini-4-argon",
+      "maker": "google",
+      "displayName": "Gemini 4 Argon",
+      "pricing": {
+        "inputPer1M": 2,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.1,
+        "discount": 0.5
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 32768,
+      "wireId": "google/gemini-4-argon"
     }
   ]
 }

@@ -83,5 +83,8 @@
   },
   {
     "family": "gemini-3.5-transcribe"
+  },
+  {
+    "family": "gemini-4-argon"
   }
 ]
