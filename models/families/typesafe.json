@@ -12,8 +12,25 @@
       "reasoning": false,
       "decision": true
     },
-    "contextWindow": 64000,
-    "maxTokens": 57600,
+    "contextWindow": 262144,
+    "maxTokens": 235929,
     "note": "OpenRouter's decisions catalog and endpoint list, verified 2026-09-24; input-only pricing, typed decisions via /api/alpha/decisions."
+  },
+  "jev-1.14": {
+    "displayName": "Jev 1.14",
+    "pricing": {
+      "inputPer1M": 0.04,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 235929,
+    "note": "Added automatically on 2026-10-15 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   }
 }
