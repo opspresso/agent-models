@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-15T00:12:37.917Z",
+  "updatedAt": "2026-10-15T23:59:36.106Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2348,9 +2348,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.1,
-        "outputPer1M": 4.8,
-        "cachedInputPer1M": 0.1
+        "inputPer1M": 0.7,
+        "outputPer1M": 10,
+        "cachedInputPer1M": 0.69
       },
       "capabilities": {
         "tools": true,
@@ -2712,9 +2712,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.13,
-        "outputPer1M": 0.53,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.33,
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -3925,8 +3925,7 @@
       },
       "contextWindow": 200000,
       "maxTokens": 64000,
-      "wireId": "anthropic/claude-sonnet-4",
-      "hidden": true
+      "wireId": "anthropic/claude-sonnet-4"
     },
     {
       "id": "openrouter/gemini-2.5-pro-preview-05-06",
@@ -4868,7 +4867,7 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.48,
+        "inputPer1M": 0.41,
         "outputPer1M": 15,
         "cachedInputPer1M": 0.28
       },
@@ -4976,8 +4975,8 @@
       "maker": "tencent",
       "displayName": "Hy4 preview",
       "pricing": {
-        "inputPer1M": 0.83,
-        "outputPer1M": 2.5,
+        "inputPer1M": 0.75,
+        "outputPer1M": 2.25,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -5417,8 +5416,8 @@
       "maker": "google",
       "displayName": "Gemini 3.8 Flash",
       "pricing": {
-        "inputPer1M": 0.75,
-        "outputPer1M": 3.75,
+        "inputPer1M": 0.83,
+        "outputPer1M": 4.13,
         "cachedInputPer1M": 0.08,
         "discount": 0.5
       },
@@ -6160,8 +6159,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.02,
-        "outputPer1M": 0.89,
+        "inputPer1M": 0.01,
+        "outputPer1M": 0.72,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -7105,7 +7104,7 @@
       "pricing": {
         "inputPer1M": 1,
         "outputPer1M": 2.7,
-        "cachedInputPer1M": 0.05
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -7113,7 +7112,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 1048576,
       "maxTokens": 64000,
       "wireId": "stepfun/step-5-preview"
     },
