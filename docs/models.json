@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-14T00:46:44.533Z",
+  "updatedAt": "2026-10-15T00:12:37.917Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2348,9 +2348,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3",
       "pricing": {
-        "inputPer1M": 0.07,
+        "inputPer1M": 0.1,
         "outputPer1M": 4.8,
-        "cachedInputPer1M": 0.05
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -2648,10 +2648,9 @@
       "maker": "openai",
       "displayName": "GPT-5.6 Sol Pro",
       "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.2,
-        "discount": 0.5
+        "inputPer1M": 4,
+        "outputPer1M": 20,
+        "cachedInputPer1M": 0.4
       },
       "capabilities": {
         "tools": true,
@@ -2670,10 +2669,9 @@
       "maker": "openai",
       "displayName": "GPT-5.6 Sol",
       "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.2,
-        "discount": 0.5
+        "inputPer1M": 4,
+        "outputPer1M": 20,
+        "cachedInputPer1M": 0.4
       },
       "capabilities": {
         "tools": true,
@@ -2756,9 +2754,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.05,
+        "inputPer1M": 0.04,
         "outputPer1M": 7,
-        "cachedInputPer1M": 0.05
+        "cachedInputPer1M": 0.04
       },
       "capabilities": {
         "tools": true,
@@ -3182,9 +3180,9 @@
       "maker": "google",
       "displayName": "Gemma 4 31B",
       "pricing": {
-        "inputPer1M": 0.09,
-        "outputPer1M": 0.34,
-        "cachedInputPer1M": 0.05
+        "inputPer1M": 0.2,
+        "outputPer1M": 0.4,
+        "cachedInputPer1M": 0.1
       },
       "capabilities": {
         "tools": true,
@@ -4870,9 +4868,9 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.73,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.55
+        "inputPer1M": 0.48,
+        "outputPer1M": 15,
+        "cachedInputPer1M": 0.28
       },
       "capabilities": {
         "tools": true,
@@ -4935,9 +4933,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.9,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4946,7 +4944,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6162,9 +6160,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 0.6,
-        "cachedInputPer1M": 0.003
+        "inputPer1M": 0.02,
+        "outputPer1M": 0.89,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -6173,7 +6171,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 393216,
+      "maxTokens": 943718,
       "wireId": "deepseek/deepseek-v4.1-flash"
     },
     {
@@ -6491,8 +6489,8 @@
         "reasoning": false,
         "decision": true
       },
-      "contextWindow": 64000,
-      "maxTokens": 57600,
+      "contextWindow": 262144,
+      "maxTokens": 235929,
       "wireId": "typesafe/jev-1.13"
     },
     {
@@ -6952,9 +6950,9 @@
       "maker": "qwen",
       "displayName": "Qwen3.8 27B",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 2.3,
-        "cachedInputPer1M": 0.02
+        "inputPer1M": 0.24,
+        "outputPer1M": 2.2,
+        "cachedInputPer1M": 0.05
       },
       "capabilities": {
         "tools": true,
@@ -7291,6 +7289,27 @@
       "contextWindow": 1048576,
       "maxTokens": 32768,
       "wireId": "google/gemini-4-argon"
+    },
+    {
+      "id": "openrouter/jev-1.14",
+      "provider": "openrouter",
+      "family": "jev-1.14",
+      "maker": "typesafe",
+      "displayName": "Jev 1.14",
+      "pricing": {
+        "inputPer1M": 0.04,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 235929,
+      "wireId": "typesafe/jev-1.14"
     }
   ]
 }

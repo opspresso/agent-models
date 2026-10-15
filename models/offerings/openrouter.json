@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 7,
-    "lastRankMissingAt": "2026-10-14"
+    "rankMissingObservations": 8,
+    "lastRankMissingAt": "2026-10-15"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,18 +81,12 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 7,
-    "lastRankMissingAt": "2026-10-14"
+    "rankMissingObservations": 8,
+    "lastRankMissingAt": "2026-10-15"
   },
   {
     "family": "gpt-5.6-sol",
-    "wireId": "openai/gpt-5.6-sol",
-    "pricing": {
-      "inputPer1M": 2,
-      "outputPer1M": 10,
-      "cachedInputPer1M": 0.2,
-      "discount": 0.5
-    }
+    "wireId": "openai/gpt-5.6-sol"
   },
   {
     "family": "grok-4.5",
@@ -120,7 +114,10 @@
   },
   {
     "family": "step-3.7-flash",
-    "wireId": "stepfun/step-3.7-flash"
+    "wireId": "stepfun/step-3.7-flash",
+    "rankMissingSince": "2026-10-15",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-10-15"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -212,9 +209,8 @@
     "family": "gemma-4-31b-it",
     "wireId": "google/gemma-4-31b-it",
     "pricing": {
-      "inputPer1M": 0.09,
-      "outputPer1M": 0.34,
-      "cachedInputPer1M": 0.05
+      "inputPer1M": 0.2,
+      "outputPer1M": 0.4
     }
   },
   {
@@ -632,8 +628,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 16,
-    "lastRankMissingAt": "2026-10-14"
+    "rankMissingObservations": 17,
+    "lastRankMissingAt": "2026-10-15"
   },
   {
     "family": "gpt-5-image-mini",
@@ -801,8 +797,8 @@
     "family": "qwen3-asr-flash-2026-02-10",
     "wireId": "qwen/qwen3-asr-flash-2026-02-10",
     "missingSince": "2026-10-10",
-    "missingObservations": 5,
-    "lastMissingAt": "2026-10-14"
+    "missingObservations": 6,
+    "lastMissingAt": "2026-10-15"
   },
   {
     "family": "voxtral-mini-transcribe",
@@ -921,8 +917,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 9,
-    "lastRankMissingAt": "2026-10-14"
+    "rankMissingObservations": 10,
+    "lastRankMissingAt": "2026-10-15"
   },
   {
     "family": "qwen3.7-flash",
@@ -1120,5 +1116,9 @@
   {
     "family": "gemini-4-argon",
     "wireId": "google/gemini-4-argon"
+  },
+  {
+    "family": "jev-1.14",
+    "wireId": "typesafe/jev-1.14"
   }
 ]
