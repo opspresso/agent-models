@@ -158,8 +158,9 @@ hidden for **30 days**, the workflow creates or updates one draft deletion PR. T
 accumulates an exact `{ id, reason, requestedAt }` entry in `models/removals.json` for each
 route, requests its reviewer when first opened (`removals.json`'s code owner) and is not
 auto-merged. Removals are checked twice: the update workflow refuses to commit one at all,
-and CI rejects, on pull requests, a removal that no entry requests. A push straight to
-`main` skips only that removal check — the type check, tests and `build:check` still run.
+and CI rejects a push to `main` that removes a model no entry requests. CI runs once per change,
+when it reaches `main` (pull requests do not start it; dispatch it by hand when a branch needs a
+hosted check). After CI passes, it asks agent-studio's GitLab sync to mirror the repository.
 
 Numbers come from a published source, not from memory: OpenRouter's `/api/v1/models`,
 `/api/v1/embeddings/models`, modality-filtered model catalogs and public model pages,

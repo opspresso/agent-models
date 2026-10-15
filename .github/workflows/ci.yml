@@ -3,10 +3,12 @@ name: CI
 # The registry is data, and the catalog is derived from it: the only way a
 # change here breaks is a source file that fails validation or a committed
 # `docs/models.json` that no longer matches its sources. Both are caught here.
+# It runs once per change, when the change reaches main and publishes the catalog. Pull requests do
+# not start it; run it by hand (workflow_dispatch) when a branch needs a hosted check.
 on:
   push:
     branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -42,8 +44,19 @@ jobs:
       - name: Catalog is built from its sources
         run: pnpm build:check
 
-      - name: Pull request removals are explicitly requested
-        if: github.event_name == 'pull_request'
+      - name: Removals in this push are explicitly requested
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
         env:
-          REMOVAL_BASE: ${{ format('origin/{0}', github.base_ref) }}
+          REMOVAL_BASE: ${{ github.event.before }}
         run: node scripts/check-removals.ts "$REMOVAL_BASE" --pull-request
+
+  sync-gitlab:
+    # agent-studio's Sync to GitLab mirrors this repository; it no longer polls for changes.
+    needs: verify
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request the GitLab sync
+        env:
+          GH_TOKEN: ${{ secrets.GHP_TOKEN }}
+        run: gh api repos/opspresso/agent-studio/dispatches -f event_type=sync-gitlab

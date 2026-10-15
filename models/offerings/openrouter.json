@@ -386,9 +386,9 @@
   {
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
-    "hidden": true,
-    "hiddenReason": "ranking",
-    "hiddenAt": "2026-10-03"
+    "missingSince": "2026-10-15",
+    "missingObservations": 1,
+    "lastMissingAt": "2026-10-15"
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -715,8 +715,8 @@
     "family": "gemini-3.8-flash",
     "wireId": "google/gemini-3.8-flash",
     "pricing": {
-      "inputPer1M": 0.75,
-      "outputPer1M": 3.75,
+      "inputPer1M": 0.83,
+      "outputPer1M": 4.13,
       "cachedInputPer1M": 0.08,
       "discount": 0.5
     }
