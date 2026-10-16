@@ -383,3 +383,10 @@ pnpm test
 
 Node 24+, pnpm 11. The scripts are TypeScript run by Node directly; nothing is installed to
 run them — `typescript` and `@types/node` are dev dependencies for the type check alone.
+
+## CI runner
+
+일반 검증은 `[self-hosted, macOS, ARM64]`에서 실행합니다. 자동 모델·아이콘 갱신은
+GitHub-hosted `ubuntu-24.04` AMD64에서 결과를 생성하고, 원본 commit과 변경 patch를 artifact로
+전달해 ARM runner에서 검증합니다. 게시 job은 같은 commit과 patch를 복원하며 검증 성공 후에만
+PR을 병합합니다. 기존 `main` push·수동 실행·예약 실행 조건을 유지하며 PR 자체는 CI를 시작하지 않습니다.

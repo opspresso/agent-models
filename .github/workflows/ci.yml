@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -23,14 +23,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 11.10.0
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false
+
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -54,7 +57,7 @@ jobs:
     # agent-studio's Sync to GitLab mirrors this repository; it no longer polls for changes.
     needs: verify
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
     steps:
       - name: Request the GitLab sync
         env:

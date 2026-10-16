@@ -15,8 +15,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-24.04
+    outputs:
+      base_sha: ${{ steps.candidate.outputs.base_sha }}
+      count: ${{ steps.icons.outputs.count }}
+      source_sha: ${{ steps.icons.outputs.source_sha }}
     timeout-minutes: 15
     env:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -32,14 +36,17 @@ jobs:
           git fetch origin main
           git merge --ff-only origin/main
 
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 11.10.0
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false
+
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -54,20 +61,98 @@ jobs:
         if: steps.icons.outputs.count != '0'
         run: pnpm build
 
-      - name: Verify the registry and generated files
-        if: steps.icons.outputs.count != '0'
+      - name: Save the generated candidate for ARM verification
+        id: candidate
+        run: |
+          mkdir -p "$RUNNER_TEMP/catalog-candidate"
+          git add -- models docs
+          git diff --cached --binary > "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          echo "base_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+          retention-days: 1
+          if-no-files-found: error
+
+  verify:
+    needs: build
+    permissions:
+      contents: read
+    if: needs.build.outputs.count != '0'
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.build.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+      - name: Restore the exact generated candidate
+        run: |
+          if [ -s "$RUNNER_TEMP/catalog-candidate/candidate.patch" ]; then
+            git apply --index "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          fi
+      - name: Verify the generated catalog
         run: |
           pnpm typecheck
           pnpm test
           pnpm build:check
           node scripts/check-removals.ts HEAD
-          git diff --exit-code -- docs/models.json
+          git diff --cached --exit-code -- docs/models.json
 
+  publish:
+    needs: [build, verify]
+    if: needs.build.outputs.count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.build.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+      - name: Restore the exact generated candidate
+        run: |
+          if [ -s "$RUNNER_TEMP/catalog-candidate/candidate.patch" ]; then
+            git apply --index "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          fi
       - name: Merge new icons through a pull request
-        if: steps.icons.outputs.count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE_SHA: ${{ steps.icons.outputs.source_sha }}
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
         run: |
           if [ -z "$(git status --porcelain -- docs/icons/brands)" ]; then
             echo "nothing changed"

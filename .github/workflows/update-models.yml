@@ -36,8 +36,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  update:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-24.04
+    outputs:
+      base_sha: ${{ steps.candidate.outputs.base_sha }}
+      update_outcome: ${{ steps.update.outcome }}
+      report_exists: ${{ steps.candidate.outputs.report_exists }}
     timeout-minutes: 20
     env:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -53,14 +57,17 @@ jobs:
           git fetch origin main
           git merge --ff-only origin/main
 
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 11.10.0
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
+          package-manager-cache: false
+
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -94,14 +101,101 @@ jobs:
       - name: Build the catalog
         run: pnpm build
 
-      - name: Tests
+      - name: Save the generated candidate for ARM verification
+        if: always()
+        id: candidate
+        run: |
+          mkdir -p "$RUNNER_TEMP/catalog-candidate"
+          git add -- models docs
+          git diff --cached --binary > "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          echo "base_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if [ -f update-report.json ]; then
+            cp update-report.json "$RUNNER_TEMP/catalog-candidate/"
+            echo "report_exists=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+          retention-days: 1
+          if-no-files-found: error
+
+  verify:
+    needs: build
+    permissions:
+      contents: read
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.build.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+      - name: Restore the exact generated candidate
+        run: |
+          if [ -s "$RUNNER_TEMP/catalog-candidate/candidate.patch" ]; then
+            git apply --index "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          fi
+      - name: Verify the generated catalog
         run: |
           pnpm typecheck
           pnpm test
           pnpm build:check
           node scripts/check-removals.ts HEAD
 
+  publish:
+    needs: [build, verify]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.build.outputs.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+      - name: Restore the exact generated candidate
+        run: |
+          if [ -s "$RUNNER_TEMP/catalog-candidate/candidate.patch" ]; then
+            git apply --index "$RUNNER_TEMP/catalog-candidate/candidate.patch"
+          fi
+      - run: cp "$RUNNER_TEMP/catalog-candidate/update-report.json" update-report.json
       - name: Merge routine updates through a pull request
+        if: needs.verify.result == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -127,6 +221,7 @@ jobs:
           gh pr merge "$pr_url" --squash --delete-branch
 
       - name: Create or update the draft pull request for model removals
+        if: needs.verify.result == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -184,16 +279,47 @@ jobs:
           fi
           echo "Model removal review: $removal_pr" >> "$GITHUB_STEP_SUMMARY"
 
-      # After the attempted update, so failures are reported too.
-      - name: Notify
-        if: always()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm notify
-
       - name: Fail when the update did not complete safely
-        if: always() && steps.update.outcome == 'failure'
+        if: always() && (needs.build.outputs.update_outcome == 'failure' || needs.verify.result != 'success')
         run: |
           echo "::error::the model update did not complete safely — see the job summary"
           exit 1
+
+  notify:
+    needs: [build, verify, publish]
+    if: always() && needs.build.outputs.report_exists == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    env:
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.build.outputs.base_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/npm-cache
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+          version: 11.10.0
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-candidate
+          path: ${{ runner.temp }}/catalog-candidate
+      # Preserve failure notifications without publishing an unverified candidate.
+      - name: Notify
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp "$RUNNER_TEMP/catalog-candidate/update-report.json" update-report.json
+          pnpm notify
