@@ -383,3 +383,8 @@ pnpm test
 
 Node 24+, pnpm 11. The scripts are TypeScript run by Node directly; nothing is installed to
 run them — `typescript` and `@types/node` are dev dependencies for the type check alone.
+
+## CI runner
+
+공개 저장소의 workflow는 GitHub-hosted `ubuntu-latest`를 사용합니다. main 검증이 통과하면 같은 job에서
+Agent Studio에 GitLab sync를 요청합니다. PR 자체는 CI를 시작하지 않습니다.
