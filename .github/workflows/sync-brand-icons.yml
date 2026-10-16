@@ -163,7 +163,7 @@ jobs:
           branch="automation/brand-icons-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git switch -c "$branch"
           git add docs/icons/brands
-          git commit -m "chore: sync Lobe brand icons $(date -u +%F)"
+          git commit -m "chore: sync Lobe brand icons $(date -u +%F)" -- docs/icons/brands
           gh auth setup-git
           git push origin "$branch"
           pr_url=$(gh pr create \
