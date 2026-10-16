@@ -49,14 +49,8 @@ jobs:
         env:
           REMOVAL_BASE: ${{ github.event.before }}
         run: node scripts/check-removals.ts "$REMOVAL_BASE" --pull-request
-
-  sync-gitlab:
-    # agent-studio's Sync to GitLab mirrors this repository; it no longer polls for changes.
-    needs: verify
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
       - name: Request the GitLab sync
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GHP_TOKEN }}
         run: gh api repos/opspresso/agent-studio/dispatches -f event_type=sync-gitlab
