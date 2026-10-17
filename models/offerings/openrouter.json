@@ -329,9 +329,9 @@
     "family": "deepseek-v3.2",
     "wireId": "deepseek/deepseek-v3.2",
     "pricing": {
-      "inputPer1M": 0.26,
-      "outputPer1M": 0.8,
-      "cachedInputPer1M": 0.14
+      "inputPer1M": 0.28,
+      "outputPer1M": 0.42,
+      "cachedInputPer1M": 0.03
     }
   },
   {
@@ -609,7 +609,10 @@
   },
   {
     "family": "mai-image-2.5",
-    "wireId": "microsoft/mai-image-2.5"
+    "wireId": "microsoft/mai-image-2.5",
+    "rankMissingSince": "2026-10-17",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "flux.2-klein-4b",
@@ -1071,7 +1074,10 @@
   },
   {
     "family": "pplx-decider-v1.1-27b",
-    "wireId": "perplexity/pplx-decider-v1.1-27b"
+    "wireId": "perplexity/pplx-decider-v1.1-27b",
+    "missingSince": "2026-10-17",
+    "missingObservations": 1,
+    "lastMissingAt": "2026-10-17"
   },
   {
     "family": "claude-haiku-5.5",
@@ -1140,5 +1146,9 @@
   {
     "family": "d1-ultra",
     "wireId": "liquid/d1-ultra"
+  },
+  {
+    "family": "qwen3.6-35b-a3b",
+    "wireId": "qwen/qwen3.6-35b-a3b"
   }
 ]
