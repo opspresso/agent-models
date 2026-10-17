@@ -1,0 +1,19 @@
+{
+  "span-02": {
+    "displayName": "Span-02",
+    "pricing": {
+      "inputPer1M": 0.01,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": true,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 131072,
+    "maxTokens": 117964,
+    "note": "Added automatically on 2026-10-17 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  }
+}

@@ -154,5 +154,9 @@
   "scaledown": {
     "displayName": "ScaleDown",
     "openrouterVendor": "scaledown"
+  },
+  "respan": {
+    "displayName": "Respan",
+    "openrouterVendor": "respan"
   }
 }
