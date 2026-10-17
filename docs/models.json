@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T00:05:53.365Z",
+  "updatedAt": "2026-10-17T23:40:44.157Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2350,7 +2350,7 @@
       "displayName": "GLM 5.3",
       "pricing": {
         "inputPer1M": 0.08,
-        "outputPer1M": 4.8,
+        "outputPer1M": 3.2,
         "cachedInputPer1M": 0.08
       },
       "capabilities": {
@@ -2669,9 +2669,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.13,
-        "outputPer1M": 0.53,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.33,
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -2964,10 +2964,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.25,
-        "outputPer1M": 0.49,
+        "inputPer1M": 0.21,
+        "outputPer1M": 0.42,
         "cachedInputPer1M": 0.02,
-        "discount": 0.8583
+        "discount": 0.88
       },
       "capabilities": {
         "tools": true,
@@ -3509,9 +3509,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V3.2",
       "pricing": {
-        "inputPer1M": 0.26,
-        "outputPer1M": 0.8,
-        "cachedInputPer1M": 0.14
+        "inputPer1M": 0.28,
+        "outputPer1M": 0.42,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4845,8 +4845,8 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.5,
+        "inputPer1M": 0.05,
+        "outputPer1M": 0.2,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -4856,7 +4856,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -4888,8 +4888,8 @@
       "maker": "tencent",
       "displayName": "Hy4 preview",
       "pricing": {
-        "inputPer1M": 0.83,
-        "outputPer1M": 2.5,
+        "inputPer1M": 0.75,
+        "outputPer1M": 2.25,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -6073,9 +6073,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.7,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.06,
+        "outputPer1M": 0.14,
+        "cachedInputPer1M": 0.0016
       },
       "capabilities": {
         "tools": true,
@@ -7308,6 +7308,27 @@
       "contextWindow": 32768,
       "maxTokens": 29491,
       "wireId": "liquid/d1-ultra"
+    },
+    {
+      "id": "openrouter/qwen3.6-35b-a3b",
+      "provider": "openrouter",
+      "family": "qwen3.6-35b-a3b",
+      "maker": "qwen",
+      "displayName": "Qwen3.6 35B A3B",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 1,
+        "cachedInputPer1M": 0.05
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 235929,
+      "wireId": "qwen/qwen3.6-35b-a3b"
     }
   ]
 }
