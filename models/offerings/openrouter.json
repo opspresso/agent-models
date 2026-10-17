@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 8,
-    "lastRankMissingAt": "2026-10-15"
+    "rankMissingObservations": 9,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,8 +81,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 8,
-    "lastRankMissingAt": "2026-10-15"
+    "rankMissingObservations": 9,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "gpt-5.6-sol",
@@ -116,8 +116,8 @@
     "family": "step-3.7-flash",
     "wireId": "stepfun/step-3.7-flash",
     "rankMissingSince": "2026-10-15",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-15"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -199,10 +199,10 @@
     "family": "gemma-4-26b-a4b-it",
     "wireId": "google/gemma-4-26b-a4b-it",
     "pricing": {
-      "inputPer1M": 0.08,
-      "outputPer1M": 0.26,
+      "inputPer1M": 0.07,
+      "outputPer1M": 0.23,
       "cachedInputPer1M": 0.04,
-      "discount": 0.15
+      "discount": 0.25
     }
   },
   {
@@ -215,7 +215,10 @@
   },
   {
     "family": "minimax-m2.7",
-    "wireId": "minimax/minimax-m2.7"
+    "wireId": "minimax/minimax-m2.7",
+    "rankMissingSince": "2026-10-17",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "gpt-5.4-nano",
@@ -419,8 +422,8 @@
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
     "missingSince": "2026-10-15",
-    "missingObservations": 1,
-    "lastMissingAt": "2026-10-15"
+    "missingObservations": 2,
+    "lastMissingAt": "2026-10-17"
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -628,8 +631,8 @@
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 17,
-    "lastRankMissingAt": "2026-10-15"
+    "rankMissingObservations": 18,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "gpt-5-image-mini",
@@ -796,9 +799,10 @@
   {
     "family": "qwen3-asr-flash-2026-02-10",
     "wireId": "qwen/qwen3-asr-flash-2026-02-10",
-    "missingSince": "2026-10-10",
-    "missingObservations": 6,
-    "lastMissingAt": "2026-10-15"
+    "hidden": true,
+    "hiddenReason": "catalog",
+    "hiddenAt": "2026-10-17",
+    "note": "Hidden automatically on 2026-10-17: absent from OpenRouter's catalog since 2026-10-10."
   },
   {
     "family": "voxtral-mini-transcribe",
@@ -917,8 +921,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 10,
-    "lastRankMissingAt": "2026-10-15"
+    "rankMissingObservations": 11,
+    "lastRankMissingAt": "2026-10-17"
   },
   {
     "family": "qwen3.7-flash",
@@ -1120,5 +1124,21 @@
   {
     "family": "jev-1.14",
     "wireId": "typesafe/jev-1.14"
+  },
+  {
+    "family": "pplx-decider-flash-v1.2",
+    "wireId": "perplexity/pplx-decider-flash-v1.2"
+  },
+  {
+    "family": "pplx-decider-v1.2",
+    "wireId": "perplexity/pplx-decider-v1.2"
+  },
+  {
+    "family": "span-02",
+    "wireId": "respan/span-02"
+  },
+  {
+    "family": "d1-ultra",
+    "wireId": "liquid/d1-ultra"
   }
 ]
