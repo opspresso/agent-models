@@ -2,7 +2,7 @@
   "clef-flash": {
     "displayName": "Clef Flash",
     "pricing": {
-      "inputPer1M": 0.02,
+      "inputPer1M": 0.04,
       "outputPer1M": 0
     },
     "capabilities": {
@@ -13,7 +13,7 @@
       "decision": true
     },
     "contextWindow": 24576,
-    "maxTokens": 14745,
+    "maxTokens": 22118,
     "note": "Added automatically on 2026-10-04 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   },
   "clef": {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-17T23:40:30.939Z",
+  "updatedAt": "2026-10-18T23:49:45.874Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2350,7 +2350,7 @@
       "displayName": "GLM 5.3",
       "pricing": {
         "inputPer1M": 0.08,
-        "outputPer1M": 3.2,
+        "outputPer1M": 1.4,
         "cachedInputPer1M": 0.08
       },
       "capabilities": {
@@ -4147,7 +4147,7 @@
       "displayName": "Gemma 3 27B",
       "pricing": {
         "inputPer1M": 0.08,
-        "outputPer1M": 0.45,
+        "outputPer1M": 0.35,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -4868,7 +4868,7 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.3,
+        "inputPer1M": 0.25,
         "outputPer1M": 11.94,
         "cachedInputPer1M": 0.21
       },
@@ -6162,7 +6162,7 @@
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
         "inputPer1M": 0.06,
-        "outputPer1M": 0.14,
+        "outputPer1M": 0.12,
         "cachedInputPer1M": 0.0016
       },
       "capabilities": {
@@ -6822,7 +6822,7 @@
       "maker": "cloudflare",
       "displayName": "Clef Flash",
       "pricing": {
-        "inputPer1M": 0.02,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6833,7 +6833,7 @@
         "decision": true
       },
       "contextWindow": 24576,
-      "maxTokens": 14745,
+      "maxTokens": 22118,
       "wireId": "cloudflare/clef-flash"
     },
     {

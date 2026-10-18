@@ -406,7 +406,7 @@
     "displayName": "Gemma 3 27B",
     "pricing": {
       "inputPer1M": 0.08,
-      "outputPer1M": 0.45,
+      "outputPer1M": 0.35,
       "cachedInputPer1M": 0.04
     },
     "capabilities": {
