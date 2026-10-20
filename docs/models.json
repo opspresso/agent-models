@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-18T23:49:58.799Z",
+  "updatedAt": "2026-10-20T00:51:30.133Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2434,10 +2434,10 @@
       "maker": "upstage",
       "displayName": "Solar Pro 4",
       "pricing": {
-        "inputPer1M": 0.09,
-        "outputPer1M": 0.36,
-        "cachedInputPer1M": 0.02,
-        "discount": 0.7
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.03,
+        "discount": 0.5
       },
       "capabilities": {
         "tools": true,
@@ -2669,9 +2669,9 @@
       "maker": "tencent",
       "displayName": "Hy3",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.33,
-        "cachedInputPer1M": 0.02
+        "inputPer1M": 0.13,
+        "outputPer1M": 0.53,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -2964,10 +2964,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.21,
-        "outputPer1M": 0.42,
-        "cachedInputPer1M": 0.02,
-        "discount": 0.88
+        "inputPer1M": 0.96,
+        "outputPer1M": 1.91,
+        "cachedInputPer1M": 0.08,
+        "discount": 0.451
       },
       "capabilities": {
         "tools": true,
@@ -3071,10 +3071,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.07,
-        "outputPer1M": 0.23,
+        "inputPer1M": 0.08,
+        "outputPer1M": 0.26,
         "cachedInputPer1M": 0.04,
-        "discount": 0.25
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -4780,7 +4780,7 @@
       "maker": "moonshot",
       "displayName": "Kimi K3",
       "pricing": {
-        "inputPer1M": 0.25,
+        "inputPer1M": 0.24,
         "outputPer1M": 11.94,
         "cachedInputPer1M": 0.21
       },
@@ -4846,7 +4846,7 @@
       "displayName": "GLM 5.3 Flash",
       "pricing": {
         "inputPer1M": 0.05,
-        "outputPer1M": 0.2,
+        "outputPer1M": 0.16,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -4888,8 +4888,8 @@
       "maker": "tencent",
       "displayName": "Hy4 preview",
       "pricing": {
-        "inputPer1M": 0.75,
-        "outputPer1M": 2.25,
+        "inputPer1M": 0.83,
+        "outputPer1M": 2.5,
         "cachedInputPer1M": 0.04
       },
       "capabilities": {
@@ -6073,8 +6073,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.12,
+        "inputPer1M": 0.04,
+        "outputPer1M": 0.01,
         "cachedInputPer1M": 0.0016
       },
       "capabilities": {
@@ -6755,7 +6755,7 @@
       "maker": "cloudflare",
       "displayName": "Clef",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.24,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6765,8 +6765,8 @@
         "reasoning": false,
         "decision": true
       },
-      "contextWindow": 65536,
-      "maxTokens": 14745,
+      "contextWindow": 65537,
+      "maxTokens": 58982,
       "wireId": "cloudflare/clef"
     },
     {
@@ -6973,8 +6973,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.00183333,
-        "discount": 0.5
+        "perAudioMinute": 0.00366667
       },
       "capabilities": {
         "tools": false,
@@ -7102,8 +7101,7 @@
       "pricing": {
         "inputPer1M": 0,
         "outputPer1M": 0,
-        "perAudioMinute": 0.00183333,
-        "discount": 0.5
+        "perAudioMinute": 0.00366667
       },
       "capabilities": {
         "tools": false,
@@ -7329,6 +7327,27 @@
       "contextWindow": 262144,
       "maxTokens": 235929,
       "wireId": "qwen/qwen3.6-35b-a3b"
+    },
+    {
+      "id": "openrouter/nemotron-3.5-super-vl",
+      "provider": "openrouter",
+      "family": "nemotron-3.5-super-vl",
+      "maker": "nvidia",
+      "displayName": "Nemotron 3.5 Super VL",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": true,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1048576,
+      "maxTokens": 235929,
+      "wireId": "nvidia/nemotron-3.5-super-vl"
     }
   ]
 }

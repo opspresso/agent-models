@@ -100,5 +100,22 @@
     "contextWindow": 0,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-03 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "nemotron-3.5-super-vl": {
+    "displayName": "Nemotron 3.5 Super VL",
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.5,
+      "cachedInputPer1M": 0.02
+    },
+    "capabilities": {
+      "tools": true,
+      "structuredOutput": true,
+      "imageInput": true,
+      "reasoning": true
+    },
+    "contextWindow": 1048576,
+    "maxTokens": 235929,
+    "note": "Added automatically on 2026-10-20 from OpenRouter's catalog (listed 2026-10-15); numbers and flags are OpenRouter's."
   }
 }
