@@ -72,8 +72,8 @@
   "deepseek-v4.1-flash": {
     "displayName": "DeepSeek V4.1 Flash",
     "pricing": {
-      "inputPer1M": 0.04,
-      "outputPer1M": 0.01,
+      "inputPer1M": 0.06,
+      "outputPer1M": 0.12,
       "cachedInputPer1M": 0.0016
     },
     "capabilities": {

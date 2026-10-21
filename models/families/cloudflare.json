@@ -19,7 +19,7 @@
   "clef": {
     "displayName": "Clef",
     "pricing": {
-      "inputPer1M": 0.24,
+      "inputPer1M": 0.04,
       "outputPer1M": 0
     },
     "capabilities": {
@@ -30,7 +30,7 @@
       "decision": true
     },
     "contextWindow": 65537,
-    "maxTokens": 58982,
+    "maxTokens": 14745,
     "note": "Added automatically on 2026-10-04 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   },
   "clef-omni": {

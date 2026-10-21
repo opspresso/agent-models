@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 11,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 12,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,8 +81,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 11,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 12,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "gpt-5.6-sol",
@@ -116,8 +116,8 @@
     "family": "step-3.7-flash",
     "wireId": "stepfun/step-3.7-flash",
     "rankMissingSince": "2026-10-15",
-    "rankMissingObservations": 4,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 5,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -419,8 +419,8 @@
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
     "missingSince": "2026-10-15",
-    "missingObservations": 4,
-    "lastMissingAt": "2026-10-20"
+    "missingObservations": 5,
+    "lastMissingAt": "2026-10-21"
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -489,8 +489,8 @@
     "family": "gemma-3-27b-it",
     "wireId": "google/gemma-3-27b-it",
     "rankMissingSince": "2026-10-20",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "o3-mini-high",
@@ -611,8 +611,8 @@
     "family": "mai-image-2.5",
     "wireId": "microsoft/mai-image-2.5",
     "rankMissingSince": "2026-10-17",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 4,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "flux.2-klein-4b",
@@ -630,15 +630,15 @@
     "family": "krea-2-medium",
     "wireId": "krea/krea-2-medium",
     "rankMissingSince": "2026-10-20",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 20,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 21,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "gpt-5-image-mini",
@@ -646,10 +646,7 @@
   },
   {
     "family": "krea-2-medium-turbo",
-    "wireId": "krea/krea-2-medium-turbo",
-    "rankMissingSince": "2026-10-20",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-20"
+    "wireId": "krea/krea-2-medium-turbo"
   },
   {
     "family": "kimi-k3",
@@ -930,8 +927,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 13,
-    "lastRankMissingAt": "2026-10-20"
+    "rankMissingObservations": 14,
+    "lastRankMissingAt": "2026-10-21"
   },
   {
     "family": "qwen3.7-flash",
@@ -1082,8 +1079,8 @@
     "family": "pplx-decider-v1.1-27b",
     "wireId": "perplexity/pplx-decider-v1.1-27b",
     "missingSince": "2026-10-17",
-    "missingObservations": 3,
-    "lastMissingAt": "2026-10-20"
+    "missingObservations": 4,
+    "lastMissingAt": "2026-10-21"
   },
   {
     "family": "claude-haiku-5.5",
@@ -1160,5 +1157,9 @@
   {
     "family": "nemotron-3.5-super-vl",
     "wireId": "nvidia/nemotron-3.5-super-vl"
+  },
+  {
+    "family": "flux-3-image-klein",
+    "wireId": "black-forest-labs/flux-3-image-klein"
   }
 ]

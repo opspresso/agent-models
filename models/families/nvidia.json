@@ -35,8 +35,9 @@
   "nemotron-3-super-120b-a12b": {
     "displayName": "Nemotron 3 Super",
     "pricing": {
-      "inputPer1M": 0.08,
-      "outputPer1M": 0.45
+      "inputPer1M": 0.3,
+      "outputPer1M": 2.4,
+      "cachedInputPer1M": 0.15
     },
     "capabilities": {
       "tools": true,
