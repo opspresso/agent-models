@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-20T00:51:15.724Z",
+  "updatedAt": "2026-10-21T00:16:35.456Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -3265,8 +3265,9 @@
       "maker": "nvidia",
       "displayName": "Nemotron 3 Super",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.45
+        "inputPer1M": 0.3,
+        "outputPer1M": 2.4,
+        "cachedInputPer1M": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -4934,7 +4935,7 @@
       "displayName": "GLM 5.3 Flash",
       "pricing": {
         "inputPer1M": 0.05,
-        "outputPer1M": 0.16,
+        "outputPer1M": 0.12,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -6161,8 +6162,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.01,
+        "inputPer1M": 0.06,
+        "outputPer1M": 0.12,
         "cachedInputPer1M": 0.0016
       },
       "capabilities": {
@@ -6843,7 +6844,7 @@
       "maker": "cloudflare",
       "displayName": "Clef",
       "pricing": {
-        "inputPer1M": 0.24,
+        "inputPer1M": 0.04,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6854,7 +6855,7 @@
         "decision": true
       },
       "contextWindow": 65537,
-      "maxTokens": 58982,
+      "maxTokens": 14745,
       "wireId": "cloudflare/clef"
     },
     {
@@ -6951,9 +6952,9 @@
       "maker": "qwen",
       "displayName": "Qwen3.8 27B",
       "pricing": {
-        "inputPer1M": 0.24,
-        "outputPer1M": 2.2,
-        "cachedInputPer1M": 0.05
+        "inputPer1M": 0.04,
+        "outputPer1M": 1.35,
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -6962,7 +6963,7 @@
         "reasoning": true
       },
       "contextWindow": 1000000,
-      "maxTokens": 235929,
+      "maxTokens": 65536,
       "wireId": "qwen/qwen3.8-27b"
     },
     {
@@ -7402,8 +7403,8 @@
       "maker": "qwen",
       "displayName": "Qwen3.6 35B A3B",
       "pricing": {
-        "inputPer1M": 0.15,
-        "outputPer1M": 1,
+        "inputPer1M": 0.1,
+        "outputPer1M": 0.95,
         "cachedInputPer1M": 0.05
       },
       "capabilities": {
@@ -7436,6 +7437,28 @@
       "contextWindow": 1048576,
       "maxTokens": 235929,
       "wireId": "nvidia/nemotron-3.5-super-vl"
+    },
+    {
+      "id": "openrouter/flux-3-image-klein",
+      "provider": "openrouter",
+      "family": "flux-3-image-klein",
+      "maker": "black-forest-labs",
+      "displayName": "FLUX 3 Image Klein",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "imageOutputPer1M": 1.92
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": false,
+        "imageGeneration": true
+      },
+      "contextWindow": 46864,
+      "maxTokens": 42177,
+      "wireId": "black-forest-labs/flux-3-image-klein"
     }
   ]
 }
