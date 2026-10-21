@@ -160,7 +160,9 @@ route, requests its reviewer when first opened (`removals.json`'s code owner) an
 auto-merged. Removals are checked twice: the update workflow refuses to commit one at all,
 and CI rejects a push to `main` that removes a model no entry requests. CI runs once per change,
 when it reaches `main` (pull requests do not start it; dispatch it by hand when a branch needs a
-hosted check). After CI passes, it asks agent-studio's GitLab sync to mirror the repository.
+hosted check). The independent `sync-gitlab.yml` mirrors only this repository on `main` pushes.
+Automated model and icon merges explicitly dispatch that same workflow because `GITHUB_TOKEN`
+merges do not start push-triggered workflows. Mirroring does not publish or approve a release.
 
 Numbers come from a published source, not from memory: OpenRouter's `/api/v1/models`,
 `/api/v1/embeddings/models`, modality-filtered model catalogs and public model pages,
@@ -386,5 +388,9 @@ run them — `typescript` and `@types/node` are dev dependencies for the type ch
 
 ## CI runner
 
-공개 저장소의 workflow는 GitHub-hosted `ubuntu-latest`를 사용합니다. main 검증이 통과하면 같은 job에서
-Agent Studio에 GitLab sync를 요청합니다. PR 자체는 CI를 시작하지 않습니다.
+검증·카탈로그 갱신과 동기화 요청은 GitHub-hosted `ubuntu-latest`에서 실행합니다. PR 자체는 CI를 시작하지 않습니다.
+`sync-gitlab.yml`은 `main` push마다 이 저장소 하나를 비공개 `opspresso/agent-platform`의 동기화 worker에 전달합니다.
+모델·아이콘 자동 병합은 같은 저장소의 sync를 명시적으로 호출합니다. 수동 실행도 지원합니다.
+Worker는 내부망 runner에서 요청한 저장소의 `main`만 GitLab에 반영합니다. 요청 workflow의 성공은 반영 완료가 아닙니다.
+`agent-platform`의 `Sync to GitLab` 결과와 대상 Git tree를 확인합니다. 요청에는 `GHP_TOKEN`이 필요하며,
+worker의 설정은 [플랫폼 runner 계약](https://github.com/opspresso/agent-platform/blob/main/CI_RUNNERS.md)을 따릅니다.

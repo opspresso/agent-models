@@ -27,6 +27,7 @@ on:
         type: string
 
 permissions:
+  actions: write
   contents: write
   issues: write
   pull-requests: write
@@ -125,6 +126,8 @@ jobs:
             --title "chore: update models $(date -u +%F)" \
             --body "Automated provider and leaderboard refresh from $RUN_URL")
           gh pr merge "$pr_url" --squash --delete-branch
+          # GITHUB_TOKEN merges do not emit a push-triggered workflow run.
+          gh workflow run sync-gitlab.yml --repo "$GITHUB_REPOSITORY" --ref main
 
       - name: Create or update the draft pull request for model removals
         env:
