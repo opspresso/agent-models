@@ -16,5 +16,23 @@
     "contextWindow": 0,
     "maxTokens": 0,
     "note": "Added automatically on 2026-09-24 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
+  },
+  "universal-3-6-pro": {
+    "displayName": "Universal-3.6 Pro",
+    "pricing": {
+      "inputPer1M": 0,
+      "outputPer1M": 0,
+      "perAudioMinute": 0.01
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "transcription": true
+    },
+    "contextWindow": 0,
+    "maxTokens": 0,
+    "note": "Added automatically on 2026-10-22 from OpenRouter's weekly transcription top 20; numbers and flags are OpenRouter's."
   }
 }
