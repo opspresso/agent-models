@@ -1,0 +1,27 @@
+name: Sync to GitLab
+
+# Each main push requests only this repository; the private worker owns internal network access.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: sync-gitlab
+  cancel-in-progress: false
+
+jobs:
+  request-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request this repository's GitLab sync
+        env:
+          GH_TOKEN: ${{ secrets.GHP_TOKEN }}
+          SOURCE_REPOSITORY: agent-models
+        run: |
+          gh api repos/opspresso/agent-platform/dispatches \
+            -f event_type=sync-gitlab \
+            -f "client_payload[repository]=$SOURCE_REPOSITORY"

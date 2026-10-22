@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
 
@@ -87,3 +88,5 @@ jobs:
             --title "chore: sync Lobe brand icons $(date -u +%F)" \
             --body "Lobe Icons ${SOURCE_SHA}에서 이 저장소의 makers에 대응하는 새 SVG를 가져왔습니다. 실행: ${RUN_URL}")
           gh pr merge "$pr_url" --squash --delete-branch
+          # GITHUB_TOKEN merges do not emit a push-triggered workflow run.
+          gh workflow run sync-gitlab.yml --repo "$GITHUB_REPOSITORY" --ref main

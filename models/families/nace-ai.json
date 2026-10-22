@@ -32,5 +32,22 @@
     "contextWindow": 131072,
     "maxTokens": 117964,
     "note": "Added automatically on 2026-10-13 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
+  },
+  "drex-max": {
+    "displayName": "Drex Max",
+    "pricing": {
+      "inputPer1M": 0.06,
+      "outputPer1M": 0
+    },
+    "capabilities": {
+      "tools": false,
+      "structuredOutput": false,
+      "imageInput": false,
+      "reasoning": false,
+      "decision": true
+    },
+    "contextWindow": 262144,
+    "maxTokens": 235929,
+    "note": "Added automatically on 2026-10-22 from OpenRouter's decisions catalog; numbers and flags are OpenRouter's."
   }
 }
