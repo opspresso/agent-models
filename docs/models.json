@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-21T00:16:35.456Z",
+  "updatedAt": "2026-10-22T00:20:52.729Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2755,9 +2755,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.2",
       "pricing": {
-        "inputPer1M": 0.62,
-        "outputPer1M": 2.42,
-        "cachedInputPer1M": 0.14
+        "inputPer1M": 0.03,
+        "outputPer1M": 7,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -3096,9 +3096,10 @@
       "maker": "xiaomimimo",
       "displayName": "MiMo-V2.5-Pro",
       "pricing": {
-        "inputPer1M": 0.44,
-        "outputPer1M": 0.87,
-        "cachedInputPer1M": 0.0036
+        "inputPer1M": 0.3,
+        "outputPer1M": 0.61,
+        "cachedInputPer1M": 0.0028,
+        "discount": 0.3
       },
       "capabilities": {
         "tools": true,
@@ -3107,7 +3108,7 @@
         "reasoning": true
       },
       "contextWindow": 1050000,
-      "maxTokens": 131072,
+      "maxTokens": 945000,
       "wireId": "xiaomi/mimo-v2.5-pro"
     },
     {
@@ -3117,9 +3118,10 @@
       "maker": "xiaomimimo",
       "displayName": "MiMo-V2.5",
       "pricing": {
-        "inputPer1M": 0.14,
-        "outputPer1M": 0.28,
-        "cachedInputPer1M": 0.0028
+        "inputPer1M": 0.12,
+        "outputPer1M": 0.24,
+        "cachedInputPer1M": 0.00255,
+        "discount": 0.15
       },
       "capabilities": {
         "tools": true,
@@ -3128,7 +3130,7 @@
         "reasoning": true
       },
       "contextWindow": 1050000,
-      "maxTokens": 131072,
+      "maxTokens": 945000,
       "wireId": "xiaomi/mimo-v2.5"
     },
     {
@@ -4934,9 +4936,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.05,
-        "outputPer1M": 0.12,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.04,
+        "outputPer1M": 0.08,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4945,7 +4947,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 131072,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6162,9 +6164,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.06,
-        "outputPer1M": 0.12,
-        "cachedInputPer1M": 0.0016
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -7459,6 +7461,49 @@
       "contextWindow": 46864,
       "maxTokens": 42177,
       "wireId": "black-forest-labs/flux-3-image-klein"
+    },
+    {
+      "id": "openrouter/universal-3-6-pro",
+      "provider": "openrouter",
+      "family": "universal-3-6-pro",
+      "maker": "assemblyai",
+      "displayName": "Universal-3.6 Pro",
+      "pricing": {
+        "inputPer1M": 0,
+        "outputPer1M": 0,
+        "perAudioMinute": 0.01
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "transcription": true
+      },
+      "contextWindow": 0,
+      "maxTokens": 0,
+      "wireId": "assemblyai/universal-3-6-pro"
+    },
+    {
+      "id": "openrouter/drex-max",
+      "provider": "openrouter",
+      "family": "drex-max",
+      "maker": "nace-ai",
+      "displayName": "Drex Max",
+      "pricing": {
+        "inputPer1M": 0.06,
+        "outputPer1M": 0
+      },
+      "capabilities": {
+        "tools": false,
+        "structuredOutput": false,
+        "imageInput": false,
+        "reasoning": false,
+        "decision": true
+      },
+      "contextWindow": 262144,
+      "maxTokens": 235929,
+      "wireId": "nace-ai/drex-max"
     }
   ]
 }
