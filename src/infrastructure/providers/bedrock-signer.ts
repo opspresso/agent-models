@@ -21,6 +21,8 @@ export function createBedrockSigner(options: { credentials?: ReturnType<typeof d
   return async (input, init) => {
     const body = init?.body ?? (input instanceof Request ? input.body : undefined);
     if (body != null && typeof body !== "string" && !ArrayBuffer.isView(body) && !(body instanceof ArrayBuffer)) throw new RouterError("unsupported_protocol", 400, "Bedrock signing requires a buffered body");
+    // Request snapshots buffers synchronously. Hash the same snapshot after asynchronous credential lookup.
+    const payload = body == null ? "" : typeof body === "string" ? body : Buffer.from(bytes(body));
     const request = new Request(input, init);
     const url = new URL(request.url);
     const region = url.hostname.split(".").find(label => /^[a-z]{2}(?:-[a-z]+)+-\d$/.test(label));
@@ -31,7 +33,7 @@ export function createBedrockSigner(options: { credentials?: ReturnType<typeof d
     }
     const signed = await signer.sign({ method: request.method, protocol: url.protocol, hostname: url.hostname,
       ...(url.port ? { port: Number(url.port) } : {}), path: url.pathname, query,
-      headers: { ...Object.fromEntries(request.headers), host: url.host }, body: body == null ? "" : typeof body === "string" ? body : bytes(body) }, { signingRegion: region });
+      headers: { ...Object.fromEntries(request.headers), host: url.host }, body: payload }, { signingRegion: region });
     return new Request(request, { headers: signed.headers });
   };
 }
