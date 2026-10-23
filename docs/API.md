@@ -39,7 +39,9 @@ HTTP 인증은 요청 시작 시 확인한다. 이미 승인한 스트림은 별
 | GET | `/api/usage` | 기간·그룹 필터와 전체 기간 합계 |
 | GET | `/api/usage/{service}/{requestId}` | 허용된 요청 한 건의 상태·사용량·가격 snapshot |
 
-선택 모델에는 `providerKind`, `providerName`, `providerEnabled`를 함께 제공한다. 공급자 주소나
+선택 모델에는 `providerKind`, `providerName`, `providerEnabled`, `providerRevision`을 함께 제공한다.
+소비 서비스의 embedding 캐시는 선택 ID·공급자 ID·공급자 revision·wire ID·차원을 구분한다.
+공급자 연결 변경 후 이전 공간의 query vector를 재사용하지 않는다. 공급자 주소나
 자격 증명은 일반 모델 조회 응답에 포함하지 않는다. 서로 다른 공급자의 wire ID가 같아도 선택 ID로
 구분한다. 호출 시 현재 선택 ID를 사용하며, router가 승인된 wire ID로 바꾼다.
 

@@ -84,6 +84,7 @@ export interface SelectedModelView extends SelectedModel {
   providerKind: ProviderKind;
   providerName: string;
   providerEnabled: boolean;
+  providerRevision: number;
 }
 
 export interface UsageOverview { groups: UsageSummary[]; totals: UsageSummary }

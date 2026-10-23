@@ -91,11 +91,11 @@ export function createRouterRepository(pool: Pool): RouterRepository {
       });
     },
     async listModels(includeDisabled) {
-      const rows = await pool.query<ModelRow & { provider_configuration: Provider }>(`SELECT model.*,provider.configuration AS provider_configuration FROM agent_models_selected_models AS model
+      const rows = await pool.query<ModelRow & { provider_configuration: Provider; provider_revision: number }>(`SELECT model.*,provider.configuration AS provider_configuration,provider.revision AS provider_revision FROM agent_models_selected_models AS model
         JOIN agent_models_providers AS provider ON provider.id=model.provider_id
         ${includeDisabled ? "" : "WHERE (model.configuration->>'enabled')::boolean AND (provider.configuration->>'enabled')::boolean"}
         ORDER BY model.id LIMIT 500`);
-      return rows.rows.map(row => ({ ...asModel(row), providerKind: row.provider_configuration.kind, providerName: row.provider_configuration.name, providerEnabled: row.provider_configuration.enabled }));
+      return rows.rows.map(row => ({ ...asModel(row), providerKind: row.provider_configuration.kind, providerName: row.provider_configuration.name, providerEnabled: row.provider_configuration.enabled, providerRevision: row.provider_revision }));
     },
     async saveModel(model, expectedRevision) {
       return transaction(async client => {

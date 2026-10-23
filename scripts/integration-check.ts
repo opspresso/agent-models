@@ -48,6 +48,7 @@ async function check() {
       displayName: discovered.displayName, type: discovered.type, contextWindow: discovered.contextWindow, maxTokens: discovered.maxTokens,
       capabilities: discovered.capabilities, pricing: discovered.pricing, enabled: true, operations: ["chat/completions"] };
     const selected = await management.saveModel(admin, selection, null);
+    assert.equal((await management.models(member))[0]?.providerRevision, updated.revision, "selected metadata carries the current provider binding revision");
     await assert.rejects(management.saveModel(admin, { ...selection, id: "local/duplicate" }, null), { code: "model_already_selected" });
     const admission = (id: string, actor = member): Admission => ({ requestId: id, modelId: selection.id, principal: actor,
       operation: "chat/completions", executionId: `execution-${id}`, deadlineAt: new Date(Date.now() + 60_000).toISOString() });
@@ -77,6 +78,7 @@ async function check() {
     await assert.rejects(repository.admit(admission("disabled"), 1), { code: "model_disabled" });
     const disabledProvider = await repository.getProvider("local");
     await management.saveProvider(admin, configuration, disabledProvider!.revision);
+    assert.notEqual((await management.models(member))[0]?.providerRevision, updated.revision, "a provider update changes consumer cache identity without exposing its connection");
     let calls = 0;
     const inference = createInference({ repository, cipher, timeoutMs: 60_000, concurrencyLimit: 8, executionId: () => randomUUID(), now: Date.now, monotonic: () => performance.now(),
       transport: { async execute(input) {
