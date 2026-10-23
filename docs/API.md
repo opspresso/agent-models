@@ -3,6 +3,7 @@
 이 문서는 Models를 호출하는 Agent 서비스 개발자와 운영자를 위한 계약이다.
 브라우저는 Studio OIDC 세션을, 서버는 Studio에서 발급한 OAuth access token을 사용한다.
 Bearer token은 `urn:opspresso:agent:models` audience와 요청에 맞는 scope가 필요하다.
+DPoP·mTLS에 묶인 token은 지원하지 않으며, 이를 일반 Bearer token으로 보내면 401로 거부한다.
 
 ## 권한
 
@@ -33,7 +34,7 @@ HTTP 인증은 요청 시작 시 확인한다. 이미 승인한 스트림은 별
 | GET | `/api/models` | 선택 모델 배열. `all=true`는 관리자와 `models:manage` scope 필요 |
 | PUT | `/api/models` | `{revision, model}`. 신규는 `revision:null`, 갱신은 읽은 revision |
 | GET | `/api/providers` | 관리자용 공급자 배열. 원문·암호화 자격 증명은 반환하지 않음 |
-| PUT | `/api/providers` | `{revision, provider}`. 빈 `secret`은 기존 값을 보존 |
+| PUT | `/api/providers` | `{revision, provider}`. 같은 연결의 빈 `secret`은 기존 값을 보존. 주소·유형 변경 시 새 키 필요 |
 | POST | `/api/providers/{id}/discover` | 공급자의 현재 모델 목록 수집 |
 | GET | `/api/discovered` | `provider`, `limit`(1–500), `after`(wire ID)로 수집 목록 조회 |
 | GET | `/api/usage` | 기간·그룹 필터와 전체 기간 합계 |
@@ -60,6 +61,9 @@ HTTP 인증은 요청 시작 시 확인한다. 이미 승인한 스트림은 별
 응답 JSON·SSE는 공급자의 원래 wire 형식을 유지한다. 자격 증명과 작업 경로는 router가
 결정하며 redirect를 따르지 않는다. 공급자의 오류 본문은 그대로 노출하지 않는다. 지원하지 않는
 호스팅 파일·대화 참조나 background 실행은 호출 전에 거부한다.
+이미지·오디오는 인라인 `data:...;base64,...` 또는 업로드한 multipart bytes로 전달한다.
+공급자가 외부 URL에서 이미지·파일을 가져오게 하는 참조는 허용하지 않는다. 일반 텍스트의 URL과
+함수 도구 스키마는 그대로 전달한다. multipart의 `file`, `image`, `mask` 필드는 실제 파일이어야 한다.
 
 ## 사용량
 

@@ -40,6 +40,7 @@ export function platformIdentity(value: unknown, subject: string): PlatformIdent
 
 export function requireScope(principal: AuthenticatedPrincipal, scope: ModelScope): void {
   if (!principal.scopes.includes(scope)) throw new RouterError("insufficient_scope", 403, "The credential does not grant this operation");
+  if (scope === "models:invoke" && !principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
 }
 
 export function modelCallGrant(value: unknown): ModelCallGrant | undefined {

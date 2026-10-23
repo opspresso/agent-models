@@ -15,6 +15,11 @@ export function providerUrl(value: string): string {
   return url.href.replace(/\/+$/, "");
 }
 
+/** Bind a credential to its recipient and protocol, independently of mutable display settings. */
+export function providerCredentialContext(provider: Pick<Provider, "id" | "kind" | "auth" | "baseUrl">): string {
+  return JSON.stringify([provider.id, provider.kind, provider.auth, providerUrl(provider.baseUrl)]);
+}
+
 export function validateProvider(provider: Omit<Provider, "revision" | "updatedAt">): void {
   if (!/^[a-z][a-z0-9_-]{0,63}$/.test(provider.id)) throw new RouterError("invalid_provider", 400, "Invalid provider ID");
   if (!provider.name.trim() || provider.name.length > 200 || !PROVIDER_KINDS.includes(provider.kind) ||

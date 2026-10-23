@@ -1,3 +1,4 @@
+import { providerCredentialContext } from "../src/domain/router/validation.ts";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { once } from "node:events";
@@ -48,8 +49,8 @@ export async function checkProviderHttp(repository: RouterRepository, cipher: Se
   origin = `http://127.0.0.1:${address.port}`;
   const principal: Principal = { subject: "http-fixture-user", kind: "user", service: "agent-studio", admin: false, canInvoke: true };
   try {
-    await repository.saveProvider({ id: "http-fixture", name: "HTTP fixture", kind: "selfhosted", auth: "secret", enabled: true,
-      baseUrl: `${origin}/v1`, encryptedSecret: cipher.encrypt("local-fixture-provider-key", "http-fixture") }, null);
+    const provider = { id: "http-fixture", name: "HTTP fixture", kind: "selfhosted" as const, auth: "secret" as const, enabled: true, baseUrl: `${origin}/v1` };
+    await repository.saveProvider({ ...provider, encryptedSecret: cipher.encrypt("local-fixture-provider-key", providerCredentialContext(provider)) }, null);
     await repository.saveModel({ id: "http-fixture/model", providerId: "http-fixture", wireId: "upstream-model", displayName: "Fixture model",
       type: "text", contextWindow: 8192, maxTokens: 1024, pricing: { inputPer1M: 2, outputPer1M: 6 }, enabled: true,
       operations: ["chat/completions"], capabilities: { tools: true, structuredOutput: false, imageInput: false, reasoning: false } }, null);

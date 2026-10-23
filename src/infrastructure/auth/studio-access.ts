@@ -65,6 +65,8 @@ export function createStudioAccess(config: AuthConfiguration, request: typeof fe
         const invalid = error instanceof errors.JOSEError && ["ERR_JWT_EXPIRED", "ERR_JWT_CLAIM_VALIDATION_FAILED", "ERR_JWS_SIGNATURE_VERIFICATION_FAILED", "ERR_JWS_INVALID", "ERR_JWT_INVALID", "ERR_JOSE_ALG_NOT_ALLOWED", "ERR_JWKS_NO_MATCHING_KEY"].includes(error.code);
         throw new RouterError(invalid ? "unauthorized" : "identity_unavailable", invalid ? 401 : 503, invalid ? "Invalid access token" : "Studio signing keys are unavailable");
       }
+      // This service verifies Bearer tokens only; never downgrade DPoP or mTLS proof requirements.
+      if (claims.cnf !== undefined) throw new RouterError("unauthorized", 401, "Sender-constrained access tokens are not supported");
       const checked = await fetchJson(urls.introspection, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ client_id: config.clientId, client_secret: config.clientSecret, token }) });
       if (checked.active !== true || checked.sub !== claims.sub || typeof claims.sub !== "string" || typeof claims.client_id !== "string" || typeof checked.scope !== "string" || typeof claims.scope !== "string" || checked.client_id !== claims.client_id) throw new RouterError("unauthorized", 401, "Access token is no longer active");

@@ -3,7 +3,7 @@ import { priceUsage } from "../domain/router/pricing.ts";
 import type { RouterRepository, SecretCipher } from "../domain/router/repository.ts";
 import type { InferenceBody, InferenceTransport } from "../domain/router/transport.ts";
 import type { Admission, Operation, Principal, Settlement } from "../domain/router/types.ts";
-import { validIdentifier } from "../domain/router/validation.ts";
+import { providerCredentialContext, validIdentifier } from "../domain/router/validation.ts";
 
 export interface InferenceDependencies {
   repository: RouterRepository;
@@ -48,7 +48,7 @@ export function createInference(deps: InferenceDependencies) {
     let dispatched = false;
     let response: Awaited<ReturnType<InferenceTransport["execute"]>>;
     try {
-      const secret = routed.provider.encryptedSecret ? deps.cipher.decrypt(routed.provider.encryptedSecret, routed.provider.id) : null;
+      const secret = routed.provider.encryptedSecret ? deps.cipher.decrypt(routed.provider.encryptedSecret, providerCredentialContext(routed.provider)) : null;
       if (signal.aborted || remaining === 0) throw new RouterError(incomingSignal.aborted ? "request_cancelled" : "provider_timeout", incomingSignal.aborted ? 499 : 504, "Request expired before dispatch");
       response = await deps.transport.execute({ model: routed.model, provider: routed.provider, secret,
         operation: operation, body: input.body, headers: input.headers ?? {}, signal, onDispatch: () => { dispatched = true; } });

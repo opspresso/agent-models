@@ -19,6 +19,6 @@ export interface RouterRepository {
 }
 
 export interface SecretCipher {
-  encrypt(secret: string, providerId: string): string;
-  decrypt(ciphertext: string, providerId: string): string;
+  encrypt(secret: string, context: string): string;
+  decrypt(ciphertext: string, context: string): string;
 }

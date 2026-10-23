@@ -11,6 +11,6 @@ it("authenticates ciphertext against its provider and detects tampering or a wro
   assert.throws(() => createSecretCipher(Buffer.alloc(32, 8).toString("base64")).decrypt(encrypted, "provider-one"));
   const altered = Buffer.from(encrypted.slice(3), "base64");
   altered[altered.length - 1] = altered.at(-1)! ^ 1;
-  assert.throws(() => cipher.decrypt(`v1:${altered.toString("base64")}`, "provider-one"));
+  assert.throws(() => cipher.decrypt(`v2:${altered.toString("base64")}`, "provider-one"));
   assert.throws(() => createSecretCipher("not-a-key"), /32-byte key/);
 });

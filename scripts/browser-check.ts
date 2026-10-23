@@ -106,6 +106,16 @@ async function main() {
         assert.ok(targetClient && user);
         return capability.issueTokens({ client: targetClient, user, scopes: ["openid", "platform:identity", "models:invoke", "usage:read"], resources: [MODELS_RESOURCE],
           accessTokenClaims: { [PLATFORM_MODEL_CALL_CLAIM]: { version: 1, requestId: "delegated-call", modelId: "local/fixture-model", operation: "chat/completions", agentId: "verified-agent" } } });
+      }), issueFixtureSenderBoundToken: createAuthEndpoint.serverOnly({
+        method: "POST", body: z.object({ clientId: z.string(), kind: z.enum(["dpop", "mtls"]) }),
+      }, async ctx => {
+        const capability = getOAuthProviderApi(ctx, issuerPlugin.options, "urn:fixture:sender-bound");
+        const targetClient = await capability.getClient(ctx.body.clientId);
+        assert.ok(targetClient);
+        // Simulate proof verified by the issuer. The resource server receives no such proof.
+        const thumbprint = Buffer.alloc(32, 9).toString("base64url");
+        return capability.issueTokens({ client: targetClient, scopes: ["models:read"], resources: [MODELS_RESOURCE],
+          confirmation: ctx.body.kind === "dpop" ? { jkt: thumbprint } : { "x5t#S256": thumbprint } });
       }) } }],
   };
   const migration = await getMigrations(options);
@@ -206,6 +216,13 @@ async function main() {
     assert.equal(refreshes, 1, "concurrent requests rotate the refresh token once");
     const serviceToken = await machineToken("models:read models:invoke usage:read");
     assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${serviceToken}` } })).status, 200);
+    assert.ok(auth.api.issueFixtureSenderBoundToken);
+    for (const kind of ["dpop", "mtls"] as const) {
+      const bound: { token_type: string; access_token: string } = await auth.api.issueFixtureSenderBoundToken({ body: { clientId: machineClient.client_id, kind } });
+      assert.equal(bound.token_type, kind === "dpop" ? "DPoP" : "Bearer");
+      assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${bound.access_token}` } })).status, 401,
+        "sender-constrained service credentials cannot be replayed as unbound Bearer tokens");
+    }
     const serviceCall = await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${serviceToken}`, "content-type": "application/json", "idempotency-key": "machine-call", "x-user-id": adminUser.id, "x-agent-id": "forged-agent" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) });
     assert.equal(serviceCall.status, 200); await serviceCall.json();
     const serviceUsage = await (await page.request.get(`${origin}/api/usage/agent-forge/machine-call`)).json();

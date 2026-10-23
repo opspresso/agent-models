@@ -2,7 +2,7 @@ import { requireAdmin, RouterError } from "../domain/router/errors.ts";
 import type { RouterRepository, SecretCipher } from "../domain/router/repository.ts";
 import type { ModelDiscovery } from "../domain/router/transport.ts";
 import type { Principal, Provider, SelectedModel, UsageQuery } from "../domain/router/types.ts";
-import { providerUrl, validateProvider, validateSelection, validIdentifier } from "../domain/router/validation.ts";
+import { providerCredentialContext, providerUrl, validateProvider, validateSelection, validIdentifier } from "../domain/router/validation.ts";
 
 export function createManagement(repository: RouterRepository, cipher: SecretCipher, discovery: ModelDiscovery) {
   function scopedUsage(principal: Principal, query: UsageQuery): UsageQuery {
@@ -26,7 +26,11 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
       validateProvider(provider);
       if (secret !== undefined && (secret.length > 8192 || /[\r\n]/.test(secret))) throw new RouterError("invalid_secret", 400, "Invalid provider credential");
       const previous = await repository.getProvider(provider.id);
-      const replacement = secret?.trim() && !/^[*•]+$/.test(secret) ? cipher.encrypt(secret, provider.id) : null;
+      const context = providerCredentialContext(provider);
+      const replacement = provider.auth === "secret" && secret?.trim() && !/^[*•]+$/.test(secret.trim()) ? cipher.encrypt(secret, context) : null;
+      if (provider.auth === "secret" && previous?.encryptedSecret && !replacement && providerCredentialContext(previous) !== context) {
+        throw new RouterError("credential_required", 400, "A changed provider address or protocol requires a new credential");
+      }
       const encryptedSecret = provider.auth === "secret" ? replacement ?? previous?.encryptedSecret ?? null : null;
       if (provider.auth === "secret" && !encryptedSecret) throw new RouterError("credential_required", 400, "This provider requires a credential");
       return repository.saveProvider({ ...provider, baseUrl: providerUrl(provider.baseUrl), encryptedSecret }, revision);
@@ -44,7 +48,7 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
       requireAdmin(principal.admin);
       const provider = await repository.getProvider(providerId);
       if (!provider) throw new RouterError("provider_not_found", 404, "Provider is not registered");
-      const secret = provider.encryptedSecret ? cipher.decrypt(provider.encryptedSecret, provider.id) : null;
+      const secret = provider.encryptedSecret ? cipher.decrypt(provider.encryptedSecret, providerCredentialContext(provider)) : null;
       const models = await discovery.discover(provider, secret);
       if (models.length > 10_000 || new Set(models.map(model => model.wireId)).size !== models.length ||
           models.some(model => model.providerId !== provider.id || !validIdentifier(model.wireId) || !model.displayName.trim() || model.displayName.length > 200)) {

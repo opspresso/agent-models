@@ -7,6 +7,7 @@ import { createSecretCipher } from "../src/infrastructure/crypto/secret-cipher.t
 import { createManagement } from "../src/application/management.ts";
 import { createInference } from "../src/application/inference.ts";
 import type { Admission, DiscoveredModel, Principal, SelectedModel, Settlement } from "../src/domain/router/types.ts";
+import { providerCredentialContext } from "../src/domain/router/validation.ts";
 import { checkProviderHttp } from "./provider-check.ts";
 
 const connectionString = process.env.DATABASE_URL;
@@ -37,9 +38,11 @@ async function check() {
     assert.equal(JSON.stringify(await management.providers(admin)).includes("fixture-provider-key"), false);
     const stored = await repository.getProvider("local");
     assert.ok(stored?.encryptedSecret);
-    assert.equal(cipher.decrypt(stored.encryptedSecret, "local"), "fixture-provider-key");
+    assert.equal(cipher.decrypt(stored.encryptedSecret, providerCredentialContext(stored)), "fixture-provider-key");
     const updated = await management.saveProvider(admin, { ...configuration, secret: "********" }, provider.revision);
     assert.equal((await repository.getProvider("local"))?.encryptedSecret, stored.encryptedSecret, "masked edit preserves the credential");
+    await assert.rejects(management.saveProvider(admin, { ...configuration, baseUrl: "https://other.example.test/v1", secret: "********" }, updated.revision),
+      { code: "credential_required" }, "a masked credential must not move to another recipient");
     await assert.rejects(management.saveProvider(admin, configuration, provider.revision), { code: "revision_conflict" });
     await management.discover(admin, "local");
     assert.equal((await management.discovered(admin, "local")).length, 1);

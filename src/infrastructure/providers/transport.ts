@@ -1,5 +1,5 @@
 import { RouterError } from "../../domain/router/errors.ts";
-import { assertIndependentContext } from "../../domain/router/request-policy.ts";
+import { assertIndependentContext, assertIndependentMultipartContext } from "../../domain/router/request-policy.ts";
 import type { InferenceTransport } from "../../domain/router/transport.ts";
 import type { Operation, Provider } from "../../domain/router/types.ts";
 import { providerUrl } from "../../domain/router/validation.ts";
@@ -67,6 +67,7 @@ export function createProviderTransport(options: { request?: typeof fetch; signe
       } else {
         if (!["images/edits", "audio/transcriptions"].includes(input.operation)) throw new RouterError("invalid_multipart", 400, "This operation does not accept multipart input");
         if (input.provider.auth === "sigv4") throw new RouterError("unsupported_protocol", 400, "SigV4 multipart inference is not supported");
+        assertIndependentMultipartContext(input.body.parts, input.operation);
         const form = new FormData();
         if (input.model.type === "image") inputImages = input.body.parts.filter(part => /^image(?:\[\d*\])?$/.test(part.name)).length;
         for (const part of input.body.parts) {
