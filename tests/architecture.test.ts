@@ -20,6 +20,8 @@ it("keeps domain pure and infrastructure independent of application and presenta
       const targetLayer = target ? relative(source, target).split("/")[0] : undefined;
       if (layer === "domain" && targetLayer !== "domain") violations.push(`${relative(source, file)} → ${specifier}`);
       if (layer === "infrastructure" && ["application", "lib", "app"].includes(targetLayer ?? "")) violations.push(`${relative(source, file)} → ${specifier}`);
+      if (layer === "application" && !["application", "domain", "shared"].includes(targetLayer ?? "")) violations.push(`${relative(source, file)} → ${specifier}`);
+      if (layer === "app" && targetLayer === "infrastructure") violations.push(`${relative(source, file)} → ${specifier}`);
     }
   }
   assert.deepEqual(violations, []);

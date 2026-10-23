@@ -1,5 +1,9 @@
 # agent-models
 
+The central routing core is under development in this repository. Its current storage, inference
+and usage contracts are described in [ROUTER.md](docs/ROUTER.md). The public deployment below still
+serves the versioned catalog; the new service API and console have not been deployed.
+
 A versioned model catalog and specification repository — per-model pricing,
 context window, output cap and capabilities — published as one static JSON. It
 does not run inference, store credentials or grant model access:
