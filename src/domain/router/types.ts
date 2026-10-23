@@ -70,6 +70,14 @@ export interface SelectedModel extends ModelFacts {
   updatedAt: string;
 }
 
+export interface SelectedModelView extends SelectedModel {
+  providerKind: ProviderKind;
+  providerName: string;
+  providerEnabled: boolean;
+}
+
+export interface UsageOverview { groups: UsageSummary[]; totals: UsageSummary }
+
 /** Untrusted input and model output are never part of this record. */
 export interface UsageAmounts {
   inputTokens?: number;

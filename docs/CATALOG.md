@@ -1,0 +1,400 @@
+# Model catalog
+
+The versioned model catalog and its specification — per-model pricing,
+context window, output cap and capabilities — published as one static JSON. It
+does not run inference, store credentials or grant model access:
+
+```
+https://models.agrt.dev/models.json
+```
+
+(`https://opspresso.github.io/agent-models/models.json` redirects there.)
+
+[Agent Studio](https://github.com/opspresso/agent-studio),
+[Agent Forge](https://github.com/opspresso/agent-forge) and
+[Agent Librio](https://github.com/opspresso/agent-librio) consume the catalog.
+Each service keeps its own allowed model connections, endpoint, wire protocol,
+credentials and execution policy. See the [consumer contract](consumer-contract.md)
+and [version 1 JSON schema](catalog-v1.schema.json). A
+browsable view of the same file is at
+<https://models.agrt.dev/> — `docs/index.html` contains the markup, `docs/styles.css`
+the styling, and `docs/app.js` the catalog-driven behavior. The viewer mirrors the
+console's own Models page (<https://studio.agrt.dev/models>): the same
+catalog header, filter row (search, provider, capabilities, sort) and one card per route,
+drawn with the same tokens, faces and brand marks (`docs/icons/brands/`, MIT-licensed Lobe
+Icons). The studio's mark is re-hued green for this site's logo and favicon, so the two
+are recognisably siblings and never mistaken for each other.
+`docs/` also contains the 16–256 px ICO, 32/180/192/256/512 px PNG icons,
+`site.webmanifest`, and the 1200×630 sharing card (`og.png`; editable layout
+in `og.svg`). Open Graph and Twitter metadata use the canonical
+`https://models.agrt.dev/` origin.
+
+## The catalog
+
+```jsonc
+{
+  "version": 1,
+  "updatedAt": "2026-08-20T00:03:11.000Z",   // when the content last changed — not when it was last checked
+  "source": "https://github.com/opspresso/agent-models",
+  "providers": ["openai", "anthropic", "google", "xai", "bedrock", "openrouter"],
+  "makers": { "openai": "OpenAI", "anthropic": "Anthropic", "zhipu": "Z.ai", ... },
+  "models": [
+    {
+      "id": "openrouter/claude-opus-4.8",        // provider/family — the id a run names
+      "provider": "openrouter",                  // the route
+      "family": "claude-opus-4.8",               // the model
+      "maker": "anthropic",                      // who made it, whatever the route
+      "displayName": "Opus 4.8",
+      "pricing": { "inputPer1M": 5, "outputPer1M": 25, "cachedInputPer1M": 0.5 },
+      "capabilities": { "tools": true, "structuredOutput": false, "imageInput": true, "reasoning": true },
+      "contextWindow": 1000000,
+      "maxTokens": 128000,
+      "wireId": "anthropic/claude-opus-4.8",     // only when the provider names it differently
+      "hidden": true                             // only when retired: resolvable, not offered
+    }
+  ]
+}
+```
+
+### Model types
+
+The catalog has six mutually exclusive model types. Type is derived from capability flags
+so existing text and image entries keep their published shape:
+
+| Type | Discriminator | Pricing contract | Limits |
+|---|---|---|---|
+| Text | no type flag is set | positive `inputPer1M` and `outputPer1M` | positive `contextWindow` and `maxTokens` |
+| Image | `capabilities.imageGeneration: true` | `imageOutputPer1M` or `perImage` | zero is allowed when the provider publishes no token limits |
+| Embedding | `capabilities.embedding: true` | positive `inputPer1M`; `outputPer1M: 0` | positive `contextWindow`; `maxTokens: 0` |
+| Rerank | `capabilities.rerank: true` | positive `inputPer1M` or `perSearch`; `outputPer1M: 0` | positive `contextWindow`; `maxTokens: 0` |
+| Transcription | `capabilities.transcription: true` | positive input/output token rates or `perAudioMinute` | zero limits are allowed for duration-priced models |
+| Decision | `capabilities.decision: true` | positive `inputPer1M`; `outputPer1M: 0` | positive `contextWindow` and `maxTokens` |
+
+The five type flags are mutually exclusive, and an offering may not change its family's
+type. `imageInput` remains an independent capability: a text, embedding or rerank model
+can accept images without becoming an image-generation model.
+
+Prices are USD per million tokens; image models add `imageInputPer1M`, `imageOutputPer1M`,
+`perImage` and `perInputImage`, and are priced by token rate *or* per image. Every rate is
+the provider's base, standard-tier rate — a long-context or priority tier is not expressed.
+Embedding models charge `inputPer1M` only, carry `outputPer1M: 0`, and use `maxTokens: 0`
+because they produce vectors rather than generated tokens.
+Rerank models charge per million input tokens or per search unit. Transcription models
+charge per million input/output tokens or per audio minute, depending on the upstream
+provider's billing contract.
+Collected USD rates are rounded to two decimal places after unit conversion
+(`0.046` becomes `0.05`). Positive rates that would round to zero retain their precision
+(`0.001` stays `0.001`). Discount fractions are kept as published.
+Decision models return typed choices or scores through OpenRouter's Decisions API. The API
+reports output tokens but charges only for input tokens, so the published output cap is retained.
+
+`pricing.discount`, when present, is a promotional discount (a fraction) that the stated
+rates are **already net of** — OpenRouter publishes one per endpoint, and the catalog's
+price is the default endpoint's — so a reader can tell a promotion from a price and put the
+list rate back with `inputPer1M / (1 - discount)`. Absent means no discount is known.
+`reasoningWithTools: false` marks a model whose provider rejects `tools` together with
+`reasoning_effort` on chat/completions.
+
+`hidden` is for routes that have been retired: a stored configuration may still name one,
+and past usage is priced by looking it up, so it stays in the list and out of the picker.
+**An entry is deleted only when nothing can ever have referred to it.**
+
+## How the registry is written
+
+Catalog types, validation and derivation live in `src/domain/catalog/registry.ts`.
+File persistence and provider collection live in `src/infrastructure/catalog/`.
+Scripts compose those modules; domain code performs no filesystem or network access.
+
+What a model *is* and who *serves* it are two lists, resolved into the catalog at build time.
+
+```
+models/
+  providers.json              the routes a model id may be prefixed with, in catalog order
+  makers.json                 maker id → { displayName, openrouterVendor? }
+  families/<maker>.json       { "<family>": { displayName, pricing, pricingSource?, capabilities, contextWindow, maxTokens, note? } }
+  offerings/<provider>.json   route overrides plus hidden/presence/ranking lifecycle bookkeeping
+  removals.json               exact published ids proposed for permanent removal through a PR
+```
+
+A **family** states the model once — price, window, what it can do. An **offering** says a
+provider serves it, under which wire name, and what the route changes: a router's own rate,
+a gateway that cannot do structured output, a retirement. Overrides are shallow merges over
+the family, so an offering names only what differs. The file an entry sits in is its maker
+or provider; neither is repeated inside the entry.
+
+Three things follow from the split and are enforced by `validateRegistry` (and CI):
+
+- the same model reached two ways has one name, one maker, one window and one kind — an
+  offering may not change `contextWindow` or any model-type discriminator;
+- a `wireId` exists only to say something the id does not: a router route must carry a
+  vendor-qualified one (`anthropic/claude-opus-4.8`), and a dotted Anthropic id must carry
+  the hyphenated name Anthropic actually serves (`claude-opus-4-8`);
+- a text model is priced on both sides, an image model by token rate or per image, an
+  embedding model on input, a rerank model by input or search, a transcription model
+  by tokens or audio minute, and a decision model on input only; a cached rate never
+  exceeds the uncached one, and the output cap fits in the window.
+
+A `note` holds provenance a reader of the file needs — where an odd number came from, why a
+retired route is priced the way it is. It is for people; the catalog does not carry it.
+
+### Routes
+
+- **Bedrock** offerings go through the OpenAI-compatible `bedrock-mantle` endpoint; wire ids
+  are the endpoint's own (`openai.gpt-oss-120b`). `structuredOutput` is off for the route,
+  not the model: mantle rejects the parameter whatever is behind it. Claude is absent on
+  purpose — Bedrock serves it on the Anthropic Messages API only.
+- **OpenRouter** ids are `vendor/model`, so every offering carries a wire id. A route
+  restates a price only while OpenRouter's catalog differs from the family's rate.
+- **Anthropic** hyphenates what this registry dots, hence the wire ids on `claude-*-4.x`.
+
+## Adding or changing a model
+
+1. Add the family to `models/families/<maker>.json` (a new maker, including its optional
+   OpenRouter vendor slug, goes in `makers.json` first) and an offering to each
+   `models/offerings/<provider>.json` that serves it.
+2. `pnpm format` — rewrites the files in canonical key order and validates them.
+3. `pnpm build` — regenerates `docs/models.json`, the brand icon manifest, and versioned
+   CSS/JS references in `docs/index.html`. CI fails if
+   generated files do not match their sources, so commit them together.
+
+Published ids first become `hidden` tombstones. After an automatically hidden route remains
+hidden for **30 days**, the workflow creates or updates one draft deletion PR. That PR
+accumulates an exact `{ id, reason, requestedAt }` entry in `models/removals.json` for each
+route, requests its reviewer when first opened (`removals.json`'s code owner) and is not
+auto-merged. Removals are checked twice: the update workflow refuses to commit one at all,
+and CI rejects a push to `main` that removes a model no entry requests. CI runs once per change,
+when it reaches `main` (pull requests do not start it; dispatch it by hand when a branch needs a
+hosted check). The independent `sync-gitlab.yml` mirrors only this repository on `main` pushes.
+Automated model and icon merges explicitly dispatch that same workflow because `GITHUB_TOKEN`
+merges do not start push-triggered workflows. Mirroring does not publish or approve a release.
+
+Numbers come from a published source, not from memory: OpenRouter's `/api/v1/models`,
+`/api/v1/embeddings/models`, modality-filtered model catalogs and public model pages,
+xAI's `/v1/language-models` (prices in 1e-10 USD per token — `12500` is $1.25/M), Anthropic's
+`/v1/models` (`max_input_tokens`, `max_tokens`), the AWS Pricing API for Bedrock (mind the
+unit — `1K tokens` and `1M tokens` rows are mixed), and the pricing pages for OpenAI and
+Google, which publish no API for it. Verified native prices take priority. When a native
+quote is unavailable, a newly added direct route uses its existing OpenRouter price,
+including any discount, and the family carries `pricingSource: "openrouter"` so that
+price keeps refreshing. A verified official quote uses `pricingSource: "native"` and
+records its source in `note`; OpenRouter then updates only its own route's price.
+These source fields are internal and are not published in `docs/models.json`. Existing
+families without the field retain their route-based pricing ownership. xAI's catalog
+publishes native token prices and automatically replaces a fallback when one is available.
+
+## Keeping it current
+
+`.github/workflows/update-models.yml` runs every day at 22:00 UTC (and on demand), validates whatever
+moved and merges routine updates through a pull request — which republishes the Pages site (`main:/docs`, served at
+`models.agrt.dev`) — and tells people about it. Three phases, every source
+independent of the others:
+
+1. **fetch** — each source reads its catalog; one failing is reported and the rest go on;
+2. **discover** — what the catalogs list that the registry does not: new families and new
+   routes (below), plus OpenRouter's ranking lifecycle;
+3. **apply** — numbers, discounts and catalog presence for every route the registry
+   now has, the ones just added included.
+
+Only fetch failures are isolated that way: an error thrown while any source discovers or
+applies stops the run from writing `models/` at all.
+
+| Source | Needs | May change | May add |
+|---|---|---|---|
+| OpenRouter `/api/v1/models`, `/images/models`, `/embeddings/models`, modality-filtered catalogs, `/models/{id}/endpoints`, public model pages and weekly rankings feeds | nothing | OpenRouter-owned family prices and discounts, including native-route fallbacks; a **router-only** family's window and output cap; an OpenRouter offering's price override when a native quote owns the family | eligible text, image, embedding, rerank, transcription and decision families; OpenRouter routes to existing families |
+| xAI `/v1/language-models`, `/v1/image-generation-models` | `XAI_API_KEY` | the text families' token prices (matched by id or alias; image models stay hand-kept) | `xai/` routes |
+| Anthropic `/v1/models` | `ANTHROPIC_API_KEY` | the families' `contextWindow` and `maxTokens` (no price is published) | `anthropic/` routes |
+| OpenAI `/v1/models` | `OPENAI_API_KEY` | no number — presence only | `openai/` routes |
+| Google `/v1beta/models` | `GOOGLE_API_KEY` | the families' `contextWindow` and generated `maxTokens` (no price is published; a cap that exceeds the family's window is noted, not applied) | `google/` text and embedding routes |
+
+A key that is absent or rejected by its provider skips only that source, with the reason
+in the job summary; the run continues without advancing that provider's presence clock.
+Replace an invalid repository Actions secret or fix its permissions, then rerun **Update models**.
+The key value is never printed. Other source read and processing failures still fail the run.
+Bedrock has no source here: its routes are added and retired by hand, with numbers from the
+AWS Pricing API.
+
+### Additions
+
+**A new family** is created from OpenRouter's catalog when a listing is filed under a maker's
+`openrouterVendor` in `makers.json`; is a priced text model (not a `:suffix` variant —
+`:free`, `:nitro`, `:thinking` and the rest — or a `-20250929`/`-0813` dated snapshot);
+and states a context window plus a usable max output in the aggregate model or at least
+one endpoint. It must also be either from
+OpenAI, Anthropic, Google or xAI and first
+listed within the last **30 days**, or present in the weekly usage leaderboard's first
+**20 open-weight** or first **20 closed-weight** rows. Ranked models are eligible regardless
+of listing age. The ranking is the same one shown at
+`openrouter.ai/rankings`: prompt and completion tokens are totalled by variant, models with
+a Hugging Face id are open weight, and the rest are closed weight. A ranked serving variant
+qualifies its standard model family.
+
+The text family gets OpenRouter's numbers and flags (`tools`, `structured_outputs`, image
+input, `reasoning`), a `note` saying when and where it came from, and an OpenRouter route.
+The aggregate max output is preferred when it is a positive integer that fits the window;
+otherwise the largest valid endpoint cap is used because OpenRouter routes a `max_tokens`
+request only to endpoints that support it.
+An eligible text model from a maker this registry does not know and an eligible listing
+without any output cap go to the *needs a look* list instead. Unranked non-major text models
+are ignored. If the public text rankings feed fails, changes shape or cannot
+fill both weekly Top 20s, it is discarded whole — the run still updates existing routes
+and major-maker additions but adds no text family from another maker. Older
+unranked listings are the backlog, which is a person's — the window keeps a first run from
+importing a major vendor's whole history.
+
+**An image family** is created when it is among the first **20 ranked models the image
+catalog can resolve**, ordered by image-producing request count as on
+`openrouter.ai/rankings/image`.
+The image catalog supplies its name and modalities; `/models/{id}/endpoints` supplies the
+normalized image-token price, context window and output cap. Explicit zero limits are retained
+for image-only models when OpenRouter publishes them. A previously unknown maker is added from
+the ranked model's vendor slug and display-name prefix. Image ranking failure or missing
+endpoint price/limits fails closed for image additions without blocking text updates.
+
+**An embedding family** is created when it is among the first **20 ranked models the
+embeddings catalog can resolve**, ordered by embedding request count as on
+`openrouter.ai/rankings/embeddings`. The catalog supplies its name, input-token price,
+input modalities and context window. Its `outputPer1M` and `maxTokens` are zero because the
+endpoint returns vectors, not generated tokens. As with images, a previously unknown maker
+is adopted from the vendor slug and display-name prefix, and an incomplete ranking feed
+fails closed without blocking other modalities.
+
+**A rerank family** is created when it is among the first **20 ranked models the rerank
+catalog can resolve**. The catalog supplies its name, modalities and context window. The
+public model page supplies the native billing SKU because OpenRouter's Models API currently
+reports zero token rates for rerank models: either `inputPer1M` or `perSearch` is recorded.
+Its `outputPer1M` and `maxTokens` are zero because the endpoint returns relevance scores.
+
+**A transcription family** is created when it is among the first **20 ranked models the
+transcription catalog can resolve**. Duration-priced models use `perAudioMinute` and zero
+token limits; token-priced models retain their input/output token rates and published limits.
+For rerank and transcription, a complete ranking may contain fewer than 20 rows when the
+corresponding catalog itself is smaller than 20.
+
+**A decision family** is created from each stable, priced listing in OpenRouter's
+`output_modalities=decisions` catalog. There is currently no decisions rankings route, so
+admission and retirement use catalog presence. Moving `~vendor/...-latest` aliases are not
+separate families. The catalog supplies the input price, context window and output cap;
+the output-token price is zero.
+
+**A new route** is added when a catalog serves a family the registry already has: OpenRouter
+under `<vendor>/<family>`, a vendor under the family id (Anthropic's hyphenated spelling
+becomes the `wireId`). OpenRouter applies the major-maker or leaderboard eligibility
+gate to routes too, though without the 30-day listing window — a major maker's older
+listing can gain a route while founding no family. Two further guards: a family every
+route of which is hidden is never routed again — it was retired on purpose — and an OpenRouter listing is routed only
+when its context window equals the family's, the one cheap identity check there is
+(`qwen/qwen3-235b-a22b` is the original model; this registry's `qwen3-235b-a22b` is the
+Instruct 2507). A text route narrows `tools`/`structuredOutput` when the router lacks them.
+Image, embedding, rerank and transcription routes are added only while their model is in the corresponding weekly
+Top 20. A first eligible native route is added as soon as its provider lists it. It uses a verified
+native price when available, otherwise the existing OpenRouter quote without reversing
+its discount. Fallback prices keep following OpenRouter; native catalog limits remain
+authoritative once a direct route exists. When an API supplies a native quote, the updater
+preserves the OpenRouter route's existing price and discount as route overrides.
+Decision routes follow their complete catalog and the same identity check.
+
+### Retirement
+
+Every source also watches **presence**: whether each live route is still in its provider's
+catalog. A route that is not gets `missingSince` and an observation count; retries on the
+same UTC date count once. The day it is back, the bookkeeping goes. After **7 successful
+absent catalog observations** the route is set
+`hidden: true`, `missingSince` is dropped and a sentence is appended to its `note` saying
+when and why. The lifecycle update itself never deletes; it preserves the tombstone until
+the separate draft deletion PR is reviewed.
+
+OpenRouter uses separate admission and retention thresholds so models around the cutoff do
+not churn. Text enters through the weekly open- or closed-weight Top 20 and remains eligible
+through the corresponding **Top 50**; image, embedding, rerank and transcription models enter through their weekly Top
+20 and remain eligible through the corresponding **Top 30**. Decision routes have no ranking
+retirement and follow catalog presence alone. A listing is exempt from ranking retirement for its first
+**90 days**. Major-maker text routes with a live vendor route are also exempt, while an
+OpenRouter-only OpenAI, Anthropic, Google or xAI family follows the same retention policy as
+other OpenRouter-only families.
+
+After **30 successful ranking observations** outside the retention threshold, the route is
+hidden with a structured `hiddenAt` date. Re-entry during the tombstone period restores it
+automatically. A failed ranking read or a feed that cannot supply the complete Top 50/30
+retention set does not advance this lifecycle. Routes hidden manually remain manual and are
+never restored by automation. An automatically hidden route becomes a permanent-removal
+candidate only after its 30-day tombstone period; candidates accumulate in the existing
+draft removal PR until it is reviewed.
+
+A source skipped for credentials or failed while reading is not observed at all — neither
+lifecycle advances. An empty or malformed catalog is a failed read, not evidence that
+everything retired. OpenRouter also checks completeness metadata where the catalog provides it.
+Bedrock has no presence source, so its routes are retired by hand: set `hidden: true` and
+say why in `note`. OpenRouter's announced `expiration_date` is reported while it is at most a
+year out — a date already past included.
+
+Before anything is written, a safety gate quarantines destructive bulk changes: removals,
+provider-wide disappearance and mass catalog hiding. Ranking-qualified retirement, valid
+provider metadata changes and additions are applied automatically. The report is still
+produced for review, but `models/` remains unchanged when the gate trips. Network reads
+refuse redirects, time out after 30 seconds and cap JSON responses at 10 MiB. After reviewing
+the complete diff, a person may apply that exact anomaly set by
+rerunning with the digest-specific `--approve-anomaly=<digest>` printed in the report — from
+CI by dispatching **Update models** with the digest in the `approve_anomaly` input. The
+approval is the digest alone, so a set that has since changed is quarantined again with a new
+one rather than waved through.
+
+### Notifications
+
+Two channels with two roles, both optional and run even when a later build or test fails
+(`scripts/notify.ts`):
+
+- **Slack** (`SLACK_WEBHOOK_URL`) carries *events*: a message per run that changed
+  something — a price, a route added, a family added, a model retired — or that failed: a
+  source that could not be read, a quarantined anomaly set, a patch that would leave the
+  registry invalid. The run is linked. A quiet day posts nothing.
+- **A rolling GitHub issue** (the workflow's own token) carries *state*: "Model registry:
+  needs a look", rewritten by every run with everything that needs a person — an unknown
+  maker, a window a router disagrees on, an absence being counted down, a source that could
+  not be read — and closed the day the list is empty. Act on an item and it disappears the
+  next day.
+
+The job summary holds the full report on every run, including one that refused to write:
+a table of what changed and the *needs a look* list.
+
+`.github/workflows/sync-brand-icons.yml` checks the Lobe Icons static SVG sources every
+Monday at 23:00 UTC. It imports missing maker marks through an automatically verified
+pull request, without replacing existing icons. A maker without a matching Lobe SVG shows
+its initials in the viewer.
+
+Run the update locally with `pnpm update-models` (`--dry-run` to only report); the keys are
+read from the same environment variable names. `--reset-openrouter` first preserves every
+OpenRouter route as a hidden reset tombstone, then restores what the retention sets (text
+Top 50, specialized types Top 30) and major-maker policies still allow and adds what the admission
+policies admit — with the 30-day listing window switched off, so a major maker's whole
+history is eligible. The reset is not written unless all retention rankings are complete and every
+image Top 20 endpoint has usable standard-tier price and limits. Free variants and otherwise
+unpriced specialized models remain ineligible without making the ranking feed incomplete.
+
+## Commands
+
+```bash
+pnpm install
+pnpm format          # canonical key order + validation of models/
+pnpm build           # models/ → docs/models.json
+pnpm build:check     # exit 1 if docs/models.json is stale (CI)
+pnpm check-removals -- HEAD^ --pull-request # verify PR removals against models/removals.json
+pnpm propose-removals # turn update-report.json candidates into a draft-PR deletion patch
+pnpm update-models   # pull the live sources into models/ (--dry-run to report only)
+pnpm sync-brand-icons --dry-run # preview maker SVGs available from Lobe Icons
+pnpm update-models --reset-openrouter # rebuild only OpenRouter from all eligible models
+pnpm notify          # deliver update-report.json to Slack / the issue
+pnpm typecheck
+pnpm test
+```
+
+Node 24+, pnpm 11. The scripts are TypeScript run by Node directly; nothing is installed to
+run them — `typescript` and `@types/node` are dev dependencies for the type check alone.
+
+## CI runner
+
+검증·카탈로그 갱신과 동기화 요청은 GitHub-hosted `ubuntu-latest`에서 실행합니다. PR 자체는 CI를 시작하지 않습니다.
+`sync-gitlab.yml`은 `main` push마다 이 저장소 하나를 비공개 `opspresso/agent-platform`의 동기화 worker에 전달합니다.
+모델·아이콘 자동 병합은 같은 저장소의 sync를 명시적으로 호출합니다. 수동 실행도 지원합니다.
+Worker는 내부망 runner에서 요청한 저장소의 `main`만 GitLab에 반영합니다. 요청 workflow의 성공은 반영 완료가 아닙니다.
+`agent-platform`의 `Sync to GitLab` 결과와 대상 Git tree를 확인합니다. 요청에는 `GHP_TOKEN`이 필요하며,
+worker의 설정은 [플랫폼 runner 계약](https://github.com/opspresso/agent-platform/blob/main/CI_RUNNERS.md)을 따릅니다.

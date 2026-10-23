@@ -5,6 +5,15 @@ import type { Principal, Provider, SelectedModel, UsageQuery } from "../domain/r
 import { providerUrl, validateProvider, validateSelection, validIdentifier } from "../domain/router/validation.ts";
 
 export function createManagement(repository: RouterRepository, cipher: SecretCipher, discovery: ModelDiscovery) {
+  function scopedUsage(principal: Principal, query: UsageQuery): UsageQuery {
+    if (!Number.isInteger(query.limit) || query.limit < 1 || query.limit > 500 ||
+        !["model", "user", "agent", "service", "day"].includes(query.groupBy) ||
+        !Number.isFinite(Date.parse(query.from)) || !Number.isFinite(Date.parse(query.to)) ||
+        Date.parse(query.from) >= Date.parse(query.to) || Date.parse(query.to) - Date.parse(query.from) > 366 * 86400_000) {
+      throw new RouterError("invalid_usage_query", 400, "Choose a valid usage period of at most 366 days and a limit between 1 and 500");
+    }
+    return { ...query, ...(!principal.admin ? { subject: principal.subject } : {}) };
+  }
   return {
     providers(principal: Principal) {
       requireAdmin(principal.admin);
@@ -48,15 +57,8 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
       if (!Number.isInteger(limit) || limit < 1 || limit > 500) throw new RouterError("invalid_limit", 400, "Limit must be between 1 and 500");
       return repository.listDiscovered(providerId, limit, after);
     },
-    usage(principal: Principal, query: UsageQuery) {
-      if (!Number.isInteger(query.limit) || query.limit < 1 || query.limit > 500 ||
-          !["model", "user", "agent", "service", "day"].includes(query.groupBy) ||
-          !Number.isFinite(Date.parse(query.from)) || !Number.isFinite(Date.parse(query.to)) ||
-          Date.parse(query.from) >= Date.parse(query.to) || Date.parse(query.to) - Date.parse(query.from) > 366 * 86400_000) {
-        throw new RouterError("invalid_usage_query", 400, "Choose a valid usage period of at most 366 days and a limit between 1 and 500");
-      }
-      return repository.usage({ ...query, ...(!principal.admin ? { subject: principal.subject } : {}) });
-    },
+    usage: (principal: Principal, query: UsageQuery) => repository.usage(scopedUsage(principal, query)),
+    usageOverview: (principal: Principal, query: UsageQuery) => repository.usageOverview(scopedUsage(principal, query)),
     async requestUsage(principal: Principal, service: string, requestId: string) {
       const value = await repository.getUsage(service, requestId);
       if (!value || (!principal.admin && value.subject !== principal.subject)) throw new RouterError("request_not_found", 404, "Request is not available");

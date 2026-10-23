@@ -3,6 +3,7 @@ import { RouterError } from "../../domain/router/errors.ts";
 import type { ModelDiscovery } from "../../domain/router/transport.ts";
 import type { DiscoveredModel, ModelType, Pricing, StoredProvider } from "../../domain/router/types.ts";
 import { providerUrl, validIdentifier } from "../../domain/router/validation.ts";
+import type { RequestSigner } from "./bedrock-signer.ts";
 
 const MAX_CATALOG_BYTES = 16 * 1024 * 1024;
 const MAX_MODELS = 10_000;
@@ -100,11 +101,11 @@ async function readCatalogResponse(response: Response): Promise<Record<string, u
   return result;
 }
 
-export function createModelDiscovery(options: { catalog: () => Catalog; now?: () => Date; request?: typeof fetch; signedRequest?: typeof fetch }): ModelDiscovery {
+export function createModelDiscovery(options: { catalog: () => Catalog; now?: () => Date; request?: typeof fetch; signer?: RequestSigner }): ModelDiscovery {
   return {
     async discover(provider, secret) {
-      const request = provider.auth === "sigv4" ? options.signedRequest : options.request ?? fetch;
-      if (!request) throw new RouterError("signing_unavailable", 503, "AWS request signing is not configured");
+      const request = options.request ?? fetch;
+      if (provider.auth === "sigv4" && !options.signer) throw new RouterError("signing_unavailable", 503, "AWS request signing is not configured");
       const configuredBase = providerUrl(provider.baseUrl);
       const base = provider.kind === "google" ? configuredBase.replace(/\/openai$/, "") : configuredBase;
       const headers = new Headers();
@@ -131,7 +132,9 @@ export function createModelDiscovery(options: { catalog: () => Catalog; now?: ()
           const url = new URL(`${base}/${source.path}`);
           if (cursor) url.searchParams.set(provider.kind === "google" ? "pageToken" : "after_id", cursor);
           let response: Response;
-          try { response = await request(url, { headers, signal, redirect: "error" }); }
+          try { response = provider.auth === "sigv4"
+            ? await request(await options.signer!(url, { headers, signal }), { signal, redirect: "error" })
+            : await request(url, { headers, signal, redirect: "error" }); }
           catch { throw new RouterError("provider_discovery_failed", 502, "Provider model listing could not be reached"); }
           const body = await readCatalogResponse(response);
           const models = provider.kind === "google" ? body.models : body.data;

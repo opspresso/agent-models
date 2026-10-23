@@ -117,6 +117,9 @@ async function check() {
     assert.equal(mine[0]!.usage.images, undefined, "an absent usage axis is not a measured zero");
     const all = await management.usage(admin, query);
     assert.equal(all.length, 2);
+    const overview = await management.usageOverview(admin, { ...query, limit: 1, after: "member" });
+    assert.equal(overview.groups.length, 1);
+    assert.equal(overview.totals.requests, 5, "period totals are independent of group pagination");
     assert.deepEqual((await management.usage(admin, { ...query, after: "member" })).map(row => row.key), ["service:agent-memory"]);
     await assert.rejects(management.requestUsage(member, "agent-memory", "system"), { code: "request_not_found" });
     assert.equal((await pool.query("SELECT id FROM agent_studio_fixture")).rows[0].id, "preserved");

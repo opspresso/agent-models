@@ -22,7 +22,7 @@ for (const broken of ["providers", "removals", "offering"]) {
       }
       const summary = join(root, "summary.md");
       const result = spawnSync(process.execPath, [join(root, "scripts/update.ts")], {
-        encoding: "utf8", env: { GITHUB_STEP_SUMMARY: summary }, timeout: 10_000,
+        encoding: "utf8", env: { NODE_ENV: "test", GITHUB_STEP_SUMMARY: summary }, timeout: 10_000,
       });
       assert.equal(result.status, 1, result.stderr);
       assert.ok(existsSync(join(root, "update-report.json")), result.stderr);

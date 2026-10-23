@@ -94,6 +94,7 @@ it("uses the selected multipart model and native authentication headers", async 
 
 it("pins operation paths and encodes Google wire IDs without accepting caller paths", () => {
   assert.equal(providerEndpoint({ ...provider, kind: "google", baseUrl: "https://model.internal/v1beta/openai" }, "generateContent", "models/test/model"), "https://model.internal/v1beta/models/test%2Fmodel:generateContent");
+  assert.equal(providerEndpoint({ ...provider, kind: "google", baseUrl: "https://model.internal/v1beta" }, "images/generations", "image-model"), "https://model.internal/v1beta/openai/images/generations");
   assert.equal(providerEndpoint({ ...provider, kind: "openrouter", baseUrl: "https://model.internal/api/v1" }, "decisions", "model"), "https://model.internal/api/alpha/decisions");
   assert.equal(providerEndpoint(provider, "decisions", "model"), "http://model.internal/v1/systemone");
 });

@@ -1,0 +1,88 @@
+/* Surface tokens complement the component defaults in theme.ts. */
+:root,
+:root[data-mantine-color-scheme="light"] {
+  --mantine-color-body: var(--mantine-color-gray-0);
+  --console-surface: var(--mantine-color-white);
+  --console-surface-raised: var(--mantine-color-white);
+  --console-border: var(--mantine-color-gray-3);
+  --console-hover: color-mix(in oklab, var(--console-surface) 96%, var(--mantine-color-text));
+  --console-border-hover: var(--mantine-color-gray-4);
+  --surface-highlight: var(--mantine-color-brand-0);
+  --surface-shadow: 0 1px 2px color-mix(in oklab, var(--mantine-color-gray-9) 3%, transparent);
+  --ai-gradient: linear-gradient(135deg, var(--mantine-color-brand-7), var(--mantine-color-cyan-5));
+  /* Categorical chart palette — validated for CVD/contrast on the light surface. */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --chart-7: #4a3aa7;
+  --chart-8: #e34948;
+  --chart-others: #898781;
+  --chart-surface: var(--mantine-color-white);
+  --chart-grid: #e5e5e5;
+  --chart-ink: #737373;
+  --chart-cursor: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-mantine-color-scheme="dark"] {
+  --mantine-color-body: var(--mantine-color-dark-8);
+  --console-surface: var(--mantine-color-dark-7);
+  --console-surface-raised: var(--mantine-color-dark-6);
+  --console-border: var(--mantine-color-dark-4);
+  --console-hover: color-mix(in oklab, var(--console-surface) 94%, var(--mantine-color-text));
+  --console-border-hover: var(--mantine-color-dark-3);
+  --surface-highlight: color-mix(in oklab, var(--mantine-color-brand-9) 28%, var(--mantine-color-dark-7));
+  --surface-shadow: 0 1px 2px color-mix(in oklab, var(--mantine-color-black) 12%, transparent);
+  /* Same hues re-stepped for the dark surface. */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-7: #9085e9;
+  --chart-8: #e66767;
+  --chart-others: #898781;
+  --chart-surface: #171717;
+  --chart-grid: #262626;
+  --chart-ink: #a3a3a3;
+  --chart-cursor: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  min-width: 320px;
+}
+
+.mantine-AppShell-main {
+  background: transparent;
+}
+
+::selection {
+  color: var(--mantine-color-white);
+  background-color: var(--mantine-primary-color-filled);
+}
+
+.mantine-Button-root,
+.mantine-ActionIcon-root {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.mantine-Button-root:active:not(:disabled),
+.mantine-ActionIcon-root:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+
+.mantine-Card-root, .mantine-Paper-root { background: var(--console-surface); border-color: var(--console-border); }
+.models-brand { color: inherit; text-decoration: none; font-weight: 650; }
+.models-wrap { overflow-wrap: anywhere; min-width: 0; }
+.models-container { width: 100%; max-width: 1440px; margin-inline: auto; }
+.models-table { overflow-x: auto; }
+.models-metric { overflow-wrap: anywhere; font-size: clamp(1rem, 2vw, 1.375rem); line-height: 1.4; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

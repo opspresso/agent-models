@@ -1,7 +1,9 @@
 import type { Pool } from "pg";
+import { AUTH_SCHEMA_STATEMENTS } from "./auth-schema.ts";
 
 export const SCHEMA_VERSION = 1;
 export const SCHEMA_STATEMENTS = [
+  ...AUTH_SCHEMA_STATEMENTS,
   `CREATE TABLE agent_models_providers (
     id text PRIMARY KEY, configuration jsonb NOT NULL, encrypted_secret text,
     revision integer NOT NULL DEFAULT 1 CHECK (revision > 0), updated_at timestamptz NOT NULL DEFAULT now()
@@ -51,7 +53,7 @@ export async function initializeSchema(pool: Pool): Promise<void> {
     } else if (versions.length !== 1 || versions[0]?.version !== SCHEMA_VERSION) {
       throw new Error("Unsupported Models schema version");
     }
-    const expected = ["agent_models_discovered_models", "agent_models_providers", "agent_models_requests", "agent_models_schema", "agent_models_selected_models"];
+    const expected = ["agent_models_account", "agent_models_discovered_models", "agent_models_providers", "agent_models_requests", "agent_models_schema", "agent_models_selected_models", "agent_models_session", "agent_models_user", "agent_models_verification"];
     const tables = (await client.query<{ table_name: string }>("SELECT table_name FROM information_schema.tables WHERE table_schema=current_schema() AND starts_with(table_name,'agent_models_') ORDER BY table_name")).rows;
     if (JSON.stringify(tables.map(row => row.table_name)) !== JSON.stringify(expected)) throw new Error("Models schema does not match its owned table set");
     await client.query("COMMIT");

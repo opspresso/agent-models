@@ -4,6 +4,7 @@ import type { InferenceTransport } from "../../domain/router/transport.ts";
 import type { Operation, Provider } from "../../domain/router/types.ts";
 import { providerUrl } from "../../domain/router/validation.ts";
 import { createUsageObserver } from "./usage-observer.ts";
+import type { RequestSigner } from "./bedrock-signer.ts";
 
 export function providerEndpoint(provider: Provider, operation: Operation, wireId: string): string {
   let base = providerUrl(provider.baseUrl);
@@ -17,16 +18,16 @@ export function providerEndpoint(provider: Provider, operation: Operation, wireI
     if (provider.kind === "selfhosted") return `${base}${base.endsWith("/v1") ? "" : "/v1"}/systemone`;
     throw new RouterError("unsupported_protocol", 400, "This provider does not support decisions");
   }
-  if (provider.kind === "google" && ["chat/completions", "embeddings"].includes(operation) && !base.endsWith("/openai")) base += "/openai";
+  if (provider.kind === "google" && !base.endsWith("/openai")) base += "/openai";
   return `${base}/${operation}`;
 }
 
 /** Forward the selected wire protocol with one credential source and a bounded usage observer. */
-export function createProviderTransport(options: { request?: typeof fetch; signedRequest?: typeof fetch } = {}): InferenceTransport {
+export function createProviderTransport(options: { request?: typeof fetch; signer?: RequestSigner } = {}): InferenceTransport {
   return {
     async execute(input) {
-      const request = input.provider.auth === "sigv4" ? options.signedRequest : options.request ?? fetch;
-      if (!request) throw new RouterError("signing_unavailable", 503, "AWS request signing is not configured");
+      const request = options.request ?? fetch;
+      if (input.provider.auth === "sigv4" && !options.signer) throw new RouterError("signing_unavailable", 503, "AWS request signing is not configured");
       const endpoint = providerEndpoint(input.provider, input.operation, input.model.wireId);
       const headers = new Headers();
       for (const name of ["anthropic-version", "anthropic-beta", "openai-beta"]) {
@@ -76,8 +77,10 @@ export function createProviderTransport(options: { request?: typeof fetch; signe
         form.set("model", input.model.wireId);
         body = form;
       }
+      const requestInit = { method: "POST", headers, body, signal: input.signal, redirect: "error" as const };
+      const prepared = input.provider.auth === "sigv4" ? await options.signer!(endpoint, requestInit) : undefined;
       input.onDispatch();
-      const response = await request(endpoint, { method: "POST", headers, body, signal: input.signal, redirect: "error" });
+      const response = prepared ? await request(prepared, { signal: input.signal, redirect: "error" }) : await request(endpoint, requestInit);
       const outgoing: Record<string, string> = { "cache-control": "no-store", "x-accel-buffering": "no" };
       for (const name of ["content-type", "x-request-id", "request-id", "x-amzn-requestid", "retry-after"]) {
         const value = response.headers.get(name);

@@ -34,9 +34,12 @@ pnpm typecheck
 pnpm test
 pnpm build:check
 DATABASE_URL=<local disposable database ending in _test> pnpm test:integration
+pnpm build
+DATABASE_URL=<local disposable database ending in _test> pnpm test:ui
 ```
 
 Integration creates and drops only its own isolated schema inside the local test database.
+Browser checks require `pnpm exec playwright install chromium` and the production build.
 Tests for provider requests use fixtures, not paid public inference. Verify streaming boundaries,
 abort, malformed usage, duplicate admission/settlement, current permissions and secret handling.
 Performance claims require the same workload and a measured direct-call baseline.

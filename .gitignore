@@ -1,4 +1,11 @@
 node_modules/
+.next/
+build/
+*.tsbuildinfo
+.env.local
+.env.*.local
+playwright-report/
+test-results/
 .DS_Store
 update-report.json
 # writeRegistry's transaction directory: same filesystem as models/, so it has

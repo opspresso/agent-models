@@ -1,4 +1,4 @@
-import { RouterError } from "../domain/router/errors.ts";
+import { RouterError, isRouterError } from "../domain/router/errors.ts";
 import { priceUsage } from "../domain/router/pricing.ts";
 import type { RouterRepository, SecretCipher } from "../domain/router/repository.ts";
 import type { InferenceBody, InferenceTransport } from "../domain/router/transport.ts";
@@ -25,36 +25,37 @@ export function createInference(deps: InferenceDependencies) {
     requestId: string; modelId: string; operation: Operation; body: InferenceBody;
     headers?: Readonly<Record<string, string>>; signal: AbortSignal;
   }) => {
+    const { requestId, modelId, operation, signal: incomingSignal } = input;
     if (!principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
-    if (!validIdentifier(input.requestId) || !validIdentifier(input.modelId)) throw new RouterError("invalid_request", 400, "Invalid request or model ID");
-    if (input.signal.aborted) throw new RouterError("request_cancelled", 499, "Request was cancelled before admission");
+    if (!validIdentifier(requestId) || !validIdentifier(modelId)) throw new RouterError("invalid_request", 400, "Invalid request or model ID");
+    if (incomingSignal.aborted) throw new RouterError("request_cancelled", 499, "Request was cancelled before admission");
     const started = deps.now();
     const startedMonotonic = deps.monotonic();
     const duration = () => Math.max(0, deps.monotonic() - startedMonotonic);
     const admission: Admission = {
-      requestId: input.requestId, modelId: input.modelId, operation: input.operation, principal,
+      requestId: requestId, modelId: modelId, operation: operation, principal,
       executionId: deps.executionId(), deadlineAt: new Date(started + deps.timeoutMs).toISOString(),
     };
     const routed = await deps.repository.admit(admission, deps.concurrencyLimit);
     const controller = new AbortController();
     const remaining = Math.max(0, Math.ceil(deps.timeoutMs - duration()));
     const deadline = AbortSignal.timeout(remaining);
-    const signal = AbortSignal.any([input.signal, controller.signal, deadline]);
-    const settle = (value: Settlement) => deps.repository.settle(principal.service, input.requestId, admission.executionId, value);
+    const signal = AbortSignal.any([incomingSignal, controller.signal, deadline]);
+    const settle = (value: Settlement) => deps.repository.settle(principal.service, requestId, admission.executionId, value);
     let dispatched = false;
     let response: Awaited<ReturnType<InferenceTransport["execute"]>>;
     try {
       const secret = routed.provider.encryptedSecret ? deps.cipher.decrypt(routed.provider.encryptedSecret, routed.provider.id) : null;
-      if (signal.aborted || remaining === 0) throw new RouterError(input.signal.aborted ? "request_cancelled" : "provider_timeout", input.signal.aborted ? 499 : 504, "Request expired before dispatch");
+      if (signal.aborted || remaining === 0) throw new RouterError(incomingSignal.aborted ? "request_cancelled" : "provider_timeout", incomingSignal.aborted ? 499 : 504, "Request expired before dispatch");
       response = await deps.transport.execute({ model: routed.model, provider: routed.provider, secret,
-        operation: input.operation, body: input.body, headers: input.headers ?? {}, signal, onDispatch: () => { dispatched = true; } });
+        operation: operation, body: input.body, headers: input.headers ?? {}, signal, onDispatch: () => { dispatched = true; } });
     } catch (error) {
-      const cancelled = input.signal.aborted;
+      const cancelled = incomingSignal.aborted;
       await settle({ outcome: cancelled ? "cancelled" : "failed", measurement: dispatched ? "unavailable" : "not_started", amounts: {},
         costUsd: dispatched ? null : 0, costSource: dispatched ? "unknown" : "not_started", httpStatus: null,
-        errorCode: error instanceof RouterError ? error.code : cancelled ? "request_cancelled" : deadline.aborted ? "provider_timeout" : dispatched ? "provider_unavailable" : "credential_unavailable",
+        errorCode: isRouterError(error) ? error.code : cancelled ? "request_cancelled" : deadline.aborted ? "provider_timeout" : dispatched ? "provider_unavailable" : "credential_unavailable",
         responseBytes: 0, durationMs: duration() });
-      if (error instanceof RouterError) throw error;
+      if (isRouterError(error)) throw error;
       throw new RouterError(cancelled ? "request_cancelled" : deadline.aborted ? "provider_timeout" : "provider_unavailable", cancelled ? 499 : deadline.aborted ? 504 : 502, "Provider request could not complete");
     }
     async function* body(): AsyncGenerator<Uint8Array> {
@@ -76,7 +77,7 @@ export function createInference(deps: InferenceDependencies) {
         const httpOk = response.status >= 200 && response.status < 300;
         // SDKs close the HTTP stream as soon as DONE/completed arrives. That is
         // successful protocol completion, even when transport EOF was not read.
-        const cancelled = !observed.complete && (input.signal.aborted || (!exhausted && !failed));
+        const cancelled = !observed.complete && (incomingSignal.aborted || (!exhausted && !failed));
         const measurement = observed.measurement === "reported" && !observed.complete ? "partial" : observed.measurement;
         await settle({
           outcome: cancelled ? "cancelled" : failed || !httpOk || observed.errorCode ? "failed" : !observed.complete ? "unknown" : "succeeded",
@@ -86,6 +87,6 @@ export function createInference(deps: InferenceDependencies) {
         });
       }
     }
-    return { status: response.status, headers: response.headers, requestId: input.requestId, body: body() };
+    return { status: response.status, headers: response.headers, requestId: requestId, body: body() };
   };
 }

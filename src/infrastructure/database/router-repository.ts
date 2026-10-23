@@ -9,8 +9,8 @@ type ModelRow = { id: string; provider_id: string; configuration: Omit<SelectedM
 const asProvider = (row: ProviderRow): StoredProvider => ({ ...row.configuration, id: row.id, encryptedSecret: row.encrypted_secret, revision: row.revision, updatedAt: row.updated_at.toISOString() });
 const asModel = (row: ModelRow): SelectedModel => ({ ...row.configuration, id: row.id, providerId: row.provider_id, revision: row.revision, updatedAt: row.updated_at.toISOString() });
 const publicProvider = (provider: StoredProvider): Provider => {
-  const { encryptedSecret: _secret, ...value } = provider;
-  return value;
+  return { id: provider.id, name: provider.name, kind: provider.kind, baseUrl: provider.baseUrl, auth: provider.auth,
+    enabled: provider.enabled, revision: provider.revision, updatedAt: provider.updatedAt };
 };
 const conflict = () => new RouterError("revision_conflict", 409, "Configuration changed; reload before saving");
 
@@ -38,6 +38,35 @@ export function createRouterRepository(pool: Pool): RouterRepository {
       throw error;
     } finally { client.release(); }
   }
+  async function aggregate(client: Pick<PoolClient, "query">, query: UsageQuery, grouped: boolean) {
+    const groups = { model: "model_id", user: "subject", agent: "agent_id", service: "service", day: "to_char(started_at AT TIME ZONE 'UTC','YYYY-MM-DD')" };
+    if (!Object.hasOwn(groups, query.groupBy)) throw new RouterError("invalid_usage_query", 400, "Invalid usage grouping");
+    const group = grouped ? groups[query.groupBy] : "NULL::text";
+    if (!group) throw new RouterError("invalid_usage_query", 400, "Invalid usage grouping");
+    const parameters: unknown[] = [query.from, query.to];
+    const filters = ["started_at >= $1", "started_at < $2"];
+    for (const [column, value] of [["subject", query.subject], ["agent_id", query.agentId], ["model_id", query.modelId], ["service", query.service]]) {
+      if (value !== undefined) { parameters.push(value); filters.push(`${column}=$${parameters.length}`); }
+    }
+    if (grouped && query.after !== undefined) {
+      parameters.push(query.after);
+      filters.push(`(${group}>$${parameters.length} OR ${group} IS NULL)`);
+    }
+    parameters.push(query.limit);
+    const units = USAGE_UNITS.map((unit, index) => `sum((settlement->'amounts'->>'${unit}')::numeric) AS unit_${index},
+      count(settlement->'amounts'->>'${unit}')::int AS unit_${index}_requests`).join(",");
+    const rows = await client.query(`SELECT ${group} AS key,count(*)::int AS requests,
+      count(*) FILTER(WHERE state='succeeded')::int AS succeeded,count(*) FILTER(WHERE state='failed')::int AS failed,
+      count(*) FILTER(WHERE state='cancelled')::int AS cancelled,count(*) FILTER(WHERE state='unknown')::int AS unknown,
+      count(*) FILTER(WHERE state='running')::int AS running,count(*) FILTER(WHERE cost_usd IS NULL)::int AS unpriced,
+      count(*) FILTER(WHERE settlement->>'measurement'='reported')::int AS measured_requests,
+      ${units},COALESCE(sum(cost_usd),0) AS cost_usd
+      FROM agent_models_requests WHERE ${filters.join(" AND ")} ${grouped ? `GROUP BY ${group}` : ""} ORDER BY key NULLS LAST LIMIT $${parameters.length}`, parameters);
+    return rows.rows.map(row => ({ key: row.key, requests: row.requests, succeeded: row.succeeded, failed: row.failed,
+      cancelled: row.cancelled, unknown: row.unknown, running: row.running, unpriced: row.unpriced,
+      measuredRequests: row.measured_requests, usage: Object.fromEntries(USAGE_UNITS.flatMap((unit, index) =>
+        row[`unit_${index}`] === null ? [] : [[unit, { total: Number(row[`unit_${index}`]), observedRequests: row[`unit_${index}_requests`] }]])), costUsd: Number(row.cost_usd) }));
+  }
   return {
     async listProviders() {
       return (await pool.query<ProviderRow>("SELECT * FROM agent_models_providers ORDER BY id LIMIT 50")).rows.map(row => publicProvider(asProvider(row)));
@@ -62,11 +91,11 @@ export function createRouterRepository(pool: Pool): RouterRepository {
       });
     },
     async listModels(includeDisabled) {
-      const rows = await pool.query<ModelRow>(`SELECT model.* FROM agent_models_selected_models AS model
+      const rows = await pool.query<ModelRow & { provider_configuration: Provider }>(`SELECT model.*,provider.configuration AS provider_configuration FROM agent_models_selected_models AS model
         JOIN agent_models_providers AS provider ON provider.id=model.provider_id
         ${includeDisabled ? "" : "WHERE (model.configuration->>'enabled')::boolean AND (provider.configuration->>'enabled')::boolean"}
         ORDER BY model.id LIMIT 500`);
-      return rows.rows.map(asModel);
+      return rows.rows.map(row => ({ ...asModel(row), providerKind: row.provider_configuration.kind, providerName: row.provider_configuration.name, providerEnabled: row.provider_configuration.enabled }));
     },
     async saveModel(model, expectedRevision) {
       return transaction(async client => {
@@ -137,35 +166,13 @@ export function createRouterRepository(pool: Pool): RouterRepository {
       });
     },
     expire: () => expire(pool),
-    async usage(query: UsageQuery) {
-      const groups = { model: "model_id", user: "subject", agent: "agent_id", service: "service", day: "to_char(started_at AT TIME ZONE 'UTC','YYYY-MM-DD')" };
-      if (!Object.hasOwn(groups, query.groupBy)) throw new RouterError("invalid_usage_query", 400, "Invalid usage grouping");
-      const group = groups[query.groupBy];
-      if (!group) throw new RouterError("invalid_usage_query", 400, "Invalid usage grouping");
-      const parameters: unknown[] = [query.from, query.to];
-      const filters = ["started_at >= $1", "started_at < $2"];
-      for (const [column, value] of [["subject", query.subject], ["agent_id", query.agentId], ["model_id", query.modelId], ["service", query.service]]) {
-        if (value !== undefined) { parameters.push(value); filters.push(`${column}=$${parameters.length}`); }
-      }
-      if (query.after !== undefined) {
-        parameters.push(query.after);
-        filters.push(`(${group}>$${parameters.length} OR ${group} IS NULL)`);
-      }
-      parameters.push(query.limit);
-      const units = USAGE_UNITS.map((unit, index) => `sum((settlement->'amounts'->>'${unit}')::numeric) AS unit_${index},
-        count(settlement->'amounts'->>'${unit}')::int AS unit_${index}_requests`).join(",");
-      const rows = await pool.query(`SELECT ${group} AS key,count(*)::int AS requests,
-        count(*) FILTER(WHERE state='succeeded')::int AS succeeded,count(*) FILTER(WHERE state='failed')::int AS failed,
-        count(*) FILTER(WHERE state='cancelled')::int AS cancelled,count(*) FILTER(WHERE state='unknown')::int AS unknown,
-        count(*) FILTER(WHERE state='running')::int AS running,count(*) FILTER(WHERE cost_usd IS NULL)::int AS unpriced,
-        count(*) FILTER(WHERE settlement->>'measurement'='reported')::int AS measured_requests,
-        ${units},COALESCE(sum(cost_usd),0) AS cost_usd
-        FROM agent_models_requests WHERE ${filters.join(" AND ")} GROUP BY ${group} ORDER BY key NULLS LAST LIMIT $${parameters.length}`, parameters);
-      return rows.rows.map(row => ({ key: row.key, requests: row.requests, succeeded: row.succeeded, failed: row.failed,
-        cancelled: row.cancelled, unknown: row.unknown, running: row.running, unpriced: row.unpriced,
-        measuredRequests: row.measured_requests, usage: Object.fromEntries(USAGE_UNITS.flatMap((unit, index) =>
-          row[`unit_${index}`] === null ? [] : [[unit, { total: Number(row[`unit_${index}`]), observedRequests: row[`unit_${index}_requests`] }]])), costUsd: Number(row.cost_usd) }));
-    },
+    usage: query => aggregate(pool, query, true),
+    usageOverview: query => transaction(async client => {
+      await client.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY");
+      const groups = await aggregate(client, query, true);
+      const totals = (await aggregate(client, query, false))[0]!;
+      return { groups, totals };
+    }),
     async getUsage(service, requestId): Promise<UsageRecord | null> {
       const row = (await pool.query("SELECT * FROM agent_models_requests WHERE service=$1 AND request_id=$2", [service, requestId])).rows[0];
       return row ? { requestId: row.request_id, service: row.service, subject: row.subject, principalKind: row.principal_kind,

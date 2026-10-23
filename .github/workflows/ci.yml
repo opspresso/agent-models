@@ -14,7 +14,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     services:
       postgres:
         image: pgvector/pgvector:0.8.6-pg18-trixie
@@ -35,7 +35,7 @@ jobs:
 
       - uses: pnpm/action-setup@v6
         with:
-          version: 11.10.0
+          version: 12.11.2
 
       - uses: actions/setup-node@v7
         with:
@@ -58,6 +58,17 @@ jobs:
 
       - name: Catalog is built from its sources
         run: pnpm build:check
+
+      - name: Build the service
+        run: pnpm build
+
+      - name: Install browser runtime
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: OIDC and browser integration
+        env:
+          DATABASE_URL: postgresql://agent_models:agent_models_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/agent_models_test
+        run: pnpm test:ui
 
       - name: Removals in this push are explicitly requested
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'

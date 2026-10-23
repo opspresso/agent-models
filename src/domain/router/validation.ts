@@ -31,6 +31,8 @@ const operationTypes: Record<Operation, readonly ModelFacts["type"][]> = {
   rerank: ["rerank"], decisions: ["decision"], generateContent: ["text", "image", "transcription"], streamGenerateContent: ["text", "image"],
 };
 
+export function operationsForType(type: ModelFacts["type"]): Operation[] { return OPERATIONS.filter(operation => operationTypes[operation].includes(type)); }
+
 export function validateModel(model: ModelFacts): void {
   if (!validIdentifier(model.wireId) || !model.displayName.trim() || model.displayName.length > 200 || !MODEL_TYPES.includes(model.type)) {
     throw new RouterError("invalid_model", 400, "Invalid model identity or type");

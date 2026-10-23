@@ -1,8 +1,8 @@
 # 모델 라우터 실행 코어
 
-이 문서는 라우터를 구현·운영하는 개발자를 위한 현재 코드 계약이다. HTTP 서비스·관리 화면·
-OIDC 소비자 연결은 아직 구성되지 않았다. 전체 개편과 완료 조건은
-[플랫폼 계약](../../agent-platform/docs/MODEL_ROUTER.md)을 따른다.
+이 문서는 라우터를 구현·운영하는 개발자를 위한 현재 코드 계약이다. Next.js가 HTTP·관리 화면을
+제공하고 Studio OIDC가 사용자와 권한을 결정한다. 전체 개편과 완료 조건은
+[플랫폼 계약](https://github.com/opspresso/agent-platform/blob/main/docs/MODEL_ROUTER.md)을 따른다.
 
 ## 책임
 
