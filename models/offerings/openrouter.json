@@ -70,8 +70,8 @@
     "family": "gpt-5.6-terra-pro",
     "wireId": "openai/gpt-5.6-terra-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 13,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 14,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "gpt-5.6-terra",
@@ -81,8 +81,8 @@
     "family": "gpt-5.6-sol-pro",
     "wireId": "openai/gpt-5.6-sol-pro",
     "rankMissingSince": "2026-10-08",
-    "rankMissingObservations": 13,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 14,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "gpt-5.6-sol",
@@ -116,8 +116,8 @@
     "family": "step-3.7-flash",
     "wireId": "stepfun/step-3.7-flash",
     "rankMissingSince": "2026-10-15",
-    "rankMissingObservations": 6,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 7,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "claude-opus-4.8-fast",
@@ -217,8 +217,8 @@
     "family": "minimax-m2.7",
     "wireId": "minimax/minimax-m2.7",
     "rankMissingSince": "2026-10-22",
-    "rankMissingObservations": 1,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 2,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "gpt-5.4-nano",
@@ -421,9 +421,10 @@
   {
     "family": "claude-sonnet-4",
     "wireId": "anthropic/claude-sonnet-4",
-    "missingSince": "2026-10-15",
-    "missingObservations": 6,
-    "lastMissingAt": "2026-10-22"
+    "hidden": true,
+    "hiddenReason": "catalog",
+    "hiddenAt": "2026-10-23",
+    "note": "Hidden automatically on 2026-10-23: absent from OpenRouter's catalog since 2026-10-15."
   },
   {
     "family": "gemini-2.5-pro-preview-05-06",
@@ -492,8 +493,8 @@
     "family": "gemma-3-27b-it",
     "wireId": "google/gemma-3-27b-it",
     "rankMissingSince": "2026-10-20",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 4,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "o3-mini-high",
@@ -614,8 +615,8 @@
     "family": "mai-image-2.5",
     "wireId": "microsoft/mai-image-2.5",
     "rankMissingSince": "2026-10-17",
-    "rankMissingObservations": 5,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 6,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "flux.2-klein-4b",
@@ -633,15 +634,15 @@
     "family": "krea-2-medium",
     "wireId": "krea/krea-2-medium",
     "rankMissingSince": "2026-10-20",
-    "rankMissingObservations": 3,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 4,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "flux.2-max",
     "wireId": "black-forest-labs/flux.2-max",
     "rankMissingSince": "2026-09-29",
-    "rankMissingObservations": 22,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 23,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "gpt-5-image-mini",
@@ -649,7 +650,10 @@
   },
   {
     "family": "krea-2-medium-turbo",
-    "wireId": "krea/krea-2-medium-turbo"
+    "wireId": "krea/krea-2-medium-turbo",
+    "rankMissingSince": "2026-10-23",
+    "rankMissingObservations": 1,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "kimi-k3",
@@ -930,8 +934,8 @@
     "family": "recraft-v4.1",
     "wireId": "recraft/recraft-v4.1",
     "rankMissingSince": "2026-10-06",
-    "rankMissingObservations": 15,
-    "lastRankMissingAt": "2026-10-22"
+    "rankMissingObservations": 16,
+    "lastRankMissingAt": "2026-10-23"
   },
   {
     "family": "qwen3.7-flash",
@@ -1082,8 +1086,8 @@
     "family": "pplx-decider-v1.1-27b",
     "wireId": "perplexity/pplx-decider-v1.1-27b",
     "missingSince": "2026-10-17",
-    "missingObservations": 5,
-    "lastMissingAt": "2026-10-22"
+    "missingObservations": 6,
+    "lastMissingAt": "2026-10-23"
   },
   {
     "family": "claude-haiku-5.5",
@@ -1172,5 +1176,9 @@
   {
     "family": "drex-max",
     "wireId": "nace-ai/drex-max"
+  },
+  {
+    "family": "minimax-m3.1-flash",
+    "wireId": "minimax/minimax-m3.1-flash"
   }
 ]
