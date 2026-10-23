@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-22T00:20:52.729Z",
+  "updatedAt": "2026-10-23T00:17:22.283Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -3929,7 +3929,8 @@
       },
       "contextWindow": 200000,
       "maxTokens": 64000,
-      "wireId": "anthropic/claude-sonnet-4"
+      "wireId": "anthropic/claude-sonnet-4",
+      "hidden": true
     },
     {
       "id": "openrouter/gemini-2.5-pro-preview-05-06",
@@ -4936,9 +4937,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 0.08,
-        "cachedInputPer1M": 0.03
+        "inputPer1M": 0.01,
+        "outputPer1M": 0.2,
+        "cachedInputPer1M": 0.01
       },
       "capabilities": {
         "tools": true,
@@ -4947,7 +4948,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 131072,
+      "maxTokens": 943718,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6164,8 +6165,8 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.3,
-        "outputPer1M": 1.2,
+        "inputPer1M": 0.17,
+        "outputPer1M": 0.66,
         "cachedInputPer1M": 0.01
       },
       "capabilities": {
@@ -6846,7 +6847,7 @@
       "maker": "cloudflare",
       "displayName": "Clef",
       "pricing": {
-        "inputPer1M": 0.04,
+        "inputPer1M": 0.24,
         "outputPer1M": 0
       },
       "capabilities": {
@@ -6857,7 +6858,7 @@
         "decision": true
       },
       "contextWindow": 65537,
-      "maxTokens": 14745,
+      "maxTokens": 58982,
       "wireId": "cloudflare/clef"
     },
     {
@@ -7504,6 +7505,27 @@
       "contextWindow": 262144,
       "maxTokens": 235929,
       "wireId": "nace-ai/drex-max"
+    },
+    {
+      "id": "openrouter/minimax-m3.1-flash",
+      "provider": "openrouter",
+      "family": "minimax-m3.1-flash",
+      "maker": "minimax",
+      "displayName": "MiniMax M3.1 Flash",
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.6,
+        "cachedInputPer1M": 0.02
+      },
+      "capabilities": {
+        "tools": true,
+        "structuredOutput": false,
+        "imageInput": true,
+        "reasoning": true
+      },
+      "contextWindow": 1000000,
+      "maxTokens": 524288,
+      "wireId": "minimax/minimax-m3.1-flash"
     }
   ]
 }
