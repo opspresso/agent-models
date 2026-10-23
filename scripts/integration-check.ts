@@ -91,7 +91,12 @@ async function check() {
     const invoke = (id: string, actor: Principal = member) => inference(actor, { requestId: id, modelId: selection.id, operation: "chat/completions",
       body: { kind: "json", value: { messages: [] } }, signal: new AbortController().signal });
     await assert.rejects(invoke("guest", { ...member, canInvoke: false }), { code: "execution_forbidden" });
-    const response = await invoke("inference");
+    const authorized: Principal = { ...member, modelCall: { version: 1, requestId: "inference", modelId: selection.id, operation: "chat/completions", agentId: member.agentId! } };
+    await assert.rejects(invoke("different", authorized), { code: "invocation_grant_mismatch" });
+    await assert.rejects(invoke("inference", { ...authorized, modelCall: { ...authorized.modelCall!, modelId: "other" } }), { code: "invocation_grant_mismatch" });
+    await assert.rejects(invoke("inference", { ...authorized, modelCall: { ...authorized.modelCall!, operation: "responses" } }), { code: "invocation_grant_mismatch" });
+    assert.equal(calls, 0, "a mismatched invocation cannot dispatch or spend capacity");
+    const response = await invoke("inference", authorized);
     for await (const _ of response.body) { /* Draining is the observable response lifecycle. */ }
     assert.equal(calls, 1);
     assert.equal((await repository.getUsage(member.service, "inference"))?.settlement?.costUsd, 0.12);
@@ -108,6 +113,9 @@ async function check() {
     const systemResponse = await invoke("system", { ...admin, kind: "service", subject: "service:agent-memory", service: "agent-memory" });
     for await (const _ of systemResponse.body) { /* Account for the system job separately. */ }
     const query = { from: new Date(Date.now() - 3600_000).toISOString(), to: new Date(Date.now() + 3600_000).toISOString(), groupBy: "user" as const, limit: 100 };
+    assert.equal((await management.requestUsage(authorized, member.service, "inference")).agentId, member.agentId);
+    await assert.rejects(management.requestUsage(authorized, member.service, "single"), { code: "request_not_found" });
+    assert.throws(() => management.usageOverview(authorized, query), { code: "invocation_grant_only" });
     const mine = await management.usage(member, { ...query, subject: "service:agent-memory" });
     assert.deepEqual(mine.map(row => row.key), [member.subject]);
     assert.equal(mine[0]!.requests, 4);

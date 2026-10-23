@@ -1,8 +1,8 @@
 import { RouterError } from "./errors.ts";
 import { MODEL_TYPES, OPERATIONS, PROVIDER_KINDS, type ModelFacts, type Operation, type Provider, type SelectedModel } from "./types.ts";
 
-export function validIdentifier(value: string): boolean {
-  return value.length > 0 && value.length <= 200 && value === value.trim() && !/[\x00-\x20\x7f]/.test(value);
+export function validIdentifier(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= 200 && value === value.trim() && !/[\x00-\x20\x7f]/.test(value);
 }
 
 export function providerUrl(value: string): string {

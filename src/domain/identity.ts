@@ -1,9 +1,11 @@
 import { RouterError } from "./router/errors.ts";
-import type { Principal } from "./router/types.ts";
+import { OPERATIONS, type ModelCallGrant, type Operation, type Principal } from "./router/types.ts";
+import { validIdentifier } from "./router/validation.ts";
 
 export const MODELS_RESOURCE = "urn:opspresso:agent:models";
 export const PLATFORM_IDENTITY_CLAIM = "urn:opspresso:agent:identity";
 export const PLATFORM_SERVICE_CLAIM = "urn:opspresso:agent:service";
+export const PLATFORM_MODEL_CALL_CLAIM = "urn:opspresso:agent:model-call";
 export const MODEL_SCOPES = ["models:read", "models:invoke", "models:manage", "usage:read"] as const;
 export type ModelScope = typeof MODEL_SCOPES[number];
 export const SIGN_IN_SCOPES = ["openid", "email", "profile", "offline_access", "platform:identity", ...MODEL_SCOPES];
@@ -38,4 +40,17 @@ export function platformIdentity(value: unknown, subject: string): PlatformIdent
 
 export function requireScope(principal: AuthenticatedPrincipal, scope: ModelScope): void {
   if (!principal.scopes.includes(scope)) throw new RouterError("insufficient_scope", 403, "The credential does not grant this operation");
+}
+
+export function modelCallGrant(value: unknown): ModelCallGrant | undefined {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new RouterError("invalid_grant", 401, "Invalid model invocation grant");
+  const grant = value as Record<string, unknown>;
+  if (Object.keys(grant).some(key => !["version", "requestId", "modelId", "operation", "agentId"].includes(key)) ||
+      grant.version !== 1 || !validIdentifier(grant.requestId) || !validIdentifier(grant.modelId) ||
+      !OPERATIONS.includes(grant.operation as Operation) || (grant.agentId !== undefined && !validIdentifier(grant.agentId))) {
+    throw new RouterError("invalid_grant", 401, "Invalid model invocation grant");
+  }
+  return { version: 1, requestId: grant.requestId, modelId: grant.modelId, operation: grant.operation as Operation,
+    ...(typeof grant.agentId === "string" ? { agentId: grant.agentId } : {}) };
 }

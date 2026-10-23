@@ -28,6 +28,9 @@ export function createInference(deps: InferenceDependencies) {
     const { requestId, modelId, operation, signal: incomingSignal } = input;
     if (!principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
     if (!validIdentifier(requestId) || !validIdentifier(modelId)) throw new RouterError("invalid_request", 400, "Invalid request or model ID");
+    if (principal.modelCall && (principal.modelCall.requestId !== requestId || principal.modelCall.modelId !== modelId || principal.modelCall.operation !== operation)) {
+      throw new RouterError("invocation_grant_mismatch", 403, "This credential authorizes a different model request");
+    }
     if (incomingSignal.aborted) throw new RouterError("request_cancelled", 499, "Request was cancelled before admission");
     const started = deps.now();
     const startedMonotonic = deps.monotonic();

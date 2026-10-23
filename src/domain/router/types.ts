@@ -8,6 +8,15 @@ export const OPERATIONS = ["chat/completions", "responses", "messages", "message
   "images", "images/generations", "images/edits", "audio/transcriptions", "rerank", "decisions", "generateContent", "streamGenerateContent"] as const;
 export type Operation = typeof OPERATIONS[number];
 
+/** Studio's signed authorization for one invocation, distinct from an untrusted request body. */
+export interface ModelCallGrant {
+  version: 1;
+  requestId: string;
+  modelId: string;
+  operation: Operation;
+  agentId?: string;
+}
+
 export interface Principal {
   /** Studio's stable subject, or an explicitly authorized service subject for system jobs. */
   subject: string;
@@ -17,6 +26,7 @@ export interface Principal {
   canInvoke: boolean;
   /** Set only by the authenticated delegation boundary. */
   agentId?: string;
+  modelCall?: ModelCallGrant;
 }
 
 export interface Provider {

@@ -18,6 +18,13 @@ JWT 서명·issuer·audience·만료를 검증한 뒤 introspection으로 client
 집계하며 사용자·Agent를 요청 본문이나 임의의 헤더로 선택할 수 없다. 브라우저의 변경 요청은
 `AUTH_BASE_URL`과 같은 Origin만 허용한다.
 
+Studio가 실행 권한을 확인한 호출은 `urn:opspresso:agent:model-call` claim으로 한 요청에
+제한할 수 있다. `version=1`, `requestId`, `modelId`, `operation`, 선택적 `agentId`를 검증하며
+토큰의 최대 수명은 60초다. `Idempotency-Key`에 서명된 `requestId`를 그대로 보낸다.
+다른 요청·모델·작업으로 바꾸면 공급자 호출 전에 403을 반환한다. 이 토큰의 `usage:read`는
+해당 서비스와 요청의 영수증에만 적용하며 다른 영수증이나 전체 집계는 허용하지 않는다.
+HTTP 인증은 요청 시작 시 확인한다. 이미 승인한 스트림은 별도의 실행 제한 시간과 취소 신호를 따른다.
+
 ## 조회와 관리
 
 | Method | 경로 | 입력·결과 |

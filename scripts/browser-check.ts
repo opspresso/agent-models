@@ -12,10 +12,11 @@ import { Client, Pool } from "pg";
 import { betterAuth, type BetterAuthPlugin } from "better-auth";
 import { jwt } from "better-auth/plugins";
 import { getMigrations } from "better-auth/db/migration";
-import { oauthProvider } from "@better-auth/oauth-provider";
+import { oauthProvider, getOAuthProviderApi } from "@better-auth/oauth-provider";
+import { createAuthEndpoint } from "better-auth/api";
 import { chromium, type Page } from "@playwright/test";
 import { z } from "zod";
-import { MODEL_SCOPES, MODELS_RESOURCE, PLATFORM_IDENTITY_CLAIM, PLATFORM_SERVICE_CLAIM, SIGN_IN_SCOPES } from "../src/domain/identity.ts";
+import { MODEL_SCOPES, MODELS_RESOURCE, PLATFORM_IDENTITY_CLAIM, PLATFORM_SERVICE_CLAIM, PLATFORM_MODEL_CALL_CLAIM, SIGN_IN_SCOPES } from "../src/domain/identity.ts";
 
 const database = process.env.DATABASE_URL;
 if (!database) throw new Error("DATABASE_URL must name a local disposable *_test database");
@@ -95,7 +96,17 @@ async function main() {
     plugins: [jwt({ jwt: { issuer }, disableSettingJwtHeader: true, jwks: { keyPairConfig: { alg: "RS256" as const } }, schema: { jwks: { modelName: prefix + "jwks" } } }),
       // The SDK's generated OpenAPI metadata types include optional undefined fields.
       // Keep the native endpoint types while acknowledging its runtime plugin contract.
-      issuerPlugin as typeof issuerPlugin & BetterAuthPlugin],
+      issuerPlugin as typeof issuerPlugin & BetterAuthPlugin,
+      { id: "fixture-call-grants", endpoints: { issueFixtureModelCall: createAuthEndpoint.serverOnly({
+        method: "POST", body: z.object({ userId: z.string(), clientId: z.string() }),
+      }, async ctx => {
+        const capability = getOAuthProviderApi(ctx, { ...issuerPlugin.options, accessTokenExpiresIn: 60 }, "urn:fixture:model-call");
+        const targetClient = await capability.getClient(ctx.body.clientId);
+        const user = await ctx.context.internalAdapter.findUserById(ctx.body.userId);
+        assert.ok(targetClient && user);
+        return capability.issueTokens({ client: targetClient, user, scopes: ["openid", "platform:identity", "models:invoke", "usage:read"], resources: [MODELS_RESOURCE],
+          accessTokenClaims: { [PLATFORM_MODEL_CALL_CLAIM]: { version: 1, requestId: "delegated-call", modelId: "local/fixture-model", operation: "chat/completions", agentId: "verified-agent" } } });
+      }) } }],
   };
   const migration = await getMigrations(options);
   assert.equal(migration.toBeAdded.length, 0);
@@ -203,9 +214,24 @@ async function main() {
     assert.equal((await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${readOnly}`, "content-type": "application/json" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) })).status, 403);
     const pieces = serviceToken.split("."); pieces[2] = (pieces[2]!.startsWith("A") ? "B" : "A") + pieces[2]!.slice(1);
     assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${pieces.join(".")}` } })).status, 401);
+    assert.ok(auth.api.issueFixtureModelCall);
+    const delegated = await auth.api.issueFixtureModelCall({ body: { userId: adminUser.id, clientId: machineClient.client_id } });
+    const delegatedHeaders = { authorization: `Bearer ${delegated.access_token}`, "content-type": "application/json", "idempotency-key": "delegated-call", "x-agent-id": "forged-agent" };
+    for (const [id, model, operation] of [["other-call", "local/fixture-model", "chat/completions"], ["delegated-call", "other-model", "chat/completions"], ["delegated-call", "local/fixture-model", "responses"]]) {
+      assert.equal((await fetch(`${origin}/v1/${operation}`, { method: "POST", headers: { ...delegatedHeaders, "idempotency-key": id! }, body: JSON.stringify({ model, messages: [] }) })).status, 403);
+    }
+    assert.equal(providerCalls, 2);
+    const delegatedResponse = await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: delegatedHeaders, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) });
+    assert.equal(delegatedResponse.status, 200); await delegatedResponse.json();
+    const delegatedReceipt = await (await fetch(`${origin}/api/usage/agent-forge/delegated-call`, { headers: delegatedHeaders })).json();
+    assert.equal(delegatedReceipt.subject, adminUser.id); assert.equal(delegatedReceipt.agentId, "verified-agent");
+    assert.equal((await fetch(`${origin}/api/usage/agent-models/browser-model-call`, { headers: delegatedHeaders })).status, 404, "a call grant cannot read another receipt even for the same user");
+    assert.equal((await fetch(`${origin}/api/usage?from=2026-01-01T00:00:00Z&to=2026-12-31T00:00:00Z`, { headers: delegatedHeaders })).status, 403);
+    assert.equal((await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: delegatedHeaders, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) })).status, 409);
     assert.ok(auth.api.deleteOAuthClient);
     await auth.api.deleteOAuthClient({ headers: adminHeaders, body: { client_id: machineClient.client_id } });
     assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${serviceToken}` } })).status, 401);
+    assert.equal((await fetch(`${origin}/api/usage/agent-forge/delegated-call`, { headers: delegatedHeaders })).status, 401, "client revocation also invalidates a delegated user grant");
     await page.getByRole("link", { name: "Usage", exact: true }).click(); await page.getByText("local/fixture-model", { exact: true }).waitFor();
     await mkdir("test-results", { recursive: true }); await page.screenshot({ path: "test-results/models-usage-en.png", fullPage: true });
     await page.getByRole("button", { name: "Switch language" }).click(); await page.getByRole("heading", { name: "사용량", exact: true }).waitFor();
@@ -215,13 +241,13 @@ async function main() {
     await pool.query(`UPDATE "${prefix}user" SET tier='guest' WHERE id=$1`, [adminUser.id]);
     assert.equal((await page.request.get(`${origin}/api/providers`)).status(), 403, "central role changes apply without a new RP login");
     assert.equal((await page.request.post(`${origin}/v1/chat/completions`, { headers: { origin }, data: { model: "local/fixture-model", messages: [] } })).status(), 403);
-    assert.equal(providerCalls, 2);
+    assert.equal(providerCalls, 3);
     assert.equal((await page.request.get(`${origin}/api/usage/agent-forge/machine-call`)).status(), 404, "a non-admin cannot read service-owned usage");
     assert.equal((await page.request.post(`${origin}/api/auth/get-access-token`, { headers: { origin }, data: { accountId: "irrelevant" } })).status(), 404);
     assert.deepEqual(errors, []);
     assert.equal(providerFailure, undefined);
     await context.close();
-    console.log("PASS Models browser: OIDC code flow, encrypted/single refresh, provider/discovery/selection, actual model HTTP, user/service attribution, scope/signature/client/role revocation, no replay and English/Korean mobile UI");
+    console.log("PASS Models browser: OIDC code flow, encrypted/single refresh, provider/discovery/selection, actual model HTTP, signed per-call user/agent grants, scope/signature/client/role revocation, no replay and English/Korean mobile UI");
   } catch (error) {
     await mkdir("test-results", { recursive: true });
     if (page) {

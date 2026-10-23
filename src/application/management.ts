@@ -6,6 +6,7 @@ import { providerUrl, validateProvider, validateSelection, validIdentifier } fro
 
 export function createManagement(repository: RouterRepository, cipher: SecretCipher, discovery: ModelDiscovery) {
   function scopedUsage(principal: Principal, query: UsageQuery): UsageQuery {
+    if (principal.modelCall) throw new RouterError("invocation_grant_only", 403, "This credential may only read its own model request receipt");
     if (!Number.isInteger(query.limit) || query.limit < 1 || query.limit > 500 ||
         !["model", "user", "agent", "service", "day"].includes(query.groupBy) ||
         !Number.isFinite(Date.parse(query.from)) || !Number.isFinite(Date.parse(query.to)) ||
@@ -60,6 +61,9 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
     usage: (principal: Principal, query: UsageQuery) => repository.usage(scopedUsage(principal, query)),
     usageOverview: (principal: Principal, query: UsageQuery) => repository.usageOverview(scopedUsage(principal, query)),
     async requestUsage(principal: Principal, service: string, requestId: string) {
+      if (principal.modelCall && (service !== principal.service || requestId !== principal.modelCall.requestId)) {
+        throw new RouterError("request_not_found", 404, "Request is not available");
+      }
       const value = await repository.getUsage(service, requestId);
       if (!value || (!principal.admin && value.subject !== principal.subject)) throw new RouterError("request_not_found", 404, "Request is not available");
       return value;
