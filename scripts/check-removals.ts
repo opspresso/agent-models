@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { assertRemovalPolicy, loadRemovalManifest } from "../src/removals.ts";
-import { parseCatalog, readCatalog } from "../src/registry.ts";
+import { assertRemovalPolicy, loadRemovalManifest } from "../src/infrastructure/catalog/removals.ts";
+import { parseCatalog } from "../src/domain/catalog/registry.ts";
+import { readCatalog } from "../src/infrastructure/catalog/registry-store.ts";
 import { CATALOG_PATH, ROOT } from "./_root.ts";
 
 const arguments_ = process.argv.slice(2).filter((argument) => argument !== "--");

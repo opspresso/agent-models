@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Registry } from "./registry.ts";
+import { type Registry } from "../../domain/catalog/registry.ts";
 
 export function anomalyDigest(anomalies: readonly string[]): string {
   return createHash("sha256").update([...anomalies].sort().join("\n")).digest("hex").slice(0, 12);

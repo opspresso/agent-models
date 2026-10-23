@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { setImmediate } from "node:timers/promises";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
-import type { Catalog, ModelCapabilities, ModelPricing } from "../src/registry.ts";
+import { type Catalog, type ModelCapabilities, type ModelPricing } from "../src/domain/catalog/registry.ts";
 
 const source = readFileSync(new URL("../docs/app.js", import.meta.url), "utf8");
 const catalog: Catalog = {

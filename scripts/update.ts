@@ -29,14 +29,15 @@
  */
 
 import { appendFileSync } from "node:fs";
-import { loadRegistry, validateRegistry, writeRegistry, writeTextAtomic, type Registry } from "../src/registry.ts";
-import { renderReport, type SourceOutcome } from "../src/report.ts";
-import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
-import { findRemovalCandidates, loadRemovalManifest, type RemovalCandidate, type RemovalRequest } from "../src/removals.ts";
-import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
-import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/sources/anthropic.ts";
-import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
-import { applyOpenAi, discoverOpenAi, fetchOpenAiModelIds } from "../src/sources/openai.ts";
+import { loadRegistry, writeRegistry, writeTextAtomic } from "../src/infrastructure/catalog/registry-store.ts";
+import { validateRegistry, type Registry } from "../src/domain/catalog/registry.ts";
+import { renderReport, type SourceOutcome } from "../src/infrastructure/catalog/report.ts";
+import { anomalyDigest, detectRegistryAnomalies } from "../src/infrastructure/catalog/safety.ts";
+import { findRemovalCandidates, loadRemovalManifest, type RemovalCandidate, type RemovalRequest } from "../src/infrastructure/catalog/removals.ts";
+import { runUpdatePipeline, type UpdateSource } from "../src/infrastructure/catalog/update-pipeline.ts";
+import { applyAnthropic, discoverAnthropic, fetchAnthropicModels } from "../src/infrastructure/catalog/sources/anthropic.ts";
+import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/infrastructure/catalog/sources/google.ts";
+import { applyOpenAi, discoverOpenAi, fetchOpenAiModelIds } from "../src/infrastructure/catalog/sources/openai.ts";
 import {
   applyOpenRouter,
   discoverOpenRouter,
@@ -44,9 +45,9 @@ import {
   fetchOpenRouterCatalog,
   openRouterResetReady,
   resetOpenRouterRegistry,
-} from "../src/sources/openrouter.ts";
-import { utcDate } from "../src/sources/presence.ts";
-import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
+} from "../src/infrastructure/catalog/sources/openrouter.ts";
+import { utcDate } from "../src/infrastructure/catalog/sources/presence.ts";
+import { applyXai, discoverXai, fetchXaiCatalog } from "../src/infrastructure/catalog/sources/xai.ts";
 import { REPORT_PATH, ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");

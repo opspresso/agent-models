@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { renderReport } from "../src/report.ts";
+import { renderReport } from "../src/infrastructure/catalog/report.ts";
 
 describe("renderReport", () => {
   it("escapes provider-controlled Markdown and table content", () => {

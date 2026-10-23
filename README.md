@@ -101,6 +101,10 @@ and past usage is priced by looking it up, so it stays in the list and out of th
 
 ## How the registry is written
 
+Catalog types, validation and derivation live in `src/domain/catalog/registry.ts`.
+File persistence and provider collection live in `src/infrastructure/catalog/`.
+Scripts compose those modules; domain code performs no filesystem or network access.
+
 What a model *is* and who *serves* it are two lists, resolved into the catalog at build time.
 
 ```

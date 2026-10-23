@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Registry } from "./registry.ts";
+import { type Registry } from "../../domain/catalog/registry.ts";
 import { daysBetween } from "./sources/presence.ts";
 
 export const REMOVAL_GRACE_DAYS = 30;

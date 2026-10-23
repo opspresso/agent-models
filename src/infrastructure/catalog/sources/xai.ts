@@ -14,7 +14,7 @@
  * are only looked up in their own catalog so a retirement is noticed.
  */
 
-import type { Registry } from "../registry.ts";
+import { type Registry } from "../../../domain/catalog/registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive, setNativePricing } from "./routes.ts";
 import { fetchJson, isExternalId, roundPrice, type Change, type SourceResult } from "./types.ts";

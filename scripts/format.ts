@@ -4,8 +4,8 @@
  * diff rather than a reordering. Validates before replacing any source file.
  */
 
-import { loadRegistry, writeRegistry } from "../src/registry.ts";
-import { loadRemovalManifest } from "../src/removals.ts";
+import { loadRegistry, writeRegistry } from "../src/infrastructure/catalog/registry-store.ts";
+import { loadRemovalManifest } from "../src/infrastructure/catalog/removals.ts";
 import { ROOT } from "./_root.ts";
 
 const registry = loadRegistry(ROOT);

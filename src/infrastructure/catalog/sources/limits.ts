@@ -1,4 +1,4 @@
-import type { Registry } from "../registry.ts";
+import { type Registry } from "../../../domain/catalog/registry.ts";
 import type { Change } from "./types.ts";
 
 /** Apply individually valid catalog counts only when the resulting family and routes remain consistent. */

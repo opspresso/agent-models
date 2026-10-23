@@ -13,8 +13,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { loadRemovalManifest, unrequestedRemovals } from "../src/removals.ts";
-import { assertValid, buildCatalog, formatJson, loadRegistry, readCatalog, writeTextAtomic } from "../src/registry.ts";
+import { loadRemovalManifest, unrequestedRemovals } from "../src/infrastructure/catalog/removals.ts";
+import { assertValid, buildCatalog, formatJson } from "../src/domain/catalog/registry.ts";
+import { loadRegistry, readCatalog, writeTextAtomic } from "../src/infrastructure/catalog/registry-store.ts";
 import { CATALOG_PATH, ROOT } from "./_root.ts";
 
 const check = process.argv.includes("--check");

@@ -1,6 +1,6 @@
 /** Native routes use verified prices when available and otherwise follow OpenRouter. */
 
-import type { ModelPricing, PlacedOffering, Registry } from "../registry.ts";
+import { type ModelPricing, type PlacedOffering, type Registry } from "../../../domain/catalog/registry.ts";
 import { samePricing, type Change } from "./types.ts";
 
 const ROUTER_PROVIDERS = new Set(["bedrock", "openrouter"]);

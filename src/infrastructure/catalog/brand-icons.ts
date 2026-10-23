@@ -3,7 +3,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { assertValid, isSafeSlug, loadRegistry, writeTextAtomic, type ModelMaker } from "./registry.ts";
+import { assertValid, isSafeSlug, type ModelMaker } from "../../domain/catalog/registry.ts";
+import { loadRegistry, writeTextAtomic } from "./registry-store.ts";
 import { fetchJson, readTextCapped } from "./sources/types.ts";
 
 const REPOSITORY = "lobehub/lobe-icons";

@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { findMissingBrandIcons, isSafeBrandSvg, syncBrandIcons, type LobeIconEntry } from "../src/brand-icons.ts";
+import { findMissingBrandIcons, isSafeBrandSvg, syncBrandIcons, type LobeIconEntry } from "../src/infrastructure/catalog/brand-icons.ts";
 
 const SHA = "a".repeat(40);
 const ICON_PATH = "packages/static-svg/icons/baai.svg";

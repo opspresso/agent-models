@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { issueBody, slackMessage } from "../src/notify.ts";
-import { renderReport } from "../src/report.ts";
-import { runUpdatePipeline, type UpdateSource } from "../src/update-pipeline.ts";
-import type { Registry } from "../src/registry.ts";
-import { HttpError } from "../src/sources/types.ts";
+import { issueBody, slackMessage } from "../src/infrastructure/catalog/notify.ts";
+import { renderReport } from "../src/infrastructure/catalog/report.ts";
+import { runUpdatePipeline, type UpdateSource } from "../src/infrastructure/catalog/update-pipeline.ts";
+import { type Registry } from "../src/domain/catalog/registry.ts";
+import { HttpError } from "../src/infrastructure/catalog/sources/types.ts";
 
 const registry: Registry = { providers: [], makers: {}, families: {}, offerings: [] };
 

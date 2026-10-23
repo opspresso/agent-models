@@ -13,7 +13,7 @@
  * A source that could not be read does not count either way.
  */
 
-import type { PlacedOffering } from "../registry.ts";
+import { type PlacedOffering } from "../../../domain/catalog/registry.ts";
 import type { Change } from "./types.ts";
 
 export const RETIREMENT_GRACE_OBSERVATIONS = 7;

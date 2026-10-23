@@ -1,4 +1,4 @@
-import type { Registry } from "./registry.ts";
+import { type Registry } from "../../domain/catalog/registry.ts";
 import type { SourceOutcome } from "./report.ts";
 import { HttpError, type SourceResult } from "./sources/types.ts";
 

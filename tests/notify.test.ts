@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { issueBody, ISSUE_TITLE, slackMessage, syncIssue, type NotifyContext } from "../src/notify.ts";
+import { issueBody, ISSUE_TITLE, slackMessage, syncIssue, type NotifyContext } from "../src/infrastructure/catalog/notify.ts";
 
 const base: NotifyContext = { date: "2026-08-20", outcomes: [], runUrl: "https://example.test/run/1" };
 

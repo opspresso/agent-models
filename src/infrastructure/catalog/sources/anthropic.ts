@@ -9,7 +9,7 @@
  * `claude-haiku-4-5-20251001` is the catalog's spelling of `claude-haiku-4-5`.
  */
 
-import type { Registry } from "../registry.ts";
+import { type Registry } from "../../../domain/catalog/registry.ts";
 import { applyFamilyLimits } from "./limits.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";

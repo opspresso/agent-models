@@ -5,7 +5,7 @@
  * that goes stale silently; the retirement itself follows `presence.ts`.
  */
 
-import type { Registry } from "../registry.ts";
+import { type Registry } from "../../../domain/catalog/registry.ts";
 import { observePresence, offeringNames } from "./presence.ts";
 import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
 import { catalogNames, fetchJson, isExternalId, type Change, type SourceResult } from "./types.ts";

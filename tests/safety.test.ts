@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { anomalyDigest, detectRegistryAnomalies } from "../src/safety.ts";
-import type { Registry } from "../src/registry.ts";
+import { anomalyDigest, detectRegistryAnomalies } from "../src/infrastructure/catalog/safety.ts";
+import { type Registry } from "../src/domain/catalog/registry.ts";
 
 function fixture(count = 6): Registry {
   return {

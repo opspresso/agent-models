@@ -46,7 +46,7 @@
  * family.
  */
 
-import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../registry.ts";
+import { isSafeSlug, type ModelCapabilities, type ModelFamily, type ModelPricing, type PlacedOffering, type Registry } from "../../../domain/catalog/registry.ts";
 import { applyFamilyLimits } from "./limits.ts";
 import { daysBetween, observePresence, observeRankingEligibility, utcDate } from "./presence.ts";
 import { addRoute, familyIsLive } from "./routes.ts";
