@@ -113,57 +113,6 @@
     "maxTokens": 64000,
     "note": "Predates the 4.6 generation and keeps the older limits (200K / 64K)."
   },
-  "claude-opus-5-fast": {
-    "displayName": "Claude Opus 5 (Fast)",
-    "pricing": {
-      "inputPer1M": 10,
-      "outputPer1M": 50,
-      "cachedInputPer1M": 1
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1000000,
-    "maxTokens": 128000,
-    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-07-24); numbers and flags are OpenRouter's."
-  },
-  "claude-opus-4.8-fast": {
-    "displayName": "Claude Opus 4.8 (Fast)",
-    "pricing": {
-      "inputPer1M": 10,
-      "outputPer1M": 50,
-      "cachedInputPer1M": 1
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1000000,
-    "maxTokens": 128000,
-    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-27); numbers and flags are OpenRouter's."
-  },
-  "claude-opus-4.7-fast": {
-    "displayName": "Claude Opus 4.7 (Fast)",
-    "pricing": {
-      "inputPer1M": 30,
-      "outputPer1M": 150,
-      "cachedInputPer1M": 3
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1000000,
-    "maxTokens": 128000,
-    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2026-05-12); numbers and flags are OpenRouter's."
-  },
   "claude-opus-4.6": {
     "displayName": "Claude Opus 4.6",
     "pricing": {

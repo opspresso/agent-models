@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-24T00:10:30.984Z",
+  "updatedAt": "2026-10-24T00:10:47.301Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2450,50 +2450,6 @@
       "wireId": "upstage/solar-pro4"
     },
     {
-      "id": "openrouter/qwen3.8-max",
-      "provider": "openrouter",
-      "family": "qwen3.8-max",
-      "maker": "qwen",
-      "displayName": "Qwen3.8 Max",
-      "pricing": {
-        "inputPer1M": 2,
-        "outputPer1M": 6,
-        "cachedInputPer1M": 0.25
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 131072,
-      "wireId": "qwen/qwen3.8-max",
-      "hidden": true
-    },
-    {
-      "id": "openrouter/claude-opus-5-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-5-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 5 (Fast)",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 50,
-        "cachedInputPer1M": 1
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-5-fast",
-      "hidden": true
-    },
-    {
       "id": "openrouter/claude-opus-5",
       "provider": "openrouter",
       "family": "claude-opus-5",
@@ -2834,28 +2790,6 @@
       "wireId": "stepfun/step-3.7-flash"
     },
     {
-      "id": "openrouter/claude-opus-4.8-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-4.8-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 4.8 (Fast)",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 50,
-        "cachedInputPer1M": 1
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.8-fast",
-      "hidden": true
-    },
-    {
       "id": "openrouter/claude-opus-4.8",
       "provider": "openrouter",
       "family": "claude-opus-4.8",
@@ -2917,28 +2851,6 @@
       "contextWindow": 1048576,
       "maxTokens": 65536,
       "wireId": "google/gemini-3.5-flash"
-    },
-    {
-      "id": "openrouter/claude-opus-4.7-fast",
-      "provider": "openrouter",
-      "family": "claude-opus-4.7-fast",
-      "maker": "anthropic",
-      "displayName": "Claude Opus 4.7 (Fast)",
-      "pricing": {
-        "inputPer1M": 30,
-        "outputPer1M": 150,
-        "cachedInputPer1M": 3
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1000000,
-      "maxTokens": 128000,
-      "wireId": "anthropic/claude-opus-4.7-fast",
-      "hidden": true
     },
     {
       "id": "openrouter/gemini-3.1-flash-lite",
@@ -3933,28 +3845,6 @@
       "hidden": true
     },
     {
-      "id": "openrouter/gemini-2.5-pro-preview-05-06",
-      "provider": "openrouter",
-      "family": "gemini-2.5-pro-preview-05-06",
-      "maker": "google",
-      "displayName": "Gemini 2.5 Pro Preview 05-06",
-      "pricing": {
-        "inputPer1M": 1.25,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.125
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535,
-      "wireId": "google/gemini-2.5-pro-preview-05-06",
-      "hidden": true
-    },
-    {
       "id": "openrouter/o4-mini-high",
       "provider": "openrouter",
       "family": "o4-mini-high",
@@ -4331,27 +4221,6 @@
       "contextWindow": 200000,
       "maxTokens": 4096,
       "wireId": "anthropic/claude-3-haiku",
-      "hidden": true
-    },
-    {
-      "id": "openrouter/gpt-4-turbo-preview",
-      "provider": "openrouter",
-      "family": "gpt-4-turbo-preview",
-      "maker": "openai",
-      "displayName": "GPT-4 Turbo Preview",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 30
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": false
-      },
-      "contextWindow": 128000,
-      "maxTokens": 4096,
-      "wireId": "openai/gpt-4-turbo-preview",
       "hidden": true
     },
     {

@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "openrouter/claude-opus-4.7-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-23"
+  },
+  {
+    "id": "openrouter/claude-opus-4.8-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-23"
+  },
+  {
+    "id": "openrouter/claude-opus-5-fast",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-23"
+  },
+  {
+    "id": "openrouter/gemini-2.5-pro-preview-05-06",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-24"
+  },
+  {
+    "id": "openrouter/gpt-4-turbo-preview",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-24"
+  },
+  {
+    "id": "openrouter/qwen3.8-max",
+    "reason": "Absent from the provider catalog through its observation and 30-day tombstone grace periods",
+    "requestedAt": "2026-10-23"
+  }
+]

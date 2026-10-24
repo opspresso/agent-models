@@ -353,23 +353,6 @@
     "maxTokens": 65536,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-06-05); numbers and flags are OpenRouter's."
   },
-  "gemini-2.5-pro-preview-05-06": {
-    "displayName": "Gemini 2.5 Pro Preview 05-06",
-    "pricing": {
-      "inputPer1M": 1.25,
-      "outputPer1M": 10,
-      "cachedInputPer1M": 0.125
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": true,
-      "reasoning": true
-    },
-    "contextWindow": 1048576,
-    "maxTokens": 65535,
-    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2025-05-07); numbers and flags are OpenRouter's."
-  },
   "gemma-3-4b-it": {
     "displayName": "Gemma 3 4B",
     "pricing": {

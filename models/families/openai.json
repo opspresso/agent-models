@@ -773,22 +773,6 @@
     "maxTokens": 4096,
     "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-04-09); numbers and flags are OpenRouter's."
   },
-  "gpt-4-turbo-preview": {
-    "displayName": "GPT-4 Turbo Preview",
-    "pricing": {
-      "inputPer1M": 10,
-      "outputPer1M": 30
-    },
-    "capabilities": {
-      "tools": true,
-      "structuredOutput": true,
-      "imageInput": false,
-      "reasoning": false
-    },
-    "contextWindow": 128000,
-    "maxTokens": 4096,
-    "note": "Added automatically on 2026-08-23 from OpenRouter's catalog (listed 2024-01-25); numbers and flags are OpenRouter's."
-  },
   "gpt-3.5-turbo-16k": {
     "displayName": "GPT-3.5 Turbo 16k",
     "pricing": {
