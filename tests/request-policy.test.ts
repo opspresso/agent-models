@@ -39,3 +39,12 @@ it("requires actual multipart media bytes while preserving ordinary text fields"
   assert.throws(() => assertIndependentMultipartContext([{ name: "image_url[]", value: "https://remote.test/image" }, { name: "image_url[]", value: "data:image/png;base64,AQID" }], "images/edits"), { code: "provider_state_forbidden" });
   assert.doesNotThrow(() => assertIndependentMultipartContext([{ name: "file", value: new Uint8Array([1, 2, 3]) }, { name: "prompt", value: "Explain https://example.test" }], "audio/transcriptions"));
 });
+
+it("preserves inline Google content and custom function data in either ProtoJSON spelling",()=>{
+  for(const [system,inline,functions] of [["systemInstruction","inlineData","functionDeclarations"],["system_instruction","inline_data","function_declarations"]])
+    assert.doesNotThrow(()=>assertIndependentContext({[system!]:{parts:[{text:"Inspect the supplied content."}]},
+      contents:[{role:"user",parts:[{[inline!]:{mime_type:"image/png",data:"AQID"}},{text:'{"file_data":{"file_uri":"caller text"}}'},
+        {function_response:{name:"inspect",response:{file_data:"ordinary tool data"}}}]}],
+      tools:[{[functions!]:[{name:"inspect",parameters:{type:"object",properties:{file_data:{type:"string"}}}}]}]
+    },"generateContent"));
+});

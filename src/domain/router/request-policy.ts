@@ -17,7 +17,7 @@ export function assertIndependentContext(body: Record<string, unknown>, operatio
     if (item.file_url != null || item.file_id != null) refuse();
     for (const reference of [item.url, item.image_url, item.audio_url]) if (reference != null) inlineUrl(reference);
   };
-  if (body.previous_response_id != null || body.conversation != null || body.container != null || body.cachedContent != null || body.background === true || body.store === true) refuse();
+  if (body.previous_response_id != null || body.conversation != null || body.container != null || body.cachedContent != null || body.cached_content != null || body.background === true || body.store === true) refuse();
   if (operation === "responses" && typeof body.prompt === "object" && body.prompt !== null) refuse();
   media(body);
   for (const reference of [body.image, body.images, body.mask, body.input_references]) if (reference != null) media(reference);
@@ -29,13 +29,14 @@ export function assertIndependentContext(body: Record<string, unknown>, operatio
     const allowed = (value: unknown): boolean => {
       const tool = object(value);
       if (operation === "messages" || operation === "messages/count_tokens") return tool.type == null || tool.type === "custom";
-      if (operation === "generateContent" || operation === "streamGenerateContent") return Object.keys(tool).every(key => key === "functionDeclarations");
+      if (operation === "generateContent" || operation === "streamGenerateContent") return Object.keys(tool).every(key => key === "functionDeclarations" || key === "function_declarations");
       if (tool.type === "namespace") return Array.isArray(tool.tools) && tool.tools.every(child => ["function", "custom"].includes(String(object(child).type)));
       return ["function", "custom"].includes(String(tool.type));
     };
     if (!body.tools.every(allowed)) refuse();
   }
-  const pending = [body.input, body.messages, body.contents];
+  // ProtoJSON accepts camelCase and original snake_case names for the same Google fields.
+  const pending = [body.input, body.messages, body.contents, body.systemInstruction, body.system_instruction];
   while (pending.length) {
     const value = pending.pop();
     if (Array.isArray(value)) { for (const child of value) pending.push(child); continue; }
@@ -45,7 +46,7 @@ export function assertIndependentContext(body: Record<string, unknown>, operatio
     media(object(item.audio));
     if (item.type === "item_reference" || (item.id != null && item.type == null && item.role == null) || object(item.audio).id != null ||
         item.file_id != null || item.file_url != null || object(item.file).file_id != null || source.file_id != null || source.type === "file" ||
-        source.type === "url" || source.url != null || item.fileData != null) refuse();
+        source.type === "url" || source.url != null || item.fileData != null || item.file_data != null) refuse();
     for (const reference of [item.image_url, item.audio_url, object(item.input_audio).url]) if (reference != null) inlineUrl(reference);
     // Tool argument strings and JSON remain caller data, not protocol references.
     for (const child of [item.content, item.output, item.parts, source.content]) if (child && typeof child === "object") pending.push(child);

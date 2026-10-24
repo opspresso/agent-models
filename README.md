@@ -63,3 +63,7 @@ DATABASE_URL=<local disposable database ending in _test> pnpm test:ui
 통합·브라우저 검사는 테스트 database 안에 전용 schema를 만들고 종료 시 해당 schema만 삭제한다.
 브라우저 검사는 실제 OIDC 제공자와 HTTP fixture로 로그인, 모델 선택·호출·사용량, 권한 회수,
 비밀키 격리와 모바일 화면을 검증한다. 유료 외부 모델은 호출하지 않는다.
+
+Google native 요청의 `cachedContent`/`cached_content`와 `fileData`/`file_data`는 같은 공유 provider resource 제한을 적용합니다.
+대화 본문과 system instruction은 호출자가 제공한 inline context만 사용하며, 다른 작업의 provider file·cache 참조는 dispatch 전에 거절합니다.
+[ProtoJSON 필드 이름 계약](https://protobuf.dev/programming-guides/json/#field-names-as-json-keys)을 따릅니다.

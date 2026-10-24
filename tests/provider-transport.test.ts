@@ -152,3 +152,20 @@ it("rejects malformed listings and repeated pagination instead of replacing a ca
   const repeated = createModelDiscovery({ catalog: () => catalog, request: async () => Response.json({ data: [], has_more: true, last_id: "same" }) });
   await assert.rejects(repeated.discover(provider, "fixture"), { code: "invalid_catalog" });
 });
+
+it("rejects both ProtoJSON spellings of Google hosted context before provider dispatch", async () => {
+  let dispatched=0,requests=0;
+  const transport=createProviderTransport({request:async()=>{requests++;return Response.json({});}});
+  const foreign={mime_type:"text/plain",file_uri:"https://generativelanguage.googleapis.com/v1beta/files/other-user"};
+  const cases=[
+    {cached_content:"cachedContents/other-user"},
+    {cachedContent:null,cached_content:"cachedContents/other-user"},
+    {contents:[{role:"user",parts:[{file_data:foreign}]}]},
+    {contents:[{role:"user",parts:[{fileData:null,file_data:foreign}]}]},
+    {system_instruction:{parts:[{file_data:foreign}]}},
+    {systemInstruction:{parts:[{fileData:{mimeType:"text/plain",fileUri:foreign.file_uri}}]}},
+  ];
+  for(const operation of ["generateContent","streamGenerateContent"] as const)for(const value of cases)
+    await assert.rejects(invoke(transport,{kind:"json",value},{operation,provider:{...provider,kind:"google",baseUrl:"https://generativelanguage.googleapis.com/v1beta"},onDispatch(){dispatched++;}}),{code:"provider_state_forbidden"});
+  assert.equal(requests,0);assert.equal(dispatched,0);
+});
