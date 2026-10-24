@@ -33,7 +33,9 @@
    공급자 revision도 저장한다. 설정 변경으로 이미 접수한 요청의 가격을 바꾸지 않는다.
 3. 선택한 공급자와 wire ID로 한 번 호출한다. 요청 본문의 다른 model 값이나 caller credential은
    공급자 대상·자격 증명을 바꾸지 못한다. HTTP 자동 재시도는 하지 않는다.
-4. 응답의 text·image·vector 원문을 저장하지 않고 JSON·SSE에서 사용량 숫자만 읽는다.
+4. 응답의 text·image·vector 원문을 영속 저장하지 않고 JSON·SSE에서 사용량 숫자만 읽는다.
+   SSE는 현재 event만 메모리에 보관하고 metadata projection으로 검증한다. 정상 event는 원문
+   bytes를 전달하고, 오류 event는 고정된 protocol 오류로 바꾼 뒤 upstream을 닫는다.
    응답 소비가 끝나거나 취소되면 해당 execution ID로 정산한다. 같은 정산은 중복 집계하지 않는다.
 5. deadline을 지난 실행은 결과 불명으로 기록한다. 다시 실행하지 않으며, 같은 실행에서 늦게
    도착한 확정 정산은 원장을 보정할 수 있다.
@@ -42,6 +44,16 @@ HTTP·MCP·CLI의 작업 성공 여부는 각 소비 서비스가 판정한다. 
 응답 수명이다. `succeeded`, `failed`, `cancelled`, `unknown`과 사용량의 `reported`, `partial`,
 `unavailable`, `not_started`를 분리한다. 사용량이 없거나 불완전하면 0원으로 확정하지 않는다.
 전송 전에 거부된 접수 요청만 `not_started`와 0원으로 기록한다.
+
+SSE event 상한은 플랫폼 정책으로 64 MiB다. 줄 구분자까지 포함해 byte로 계산하며 전체
+응답 크기를 제한하지 않는다. 파편화된 입력은 작은 slab에 모으고, 같은 network chunk의
+검증된 작은 event는 묶어 전달한다. event 검증 전에 data를 노출하지 않으므로 뒤쪽 error 필드도
+오류 정제 경계를 우회하지 못한다. 잘못된 UTF-8·JSON이나 상한 초과는 고정 오류로 종료하며
+관측한 부분 사용량을 유지한다. 오류 정제는 provider 요청을 재시도하지 않는다.
+하나의 transport가 모든 stream의 payload 보관 예산을 공유한다. 기본 256 MiB이며
+`MODEL_MAX_STREAM_BUFFER_BYTES`로 64 MiB–1 GiB 범위에서 설정한다. 검증 전 event와 검증 후
+전달 대기 bytes를 같은 owner가 계상하고 소비·취소·예외에서 해제한다. 용량 초과는 현재
+event만 고정 오류로 끝내며 다른 stream의 reservation을 해제하지 않는다.
 
 공급자가 보고한 비용을 우선 사용한다. xAI `cost_in_usd_ticks`는 10¹⁰으로 나눠 USD로 변환한다.
 나머지는 당시 가격과 보고된 단위로 계산한다. [xAI 비용 계약](https://docs.x.ai/developers/cost-tracking).

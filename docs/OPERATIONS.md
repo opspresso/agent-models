@@ -15,6 +15,7 @@
 | `MODEL_REQUEST_TIMEOUT_MS` | 600000. 1–3600000 ms |
 | `MODEL_MAX_CONCURRENT_REQUESTS` | 64. 1–1000. DB로 공유하는 실행 한도 |
 | `MODEL_MAX_REQUEST_BYTES` | 100663296(96 MiB). 1–256 MiB. 단일 요청과 프로세스의 입력 보관 예산 |
+| `MODEL_MAX_STREAM_BUFFER_BYTES` | 268435456(256 MiB). 64 MiB–1 GiB. 프로세스가 공유하는 SSE payload 보관 예산 |
 
 Provider, model과 가격은 관리 API에서 저장한다. 키를 환경 변수와 별도 provider 목록에
 중복 등록하지 않는다. Bedrock은 표준 AWS credential chain을 사용하며 signing region은
@@ -31,6 +32,13 @@ endpoint hostname에서 읽는다. 공개 카탈로그 사실은 image에 포함
 실행 deadline을 지난 요청은 30초 간격으로 결과 불명 처리한다. 새 접수도 만료 요청을 먼저
 정리한다. 추론 본문은 보관하지 않으며 JSON·SSE에서는 제한된 사용량·상태 필드만 추출한다.
 스트림 종료 표식을 읽은 SDK의 연결 종료는 정상 완료로 정산한다.
+SSE는 한 event를 최대 64 MiB까지 메모리에서 검증한 뒤 전달한다. 이는 Models의 플랫폼
+상한이며 provider의 한도나 전체 응답 한도가 아니다. 초과 시 `provider_event_too_large`로
+정산하고 고정된 stream 오류를 반환한다. 원문을 잘라 성공으로 반환하거나 추론을 재시도하지 않는다.
+미완료 event와 검증 후 소비자를 기다리는 bytes는 모두 공유 예산에 포함한다. 소비·취소·예외에서
+reservation을 해제한다. 공유 예산이 부족하면 해당 event를 `provider_stream_capacity_exceeded`로
+종료하고 upstream을 닫는다. 이전에 전달한 정상 event와 관측한 부분 사용량은 보존한다.
+이 예산은 raw payload bytes의 한도이며 parser·network chunk·런타임 메모리까지 포함한 RSS 한도는 아니다.
 
 OIDC access/refresh token은 암호화해서 저장한다. 갱신은 계정별 DB 잠금으로 직렬화하며
 전용 잠금 pool이 auth pool을 소진하지 않는다. 권한은 token에 남은 과거 값이 아니라

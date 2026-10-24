@@ -8,16 +8,18 @@ export function createUsageObserver(operation: Operation, kind: ProviderKind, ty
   let errorCode: string | null = null;
   let invalid = false;
   let googleFinished = false;
+  let terminated = false;
   let json = sse ? undefined : createJsonMetadata();
   let linePrefix = "";
-  let lineKind: "prefix" | "data" | "ignored" = "prefix";
+  let lineKind: "prefix" | "data" | "event" | "ignored" = "prefix";
+  let eventName = "";
   let leadingSpace = false;
   let eventStarted = false;
   let marker = "";
   let done = false;
   const decoder = new TextDecoder("utf-8", { fatal: true });
   function observe(value: Metadata, entireResponse = false) {
-    if (!value.valid) { invalid = true; return; }
+    if (!value.valid || sse && !value.rootObject) { invalid = true; return; }
     for (const [path, number] of value.numbers) snapshot.set(path.replace(/^(?:response|message)\.usage\./, "usage."), number);
     if (type === "image") {
       const images = value.arrays.get("data") ?? value.arrays.get("choices.0.message.images");
@@ -56,12 +58,19 @@ export function createUsageObserver(operation: Operation, kind: ProviderKind, ty
       while (fragment && lineKind === "prefix") {
         linePrefix += fragment[0]; fragment = fragment.slice(1);
         if (linePrefix === "data:") { lineKind = "data"; leadingSpace = true; }
-        else if (!"data:".startsWith(linePrefix)) lineKind = "ignored";
+        else if (linePrefix === "event:") { lineKind = "event"; leadingSpace = true; eventName = ""; }
+        else if (!"data:".startsWith(linePrefix) && !"event:".startsWith(linePrefix)) lineKind = "ignored";
       }
     }
     if (lineKind === "data") await data(fragment);
+    if (lineKind === "event") {
+      if (leadingSpace && fragment) { if (fragment.startsWith(" ")) fragment = fragment.slice(1); leadingSpace = false; }
+      if (eventName.length + fragment.length > 256) invalid = true;
+      else eventName += fragment;
+    }
     if (ended) {
       if (!linePrefix && lineKind === "prefix") {
+        if (eventName === "error" || eventName === "response.failed") errorCode = "provider_error";
         if (eventStarted) {
           if (done) complete = true;
           else {
@@ -69,7 +78,7 @@ export function createUsageObserver(operation: Operation, kind: ProviderKind, ty
             observe(await json.end());
           }
         }
-        json = undefined; marker = ""; done = false; eventStarted = false;
+        json = undefined; marker = ""; done = false; eventStarted = false; eventName = "";
       } else if (lineKind === "data") await data("\n");
       linePrefix = ""; lineKind = "prefix";
     }
@@ -106,6 +115,9 @@ export function createUsageObserver(operation: Operation, kind: ProviderKind, ty
       } catch { invalid = true; json?.cancel(); }
     },
     cancel() { json?.cancel(); },
+    problem() { return errorCode ?? (invalid ? "provider_stream_invalid" : null); },
+    /** Transport terminates a rejected event without promoting its partial measurement to complete usage. */
+    reject(code: string) { errorCode = code; terminated = true; json?.cancel(); },
     result(): Observation {
       const number = (...paths: string[]) => paths.map(path => snapshot.get(path)).find(value => value !== undefined && Number.isFinite(value) && value >= 0);
       const counter = (...paths: string[]) => { const value = number(...paths); return value !== undefined && Number.isSafeInteger(value) ? value : undefined; };
@@ -146,7 +158,7 @@ export function createUsageObserver(operation: Operation, kind: ProviderKind, ty
         type === "image" ? amounts.images !== undefined || amounts.imageOutputTokens !== undefined :
         type === "transcription" ? amounts.audioSeconds !== undefined || tokens :
         type === "rerank" ? amounts.searches !== undefined || amounts.inputTokens !== undefined : amounts.inputTokens !== undefined);
-      return { amounts, measurement: !seen ? "unavailable" : invalid || invalidAmounts || !complete || !measured ? "partial" : "reported", complete: complete && !invalid, errorCode };
+      return { amounts, measurement: !seen ? "unavailable" : invalid || invalidAmounts || !complete || !measured ? "partial" : "reported", complete: terminated || complete && !invalid, errorCode };
     },
   };
 }

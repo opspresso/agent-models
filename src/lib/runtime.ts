@@ -41,7 +41,7 @@ async function initialize() {
     maintenance.unref();
     return { config, pool, repository, auth, studio, session: createSessionAccess(auth, studio, locks, config),
       management: createManagement(repository, cipher, createModelDiscovery({ catalog: publishedCatalog, signer })),
-      inference: createInference({ repository, cipher, transport: createProviderTransport({ signer }), executionId: randomUUID, now: Date.now,
+      inference: createInference({ repository, cipher, transport: createProviderTransport({ signer, maxStreamBufferBytes: config.maxStreamBufferBytes }), executionId: randomUUID, now: Date.now,
         monotonic: () => performance.now(), timeoutMs: config.inferenceTimeoutMs, concurrencyLimit: config.maxConcurrent }),
       async close() { clearInterval(maintenance); await Promise.all([pool.end(), locks.end()]); },
     };

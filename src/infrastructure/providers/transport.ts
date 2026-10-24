@@ -4,6 +4,7 @@ import type { InferenceTransport } from "../../domain/router/transport.ts";
 import type { Operation, Provider } from "../../domain/router/types.ts";
 import { providerUrl } from "../../domain/router/validation.ts";
 import { createUsageObserver } from "./usage-observer.ts";
+import { guardSse, SseBufferBudget, DEFAULT_MAX_STREAM_BUFFER_BYTES } from "./sse-guard.ts";
 import type { RequestSigner } from "./bedrock-signer.ts";
 
 export function providerEndpoint(provider: Provider, operation: Operation, wireId: string): string {
@@ -23,7 +24,8 @@ export function providerEndpoint(provider: Provider, operation: Operation, wireI
 }
 
 /** Forward the selected wire protocol with one credential source and a bounded usage observer. */
-export function createProviderTransport(options: { request?: typeof fetch; signer?: RequestSigner } = {}): InferenceTransport {
+export function createProviderTransport(options: { request?: typeof fetch; signer?: RequestSigner; maxStreamBufferBytes?: number } = {}): InferenceTransport {
+  const streamBudget = new SseBufferBudget(options.maxStreamBufferBytes ?? DEFAULT_MAX_STREAM_BUFFER_BYTES);
   return {
     async execute(input) {
       const request = options.request ?? fetch;
@@ -94,17 +96,24 @@ export function createProviderTransport(options: { request?: typeof fetch; signe
         return { status: response.status, headers: outgoing, body: (async function* () { yield payload; })(),
           observation: () => ({ amounts: {}, measurement: "unavailable", complete: true, errorCode: "provider_http_error" }) };
       }
-      const observer = createUsageObserver(input.operation, input.provider.kind, input.model.type, response.headers.get("content-type")?.includes("text/event-stream") ?? false);
+      const sse = response.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() === "text/event-stream";
+      const observer = createUsageObserver(input.operation, input.provider.kind, input.model.type, sse);
       async function* stream() {
         if (!response.body) { await observer.end(); return; }
         const reader = response.body.getReader();
         let ended = false;
         try {
-          while (true) {
-            const chunk = await reader.read();
-            if (chunk.done) { await observer.end(); ended = true; break; }
-            await observer.write(chunk.value);
-            yield chunk.value;
+          async function* upstream() {
+            while (true) {
+              const chunk = await reader.read();
+              if (chunk.done) { ended = true; break; }
+              yield chunk.value;
+            }
+          }
+          if (sse) yield* guardSse(upstream(), observer, input.operation, streamBudget);
+          else {
+            for await (const chunk of upstream()) { await observer.write(chunk); yield chunk; }
+            await observer.end();
           }
         } finally {
           observer.cancel();

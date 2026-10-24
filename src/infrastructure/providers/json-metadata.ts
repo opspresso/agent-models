@@ -7,6 +7,7 @@ export interface Metadata {
   arrays: Map<string, number>;
   valid: boolean;
   hasError: boolean;
+  rootObject: boolean;
 }
 
 const usageKeys = new Set(["input_tokens", "output_tokens", "prompt_tokens", "completion_tokens", "total_tokens", "cache_read_input_tokens",
@@ -27,7 +28,7 @@ const arrayPath = (path: string) => path === "data" || /^choices\.0\.(?:message|
 
 /** Only bounded counters and status fields are retained; text, image and vector strings are streamed past. */
 export function createJsonMetadata() {
-  const result: Metadata = { numbers: new Map(), strings: new Map(), arrays: new Map(), valid: true, hasError: false };
+  const result: Metadata = { numbers: new Map(), strings: new Map(), arrays: new Map(), valid: true, hasError: false, rootObject: false };
   const stream = parser.asStream({ packValues: false, streamValues: true });
   const complete = finished(stream).catch(() => { result.valid = false; });
   type Frame = { kind: "object" | "array"; path: string[]; key: string; index: number };
@@ -45,6 +46,7 @@ export function createJsonMetadata() {
     switch (token.name) {
       case "startObject": case "startArray": {
         const path = valuePath();
+        if (!stack.length) result.rootObject = token.name === "startObject";
         if (stack.length >= 64) throw new Error("Response nesting limit");
         if (key(path) === "error" || key(path) === "response.error") result.hasError = true;
         stack.push({ kind: token.name === "startArray" ? "array" : "object", path, key: "", index: 0 });
@@ -58,8 +60,13 @@ export function createJsonMetadata() {
       }
       case "startKey": scalar = "key"; buffer = ""; retain = true; break;
       case "endKey": stack.at(-1)!.key = buffer; scalar = null; break;
-      case "startString": scalar = "string"; buffer = ""; retain = stringPath(key(valuePath())); break;
-      case "startNumber": scalar = "number"; buffer = ""; retain = numericPath(key(valuePath())); break;
+      case "startString": case "startNumber": {
+        const path = key(valuePath());
+        if (path === "error" || path === "response.error") result.hasError = true;
+        scalar = token.name === "startString" ? "string" : "number"; buffer = "";
+        retain = scalar === "string" ? stringPath(path) : numericPath(path);
+        break;
+      }
       case "stringChunk": case "numberChunk":
         if (retain) {
           buffer += token.value;
@@ -75,7 +82,10 @@ export function createJsonMetadata() {
         scalar = null;
         endValue();
         break;
-      case "nullValue": case "trueValue": case "falseValue": endValue(); break;
+      case "trueValue": case "falseValue":
+        if (["error", "response.error"].includes(key(valuePath()))) result.hasError = true;
+        endValue(); break;
+      case "nullValue": endValue(); break;
     }
   }
   stream.on("data", (token: Token) => {
