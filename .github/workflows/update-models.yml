@@ -56,7 +56,7 @@ jobs:
 
       - uses: pnpm/action-setup@v6
         with:
-          version: 11.10.0
+          version: 12.11.2
 
       - uses: actions/setup-node@v7
         with:
@@ -93,7 +93,7 @@ jobs:
           fi
 
       - name: Build the catalog
-        run: pnpm build
+        run: pnpm build:catalog
 
       - name: Tests
         run: |
@@ -164,7 +164,7 @@ jobs:
             git switch -c "$branch"
           fi
           pnpm propose-removals
-          pnpm build
+          pnpm build:catalog
           node scripts/check-removals.ts HEAD --pull-request
           git add models docs
           if ! git diff --cached --quiet || git rev-parse --verify --quiet MERGE_HEAD > /dev/null; then

@@ -1,0 +1,145 @@
+/**
+ * Google's Gemini API lists its models at `GET /v1beta/models` — name,
+ * `inputTokenLimit`, `outputTokenLimit`, and which methods each supports — and
+ * publishes no price, so pricing stays hand-kept against the pricing page.
+ * Read when `GOOGLE_API_KEY` is set; without it Google's routes are not
+ * watched, which README says.
+ *
+ * Names are `models/<id>`; the registry's family id is the `<id>`. Text/image
+ * models answer `generateContent`; embedding models answer `embedContent`.
+ */
+
+import { type Registry } from "../../../domain/catalog/registry.ts";
+import { applyFamilyLimits } from "./limits.ts";
+import { observePresence, offeringNames } from "./presence.ts";
+import { addRoute, familyHasRoute, familyIsLive } from "./routes.ts";
+import { fetchJson, isExternalId, isPositiveInt, type Change, type SourceResult } from "./types.ts";
+
+export const GOOGLE_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const MAX_PAGES = 25;
+
+export interface GoogleModel {
+  name: string;
+  inputTokenLimit?: number;
+  outputTokenLimit?: number;
+  supportedGenerationMethods?: string[];
+}
+
+export async function fetchGoogleModels(apiKey: string, fetchFn: typeof fetch = fetch): Promise<GoogleModel[]> {
+  const collected: GoogleModel[] = [];
+  let token: string | undefined;
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const url = `${GOOGLE_MODELS_URL}?pageSize=1000${token ? `&pageToken=${encodeURIComponent(token)}` : ""}`;
+    const body = (await fetchJson(url, { headers: { "x-goog-api-key": apiKey } }, fetchFn)) as {
+      models?: unknown;
+      nextPageToken?: unknown;
+    };
+    if (!Array.isArray(body.models)) {
+      throw new Error(`GET ${GOOGLE_MODELS_URL} → no "models" array`);
+    }
+    if (!body.models.every((entry) => {
+      if (typeof entry !== "object" || entry === null || !isExternalId((entry as { name?: unknown }).name)) return false;
+      const methods = (entry as { supportedGenerationMethods?: unknown }).supportedGenerationMethods;
+      return methods === undefined || Array.isArray(methods) && methods.every((method) => typeof method === "string");
+    })) {
+      throw new Error(`GET ${url} → invalid entry (shape drift?)`);
+    }
+    if (body.nextPageToken !== undefined && typeof body.nextPageToken !== "string") {
+      throw new Error(`GET ${url} → invalid nextPageToken (shape drift?)`);
+    }
+    collected.push(...(body.models as GoogleModel[]));
+    if (body.nextPageToken === undefined || body.nextPageToken === "") {
+      if (collected.length === 0) {
+        throw new Error(`GET ${GOOGLE_MODELS_URL} → empty catalog`);
+      }
+      // Raw entries but none this source can read is a renamed field, not a
+      // catalog — read as data it would start the retirement clock on every
+      // google route at once.
+      if (!collected.some(usable)) {
+        throw new Error(`GET ${GOOGLE_MODELS_URL} → no usable entries (shape drift?)`);
+      }
+      return collected;
+    }
+    token = body.nextPageToken;
+  }
+  throw new Error(`GET ${GOOGLE_MODELS_URL} → still paginating after ${MAX_PAGES} pages`);
+}
+
+function usable(model: GoogleModel): boolean {
+  return supports(model, false) || supports(model, true);
+}
+
+function supports(model: GoogleModel, embedding: boolean): boolean {
+  const methods = model.supportedGenerationMethods ?? [];
+  return embedding
+    ? methods.includes("embedContent")
+    : methods.includes("generateContent") || methods.includes("predict");
+}
+
+function byFamilyId(catalog: GoogleModel[]): Map<string, GoogleModel> {
+  const map = new Map<string, GoogleModel>();
+  for (const model of catalog) {
+    if (usable(model)) {
+      map.set(model.name.replace(/^models\//, ""), model);
+    }
+  }
+  return map;
+}
+
+export function applyGoogle(
+  registry: Registry,
+  catalog: GoogleModel[],
+  today: string,
+): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const notes: string[] = [];
+  const byId = byFamilyId(catalog);
+  for (const offering of next.offerings) {
+    if (offering.provider !== "google" || (offering.hidden && offering.hiddenReason !== "catalog")) {
+      continue;
+    }
+    const family = next.families[offering.family];
+    if (family === undefined) {
+      continue;
+    }
+    const entry = offeringNames(offering)
+      .map((name) => byId.get(name))
+      .find((candidate) => candidate !== undefined && supports(candidate, family.capabilities.embedding === true));
+    observePresence(offering, entry !== undefined, "Google", today, changes, notes);
+    if (entry === undefined || family.capabilities.imageGeneration) {
+      continue;
+    }
+    const window = entry.inputTokenLimit;
+    const maxOut = entry.outputTokenLimit;
+    applyFamilyLimits(next, offering.family, {
+      contextWindow: isPositiveInt(window) ? window : null,
+      maxTokens: !family.capabilities.embedding && isPositiveInt(maxOut) ? maxOut : null,
+    }, "google", changes, notes);
+  }
+  return { registry: next, result: { source: "Google", changes, notes } };
+}
+
+/** Add a supported Google route, retaining OpenRouter pricing until a native quote is verified. */
+export function discoverGoogle(registry: Registry, catalog: GoogleModel[]): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const notes: string[] = [];
+  const byId = byFamilyId(catalog);
+  for (const [id, family] of Object.entries(next.families)) {
+    if (family.maker !== "google" || family.capabilities.imageGeneration) {
+      continue;
+    }
+    const entry = byId.get(id);
+    if (
+      familyHasRoute(next, id, "google")
+      || !familyIsLive(next, id)
+      || entry === undefined
+      || !supports(entry, family.capabilities.embedding === true)
+    ) {
+      continue;
+    }
+    addRoute(next, { provider: "google", family: id }, changes);
+  }
+  return { registry: next, result: { source: "Google", changes, notes } };
+}

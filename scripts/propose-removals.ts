@@ -2,12 +2,13 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { formatJson, loadRegistry, writeRegistry, writeTextAtomic } from "../src/registry.ts";
+import { formatJson } from "../src/domain/catalog/registry.ts";
+import { loadRegistry, writeRegistry, writeTextAtomic } from "../src/infrastructure/catalog/registry-store.ts";
 import {
   applyRemovalCandidates,
   loadRemovalManifest,
   type RemovalCandidate,
-} from "../src/removals.ts";
+} from "../src/infrastructure/catalog/removals.ts";
 import { REPORT_PATH, ROOT } from "./_root.ts";
 
 const report = JSON.parse(readFileSync(REPORT_PATH, "utf-8")) as {

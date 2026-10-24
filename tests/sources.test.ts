@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { validateRegistry, type PlacedOffering, type Registry } from "../src/registry.ts";
+import { validateRegistry, type PlacedOffering, type Registry } from "../src/domain/catalog/registry.ts";
 import {
   DISCOVERY_WINDOW_DAYS,
   OPENROUTER_EMBEDDING_MODELS_URL,
@@ -23,14 +23,14 @@ import {
   resetOpenRouterRegistry,
   type OpenRouterCatalog,
   type OpenRouterModel,
-} from "../src/sources/openrouter.ts";
-import { applyXai, discoverXai, fetchXaiCatalog } from "../src/sources/xai.ts";
-import { applyAnthropic, discoverAnthropic, fetchAnthropicModels, undated } from "../src/sources/anthropic.ts";
-import { applyOpenAi, discoverOpenAi } from "../src/sources/openai.ts";
-import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/sources/google.ts";
-import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/sources/presence.ts";
-import { addRoute, setNativePricing } from "../src/sources/routes.ts";
-import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, roundPrice, type Change } from "../src/sources/types.ts";
+} from "../src/infrastructure/catalog/sources/openrouter.ts";
+import { applyXai, discoverXai, fetchXaiCatalog } from "../src/infrastructure/catalog/sources/xai.ts";
+import { applyAnthropic, discoverAnthropic, fetchAnthropicModels, undated } from "../src/infrastructure/catalog/sources/anthropic.ts";
+import { applyOpenAi, discoverOpenAi } from "../src/infrastructure/catalog/sources/openai.ts";
+import { applyGoogle, discoverGoogle, fetchGoogleModels } from "../src/infrastructure/catalog/sources/google.ts";
+import { daysBetween, observePresence, observeRankingEligibility, RANKING_GRACE_OBSERVATIONS, RETIREMENT_GRACE_OBSERVATIONS } from "../src/infrastructure/catalog/sources/presence.ts";
+import { addRoute, setNativePricing } from "../src/infrastructure/catalog/sources/routes.ts";
+import { fetchJson, HttpError, MAX_JSON_BYTES, perMillion, readTextCapped, roundPrice, type Change } from "../src/infrastructure/catalog/sources/types.ts";
 
 const TEXT = { tools: true, structuredOutput: true, imageInput: true, reasoning: true };
 const TODAY = "2026-08-20";

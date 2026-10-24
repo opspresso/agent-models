@@ -1,14 +1,13 @@
 name: CI
 
-# The registry is data, and the catalog is derived from it: the only way a
-# change here breaks is a source file that fails validation or a committed
-# `docs/models.json` that no longer matches its sources. Both are caught here.
-# It runs once per change, when the change reaches main and publishes the catalog. Pull requests do
-# not start it; run it by hand (workflow_dispatch) when a branch needs a hosted check.
+# Verify the catalog, routing core and isolated PostgreSQL behavior.
+# Main pushes and manual runs verify a commit. Releases reuse the same gate before publishing.
+# Pull requests do not start it; use workflow_dispatch for a branch check.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -16,7 +15,19 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg18-trixie
+        env:
+          POSTGRES_USER: agent_models
+          POSTGRES_PASSWORD: agent_models_test
+          POSTGRES_DB: agent_models_test
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -U agent_models -d agent_models_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -25,7 +36,7 @@ jobs:
 
       - uses: pnpm/action-setup@v6
         with:
-          version: 11.10.0
+          version: 12.11.2
 
       - uses: actions/setup-node@v7
         with:
@@ -41,8 +52,24 @@ jobs:
       - name: Tests
         run: pnpm test
 
+      - name: PostgreSQL and provider HTTP integration
+        env:
+          DATABASE_URL: postgresql://agent_models:agent_models_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/agent_models_test
+        run: pnpm test:integration
+
       - name: Catalog is built from its sources
         run: pnpm build:check
+
+      - name: Build the service
+        run: pnpm build
+
+      - name: Install browser runtime
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: OIDC and browser integration
+        env:
+          DATABASE_URL: postgresql://agent_models:agent_models_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/agent_models_test
+        run: pnpm test:ui
 
       - name: Removals in this push are explicitly requested
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'

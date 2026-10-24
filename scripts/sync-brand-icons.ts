@@ -1,7 +1,7 @@
 /** Run weekly, or locally with --dry-run to inspect available maker icons. */
 
 import { appendFileSync } from "node:fs";
-import { syncBrandIcons } from "../src/brand-icons.ts";
+import { syncBrandIcons } from "../src/infrastructure/catalog/brand-icons.ts";
 import { ROOT } from "./_root.ts";
 
 const dryRun = process.argv.includes("--dry-run");

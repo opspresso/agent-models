@@ -1,0 +1,12 @@
+verifyDepsBeforeRun: error
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+overrides:
+  sharp: ">=0.35.0"
+  "postcss@<8.5.10": ">=8.5.10"
+
+patchedDependencies:
+  '@smithy/signature-v4@5.7.4': patches/@smithy__signature-v4@5.7.4.patch

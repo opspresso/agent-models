@@ -5,16 +5,8 @@ import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  buildCatalog,
-  deriveModels,
-  loadRegistry,
-  parseCatalog,
-  validateRegistry,
-  writeRegistry,
-  type Catalog,
-  type Registry,
-} from "../src/registry.ts";
+import { buildCatalog, deriveModels, parseCatalog, validateRegistry, type Catalog, type Registry } from "../src/domain/catalog/registry.ts";
+import { loadRegistry, writeRegistry } from "../src/infrastructure/catalog/registry-store.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 

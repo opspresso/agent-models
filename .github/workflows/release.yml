@@ -1,0 +1,35 @@
+name: CI / Release
+
+# A v* tag verifies, publishes and deploys through the shared Agent service release.
+# A manual run verifies and builds the images without publishing.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Serialize publications; branch previews do not cancel a release.
+  group: release-${{ (github.event_name == 'push' && github.ref_type == 'tag') && 'publish' || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: verify
+    uses: opspresso/agent-platform/.github/workflows/service-release.yml@main
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    with:
+      service: agent-models
+      url: https://models.agrt.dev
+      sandbox: false
+      gitops: ${{ vars.GITOPS_AUTO_DEPLOY != 'false' }}
+    secrets:
+      GHP_TOKEN: ${{ secrets.GHP_TOKEN }}

@@ -1,0 +1,26 @@
+diff --git a/dist-cjs/index.js b/dist-cjs/index.js
+index 61784760492bbd193e9e0f899f0d1a31374e8752..3ca0328572790ba91385ea584853e6f9ce20c95c 100644
+--- a/dist-cjs/index.js
++++ b/dist-cjs/index.js
+@@ -175,7 +175,7 @@ const MAX_PRESIGNED_TTL = 60 * 60 * 24 * 7;
+ 
+ const getCanonicalQuery = ({ query = {} }) => {
+     const keys = [];
+-    const serialized = {};
++    const serialized = Object.create(null);
+     for (const key in query) {
+         if (!hasOwn(query, key))
+             continue;
+diff --git a/dist-es/getCanonicalQuery.js b/dist-es/getCanonicalQuery.js
+index 650493b7f71ab3d8c438b69dc98d2f176da94ce9..08ce938f8bfaac131a1a0344fa4d7e6f07b725e8 100644
+--- a/dist-es/getCanonicalQuery.js
++++ b/dist-es/getCanonicalQuery.js
+@@ -3,7 +3,7 @@ import { escapeUri } from "@smithy/core/protocols";
+ import { SIGNATURE_HEADER } from "./constants";
+ export const getCanonicalQuery = ({ query = {} }) => {
+     const keys = [];
+-    const serialized = {};
++    const serialized = Object.create(null);
+     for (const key in query) {
+         if (!hasOwn(query, key))
+             continue;

@@ -2,14 +2,15 @@
   "name": "agent-models",
   "version": "0.1.0",
   "private": true,
-  "description": "Curated AI model registry — pricing, limits and capability flags — published as a static JSON",
+  "description": "Central model management, inference routing and usage accounting for the Agent platform",
   "type": "module",
-  "packageManager": "pnpm@11.10.0",
+  "packageManager": "pnpm@12.11.2+sha512.25a51652a196785af5f28bda6dfe8dc582ebefa4ac1d180221ce1390231c5fb76637822ea4b6e4633ce74acdcb0a77f725af11bad38177fdeddaee818a955cb9",
   "engines": {
-    "node": ">=24"
+    "node": ">=24 <25",
+    "pnpm": ">=12 <13"
   },
   "scripts": {
-    "build": "node scripts/build.ts",
+    "build": "pnpm build:catalog && NEXT_TELEMETRY_DISABLED=1 next build",
     "build:check": "node scripts/build.ts --check",
     "check-removals": "node scripts/check-removals.ts",
     "propose-removals": "node scripts/propose-removals.ts",
@@ -18,10 +19,37 @@
     "sync-brand-icons": "node scripts/sync-brand-icons.ts",
     "notify": "node scripts/notify.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"tests/**/*.test.ts\""
+    "test": "node --test \"tests/**/*.test.ts\"",
+    "test:integration": "node scripts/integration-check.ts",
+    "test:ui": "node scripts/browser-check.ts",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev --port 3400",
+    "build:catalog": "node scripts/build.ts",
+    "start": "NEXT_TELEMETRY_DISABLED=1 next start --port 3400"
   },
   "devDependencies": {
+    "@better-auth/oauth-provider": "1.7.7",
+    "@playwright/test": "1.64.0",
     "@types/node": "^24.0.0",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@aws-sdk/credential-provider-node": "3.972.85",
+    "@better-auth/core": "1.7.7",
+    "@mantine/core": "9.7.2",
+    "@mantine/hooks": "9.7.2",
+    "@smithy/signature-v4": "5.7.4",
+    "@tabler/icons-react": "3.49.0",
+    "better-auth": "1.7.7",
+    "jose": "6.2.12",
+    "next": "16.4.2",
+    "pg": "8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "stream-json": "3.7.0",
+    "zod": "4.6.6"
   }
 }

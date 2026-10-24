@@ -3,14 +3,14 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import type { Registry } from "../src/registry.ts";
+import { type Registry } from "../src/domain/catalog/registry.ts";
 import {
   applyRemovalCandidates,
   assertRemovalPolicy,
   findRemovalCandidates,
   loadRemovalManifest,
   unrequestedRemovals,
-} from "../src/removals.ts";
+} from "../src/infrastructure/catalog/removals.ts";
 
 function fixture(): Registry {
   return {

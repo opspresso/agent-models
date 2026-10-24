@@ -1,0 +1,186 @@
+/**
+ * xAI publishes its prices in the catalog itself — `GET /v1/language-models`
+ * carries `prompt_text_token_price`, `cached_prompt_text_token_price` and
+ * `completion_text_token_price` beside each model, **in units of 1e-10 USD per
+ * token**: `12500` is $1.25 per million. The unit is the whole trap; a number
+ * read as cents or as dollars lands an order of magnitude off.
+ *
+ * The catalog lists canonical ids only, with every accepted spelling in an
+ * `aliases` array — `grok-4.20` is an alias of `grok-4.20-0309-reasoning` —
+ * so a family is matched on either. A hidden route is not looked up at all.
+ *
+ * Only the text families' token prices move. The drawing models are priced
+ * per image, from what an edit was actually billed, and stay hand-kept — they
+ * are only looked up in their own catalog so a retirement is noticed.
+ */
+
+import { type Registry } from "../../../domain/catalog/registry.ts";
+import { observePresence, offeringNames } from "./presence.ts";
+import { addRoute, familyHasRoute, familyIsLive, setNativePricing } from "./routes.ts";
+import { fetchJson, isExternalId, roundPrice, type Change, type SourceResult } from "./types.ts";
+
+export const XAI_LANGUAGE_MODELS_URL = "https://api.x.ai/v1/language-models";
+/** The drawing models' own catalog — read for existence; their per-image price stays hand-kept. */
+export const XAI_IMAGE_MODELS_URL = "https://api.x.ai/v1/image-generation-models";
+
+/** 1e-10 USD per token → USD per million tokens. */
+const TICKS_PER_USD_PER_MILLION = 10_000;
+
+export interface XaiLanguageModel {
+  id: string;
+  aliases?: string[];
+  prompt_text_token_price?: number;
+  cached_prompt_text_token_price?: number;
+  completion_text_token_price?: number;
+}
+
+export interface XaiCatalog {
+  language: XaiLanguageModel[];
+  /** The image catalog's ids and aliases — the names it answers to. */
+  imageNames: string[];
+}
+
+async function fetchModels(url: string, apiKey: string, fetchFn: typeof fetch): Promise<unknown[]> {
+  const body = (await fetchJson(url, { headers: { Authorization: `Bearer ${apiKey}` } }, fetchFn)) as {
+    models?: unknown;
+  };
+  if (!Array.isArray(body.models) || body.models.length === 0) {
+    throw new Error(`GET ${url} → no "models" array, or an empty one`);
+  }
+  return body.models;
+}
+
+export async function fetchXaiCatalog(apiKey: string, fetchFn: typeof fetch = fetch): Promise<XaiCatalog> {
+  const [language, images] = await Promise.all([
+    fetchModels(XAI_LANGUAGE_MODELS_URL, apiKey, fetchFn),
+    fetchModels(XAI_IMAGE_MODELS_URL, apiKey, fetchFn),
+  ]);
+  const valid = (entry: unknown): boolean => {
+    if (typeof entry !== "object" || entry === null || !isExternalId((entry as { id?: unknown }).id)) return false;
+    const aliases = (entry as { aliases?: unknown }).aliases;
+    return aliases === undefined || Array.isArray(aliases) && aliases.every(isExternalId);
+  };
+  if (!language.every(valid)) {
+    throw new Error(`GET ${XAI_LANGUAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
+  if (!images.every(valid)) {
+    throw new Error(`GET ${XAI_IMAGE_MODELS_URL} → invalid or no usable entries (shape drift?)`);
+  }
+  const imageNames: string[] = [];
+  for (const entry of images as Array<{ id?: unknown; aliases?: unknown }>) {
+    if (typeof entry.id === "string") {
+      imageNames.push(entry.id);
+    }
+    if (Array.isArray(entry.aliases)) {
+      imageNames.push(...entry.aliases.filter((alias): alias is string => typeof alias === "string"));
+    }
+  }
+  // Entries that carry no id are a renamed field, not a catalog — the same
+  // failed-read contract the empty-list guard above already keeps.
+  if (!language.some((entry) => typeof (entry as { id?: unknown }).id === "string")) {
+    throw new Error(`GET ${XAI_LANGUAGE_MODELS_URL} → no usable entries (shape drift?)`);
+  }
+  if (imageNames.length === 0) {
+    throw new Error(`GET ${XAI_IMAGE_MODELS_URL} → no usable entries (shape drift?)`);
+  }
+  return { language: language as XaiLanguageModel[], imageNames };
+}
+
+function ticksToPerMillion(ticks: number | undefined): number | undefined {
+  if (typeof ticks !== "number" || !Number.isFinite(ticks) || ticks < 0) {
+    return undefined;
+  }
+  return roundPrice(Number((ticks / TICKS_PER_USD_PER_MILLION).toFixed(8)));
+}
+
+function nativePricing(model: XaiLanguageModel): { inputPer1M: number; outputPer1M: number; cachedInputPer1M?: number } | null {
+  const input = ticksToPerMillion(model.prompt_text_token_price);
+  const output = ticksToPerMillion(model.completion_text_token_price);
+  if (input === undefined || output === undefined || !(input > 0) || !(output > 0)) return null;
+  const cached = ticksToPerMillion(model.cached_prompt_text_token_price);
+  return {
+    inputPer1M: input,
+    outputPer1M: output,
+    ...(cached !== undefined && cached > 0 ? { cachedInputPer1M: cached } : {}),
+  };
+}
+
+/** The names the language catalog answers to — ids and every alias. */
+function languageByName(catalog: XaiCatalog): Map<string, XaiLanguageModel> {
+  const byName = new Map<string, XaiLanguageModel>();
+  for (const model of catalog.language) {
+    byName.set(model.id, model);
+    for (const alias of model.aliases ?? []) byName.set(alias, model);
+  }
+  return byName;
+}
+
+export function applyXai(
+  registry: Registry,
+  catalog: XaiCatalog,
+  today: string,
+): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const notes: string[] = [];
+
+  const byName = languageByName(catalog);
+  const drawn = new Set(catalog.imageNames);
+
+  for (const offering of next.offerings) {
+    if (offering.provider !== "xai" || (offering.hidden && offering.hiddenReason !== "catalog")) {
+      continue;
+    }
+    const family = next.families[offering.family];
+    if (family === undefined) {
+      continue;
+    }
+    if (family.capabilities.imageGeneration) {
+      observePresence(offering, offeringNames(offering).some((name) => drawn.has(name)), "xAI", today, changes, notes);
+      continue;
+    }
+    if (family.capabilities.embedding || family.capabilities.rerank || family.capabilities.transcription || family.capabilities.decision) {
+      continue;
+    }
+    const entry = offeringNames(offering)
+      .map((name) => byName.get(name))
+      .find((candidate) => candidate !== undefined);
+    observePresence(offering, entry !== undefined, "xAI", today, changes, notes);
+    if (entry === undefined) {
+      continue;
+    }
+    const vendorPrice = nativePricing(entry);
+    if (vendorPrice === null) {
+      notes.push(`xai/${offering.family}: xAI lists no token price`);
+      continue;
+    }
+    setNativePricing(next, offering.family, vendorPrice, changes);
+  }
+
+  return { registry: next, result: { source: "xAI", changes, notes } };
+}
+
+/**
+ * An `xai/` route for every live xAI-made text family the catalog serves under
+ * the family's own name and this registry does not yet route there. The
+ * family's price follows xAI from then on (`applyXai`).
+ */
+export function discoverXai(registry: Registry, catalog: XaiCatalog): { registry: Registry; result: SourceResult } {
+  const next = structuredClone(registry);
+  const changes: Change[] = [];
+  const notes: string[] = [];
+  const byName = languageByName(catalog);
+  for (const [id, family] of Object.entries(next.families)) {
+    if (family.maker !== "xai" || family.capabilities.imageGeneration || family.capabilities.embedding
+      || family.capabilities.rerank || family.capabilities.transcription || family.capabilities.decision) {
+      continue;
+    }
+    if (familyHasRoute(next, id, "xai") || !familyIsLive(next, id)) {
+      continue;
+    }
+    const entry = byName.get(id);
+    if (entry === undefined) continue;
+    addRoute(next, { provider: "xai", family: id }, changes, nativePricing(entry) ?? undefined);
+  }
+  return { registry: next, result: { source: "xAI", changes, notes } };
+}

@@ -10,8 +10,8 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { issueBody, postSlack, slackMessage, syncIssue, type NotifyContext } from "../src/notify.ts";
-import type { SourceOutcome } from "../src/report.ts";
+import { issueBody, postSlack, slackMessage, syncIssue, type NotifyContext } from "../src/infrastructure/catalog/notify.ts";
+import type { SourceOutcome } from "../src/infrastructure/catalog/report.ts";
 import { REPORT_PATH } from "./_root.ts";
 
 if (!existsSync(REPORT_PATH)) {
