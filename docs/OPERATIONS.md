@@ -64,3 +64,15 @@ Tag·CI·GitOps revision·Pod readiness와 실제 로그인·모델 요청·원�
 
 결과 불명 요청은 자동 재실행하지 않는다. 실제 공급자 처리 여부를 확인할 수 없으면 불명 상태와
 미확정 비용을 유지한다. 가격 변경으로 과거 요청의 snapshot을 덮어쓰지 않는다.
+
+
+## 릴리즈와 배포
+
+`v*` tag의 release workflow는 같은 commit의 CI를 통과한 뒤 공통 Agent service release를
+호출한다. ECR·GHCR image와 GitHub Release를 게시하고 GitOps alpha·prod 선언을 갱신한다.
+수동 release 실행은 검증과 image build만 수행하며 게시·배포하지 않는다.
+
+첫 설치에는 Models의 ECR 저장소·GitHub OIDC role, GitOps chart·Secret·등록 Studio client가
+필요하다. 준비 전 tag를 게시하지 않는다. `GITOPS_AUTO_DEPLOY=false`로 image 발행과 조정된
+플랫폼 배포를 분리할 수 있다. 실제 배포는 image revision·readiness·OIDC 로그인·선택 모델
+실행과 원장으로 확인한다. Tag 생성이나 workflow 시작은 배포 완료가 아니다.

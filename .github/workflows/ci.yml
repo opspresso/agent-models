@@ -1,12 +1,13 @@
 name: CI
 
 # Verify the catalog, routing core and isolated PostgreSQL behavior.
-# It runs once per change, when the change reaches main and publishes the catalog. Pull requests do
-# not start it; run it by hand (workflow_dispatch) when a branch needs a hosted check.
+# Main pushes and manual runs verify a commit. Releases reuse the same gate before publishing.
+# Pull requests do not start it; use workflow_dispatch for a branch check.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
