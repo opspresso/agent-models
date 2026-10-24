@@ -4,8 +4,12 @@ import { RouterError } from "../../../domain/router/errors.ts";
 
 type Context = { params: Promise<{ operation: string[] }> };
 export async function POST(request: Request, context: Context) {
-  try { return await inferenceResponse(request, (await context.params).operation.join("/")); }
-  catch (error) { return errorResponse(error); }
+  let dispatched = false;
+  let response: Response;
+  try { response = await inferenceResponse(request, (await context.params).operation.join("/"), () => { dispatched = true; }); }
+  catch (error) { response = errorResponse(error); }
+  response.headers.set("x-model-dispatch", dispatched ? "started" : "not_started");
+  return response;
 }
 export async function GET(request: Request, context: Context) {
   try {

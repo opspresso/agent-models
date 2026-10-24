@@ -24,6 +24,7 @@ export function createInference(deps: InferenceDependencies) {
   return async (principal: Principal, input: {
     requestId: string; modelId: string; operation: Operation; body: InferenceBody;
     headers?: Readonly<Record<string, string>>; signal: AbortSignal;
+    onDispatch?(): void;
   }) => {
     const { requestId, modelId, operation, signal: incomingSignal } = input;
     if (!principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
@@ -51,7 +52,7 @@ export function createInference(deps: InferenceDependencies) {
       const secret = routed.provider.encryptedSecret ? deps.cipher.decrypt(routed.provider.encryptedSecret, providerCredentialContext(routed.provider)) : null;
       if (signal.aborted || remaining === 0) throw new RouterError(incomingSignal.aborted ? "request_cancelled" : "provider_timeout", incomingSignal.aborted ? 499 : 504, "Request expired before dispatch");
       response = await deps.transport.execute({ model: routed.model, provider: routed.provider, secret,
-        operation: operation, body: input.body, headers: input.headers ?? {}, signal, onDispatch: () => { dispatched = true; } });
+        operation: operation, body: input.body, headers: input.headers ?? {}, signal, onDispatch: () => { dispatched = true; input.onDispatch?.(); } });
     } catch (error) {
       const cancelled = incomingSignal.aborted;
       await settle({ outcome: cancelled ? "cancelled" : "failed", measurement: dispatched ? "unavailable" : "not_started", amounts: {},

@@ -6,9 +6,9 @@ export const MODELS_RESOURCE = "urn:opspresso:agent:models";
 export const PLATFORM_IDENTITY_CLAIM = "urn:opspresso:agent:identity";
 export const PLATFORM_SERVICE_CLAIM = "urn:opspresso:agent:service";
 export const PLATFORM_MODEL_CALL_CLAIM = "urn:opspresso:agent:model-call";
-export const MODEL_SCOPES = ["models:read", "models:invoke", "models:manage", "usage:read"] as const;
+export const MODEL_SCOPES = ["models:read", "models:invoke", "models:manage", "usage:read", "usage:receipts"] as const;
 export type ModelScope = typeof MODEL_SCOPES[number];
-export const SIGN_IN_SCOPES = ["openid", "email", "profile", "offline_access", "platform:identity", ...MODEL_SCOPES];
+export const SIGN_IN_SCOPES = ["openid", "email", "profile", "offline_access", "platform:identity", ...MODEL_SCOPES.filter(scope => scope !== "usage:receipts")];
 
 export interface PlatformIdentity {
   version: 1;
@@ -41,6 +41,11 @@ export function platformIdentity(value: unknown, subject: string): PlatformIdent
 export function requireScope(principal: AuthenticatedPrincipal, scope: ModelScope): void {
   if (!principal.scopes.includes(scope)) throw new RouterError("insufficient_scope", 403, "The credential does not grant this operation");
   if (scope === "models:invoke" && !principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
+}
+
+export function requireReceiptScope(principal: AuthenticatedPrincipal): void {
+  if (principal.kind === "service" && principal.scopes.includes("usage:receipts")) return;
+  requireScope(principal, "usage:read");
 }
 
 export function modelCallGrant(value: unknown): ModelCallGrant | undefined {

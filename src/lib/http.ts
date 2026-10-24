@@ -1,9 +1,9 @@
 import type { ModelScope } from "../domain/identity.ts";
-import { requireScope } from "../domain/identity.ts";
+import { requireScope, requireReceiptScope } from "../domain/identity.ts";
 import { RouterError, isRouterError } from "../domain/router/errors.ts";
 import { runtime } from "./runtime.ts";
 
-export async function authorize(request: Request, scope: ModelScope, admin = false) {
+async function authenticate(request: Request) {
   const app = await runtime();
   const authorization = request.headers.get("authorization");
   let principal;
@@ -18,9 +18,20 @@ export async function authorize(request: Request, scope: ModelScope, admin = fal
     principal = await app.session(request.headers);
     if (!principal) throw new RouterError("unauthorized", 401, "Sign in with Studio");
   }
-  requireScope(principal, scope);
-  if (admin && !principal.admin) throw new RouterError("admin_required", 403, "Administrator access is required");
   return { app, principal };
+}
+
+export async function authorize(request: Request, scope: ModelScope, admin = false) {
+  const result = await authenticate(request);
+  requireScope(result.principal, scope);
+  if (admin && !result.principal.admin) throw new RouterError("admin_required", 403, "Administrator access is required");
+  return result;
+}
+
+export async function authorizeReceipt(request: Request) {
+  const result = await authenticate(request);
+  requireReceiptScope(result.principal);
+  return result;
 }
 
 export function errorResponse(error: unknown): Response {

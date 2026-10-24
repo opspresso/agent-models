@@ -13,7 +13,7 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
         Date.parse(query.from) >= Date.parse(query.to) || Date.parse(query.to) - Date.parse(query.from) > 366 * 86400_000) {
       throw new RouterError("invalid_usage_query", 400, "Choose a valid usage period of at most 366 days and a limit between 1 and 500");
     }
-    return { ...query, ...(!principal.admin ? { subject: principal.subject } : {}) };
+    return { ...query, ...(!principal.admin ? { subject: principal.subject, principalKind: principal.kind } : {}) };
   }
   return {
     providers(principal: Principal) {
@@ -69,7 +69,9 @@ export function createManagement(repository: RouterRepository, cipher: SecretCip
         throw new RouterError("request_not_found", 404, "Request is not available");
       }
       const value = await repository.getUsage(service, requestId);
-      if (!value || (!principal.admin && value.subject !== principal.subject)) throw new RouterError("request_not_found", 404, "Request is not available");
+      const sameActor = value?.subject === principal.subject && value?.principalKind === principal.kind;
+      const serviceReceipt = principal.kind === "service" && principal.serviceReceipts && value?.service === principal.service;
+      if (!value || (!principal.admin && !sameActor && !serviceReceipt)) throw new RouterError("request_not_found", 404, "Request is not available");
       return value;
     },
   };

@@ -4,7 +4,7 @@ import { OPERATIONS, type Operation } from "../domain/router/types.ts";
 import type { InferenceBody } from "../domain/router/transport.ts";
 import { authorize, withInferenceBody } from "./http.ts";
 
-export async function inferenceResponse(request: Request, path: string): Promise<Response> {
+export async function inferenceResponse(request: Request, path: string, onDispatch: () => void): Promise<Response> {
   const { app, principal } = await authorize(request, "models:invoke");
   if (!OPERATIONS.includes(path as Operation)) throw new RouterError("operation_not_found", 404, "Inference operation is not supported");
   const operation = path as Operation;
@@ -31,7 +31,7 @@ export async function inferenceResponse(request: Request, path: string): Promise
       body = { kind: "json", value: value as Record<string, unknown> };
     }
     const result = await app.inference(principal, { requestId: request.headers.get("idempotency-key") ?? request.headers.get("x-request-id") ?? randomUUID(),
-      modelId, operation, body, headers: Object.fromEntries(request.headers), signal: request.signal });
+      modelId, operation, body, headers: Object.fromEntries(request.headers), signal: request.signal, onDispatch });
     const iterator = result.body[Symbol.asyncIterator]();
     const output = new ReadableStream<Uint8Array>({
       async pull(controller) {

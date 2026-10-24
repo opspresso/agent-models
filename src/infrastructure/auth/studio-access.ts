@@ -82,7 +82,8 @@ export function createStudioAccess(config: AuthConfiguration, request: typeof fe
       const invocation = grant ? { modelCall: grant, ...(grant.agentId ? { agentId: grant.agentId } : {}) } : {};
       if (service.principal === "service") {
         if (claims[PLATFORM_IDENTITY_CLAIM] !== undefined || claims.sub !== claims.client_id) throw new RouterError("unauthorized", 401, "Service credential cannot select a user");
-        return { kind: "service", subject: `service:${service.id}`, service: service.id, admin: false, canInvoke: scopes.includes("models:invoke"), scopes, clientId: claims.client_id, ...invocation };
+        return { kind: "service", subject: `service:${service.id}`, service: service.id, admin: false, canInvoke: scopes.includes("models:invoke"),
+          serviceReceipts: scopes.includes("usage:receipts"), scopes, clientId: claims.client_id, ...invocation };
       }
       const user = await this.userInfo(token, claims.sub);
       return { ...user, service: service.id, scopes, clientId: claims.client_id, ...invocation };

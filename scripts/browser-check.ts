@@ -80,7 +80,7 @@ async function main() {
   server.listen(0, "127.0.0.1"); await once(server, "listening");
   const address = server.address(); assert.ok(address && typeof address !== "string"); issuerOrigin = `http://127.0.0.1:${address.port}`;
   const issuer = `${issuerOrigin}/api/auth`;
-  const provider = oauthProvider({ loginPage: "/login", consentPage: "/consent", scopes: SIGN_IN_SCOPES,
+  const provider = oauthProvider({ loginPage: "/login", consentPage: "/consent", scopes: [...new Set([...SIGN_IN_SCOPES, ...MODEL_SCOPES])],
     grantTypes: ["authorization_code", "refresh_token", "client_credentials"],
     clientPrivileges: ({ user }) => user?.tier === "admin", resourcePrivileges: ({ user }) => user?.tier === "admin",
     customUserInfoClaims: ({ user }) => ({ [PLATFORM_IDENTITY_CLAIM]: { version: 1, userId: user.id, tier: user.tier, admin: user.tier === "admin", canRunAgents: user.tier !== "guest" } }),
@@ -130,7 +130,7 @@ async function main() {
   const adminHeaders = new Headers({ cookie, origin: issuerOrigin });
   const adminUser = z.object({ user: z.object({ id: z.string() }) }).parse(await signed.json()).user;
   assert.ok(auth.api.adminCreateOAuthResource && auth.api.adminCreateOAuthClient && auth.api.adminLinkClientResource);
-  await auth.api.adminCreateOAuthResource({ headers: adminHeaders, body: { identifier: MODELS_RESOURCE, name: "Agent Models", allowedScopes: SIGN_IN_SCOPES, accessTokenTtl: 300 } });
+  await auth.api.adminCreateOAuthResource({ headers: adminHeaders, body: { identifier: MODELS_RESOURCE, name: "Agent Models", allowedScopes: [...new Set([...SIGN_IN_SCOPES, ...MODEL_SCOPES])], accessTokenTtl: 300 } });
   const reservation = netServer(); reservation.listen(0, "127.0.0.1"); await once(reservation, "listening");
   const allocated = reservation.address(); assert.ok(allocated && typeof allocated !== "string"); const port = allocated.port;
   await new Promise<void>((resolve, reject) => reservation.close(error => error ? reject(error) : resolve()));
@@ -142,7 +142,7 @@ async function main() {
   await auth.api.adminLinkClientResource({ headers: adminHeaders, params: { identifier: MODELS_RESOURCE, client_id: client.client_id } });
   const machineClient = z.object({ client_id: z.string(), client_secret: z.string() }).parse(await auth.api.adminCreateOAuthClient({ headers: adminHeaders,
     body: { client_name: "Agent Forge", grant_types: ["client_credentials"], token_endpoint_auth_method: "client_secret_post",
-      client_credentials_scopes: ["models:read", "models:invoke", "usage:read"], scope: MODEL_SCOPES.join(" "), metadata: { service: "agent-forge" } } }));
+      client_credentials_scopes: ["models:read", "models:invoke", "usage:read", "usage:receipts"], scope: MODEL_SCOPES.join(" "), metadata: { service: "agent-forge" } } }));
   await auth.api.adminLinkClientResource({ headers: adminHeaders, params: { identifier: MODELS_RESOURCE, client_id: machineClient.client_id } });
   async function machineToken(scope: string) {
     const response = await fetch(`${issuer}/oauth2/token`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({
@@ -224,11 +224,12 @@ async function main() {
         "sender-constrained service credentials cannot be replayed as unbound Bearer tokens");
     }
     const serviceCall = await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${serviceToken}`, "content-type": "application/json", "idempotency-key": "machine-call", "x-user-id": adminUser.id, "x-agent-id": "forged-agent" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) });
-    assert.equal(serviceCall.status, 200); await serviceCall.json();
+    assert.equal(serviceCall.status, 200); assert.equal(serviceCall.headers.get("x-model-dispatch"), "started"); await serviceCall.json();
     const serviceUsage = await (await page.request.get(`${origin}/api/usage/agent-forge/machine-call`)).json();
     assert.equal(serviceUsage.subject, "service:agent-forge"); assert.equal(serviceUsage.agentId, null);
     const readOnly = await machineToken("models:read");
-    assert.equal((await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${readOnly}`, "content-type": "application/json" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) })).status, 403);
+    const refused = await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { authorization: `Bearer ${readOnly}`, "content-type": "application/json" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) });
+    assert.equal(refused.status, 403); assert.equal(refused.headers.get("x-model-dispatch"), "not_started");
     const pieces = serviceToken.split("."); pieces[2] = (pieces[2]!.startsWith("A") ? "B" : "A") + pieces[2]!.slice(1);
     assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${pieces.join(".")}` } })).status, 401);
     assert.ok(auth.api.issueFixtureModelCall);
@@ -245,6 +246,13 @@ async function main() {
     assert.equal((await fetch(`${origin}/api/usage/agent-models/browser-model-call`, { headers: delegatedHeaders })).status, 404, "a call grant cannot read another receipt even for the same user");
     assert.equal((await fetch(`${origin}/api/usage?from=2026-01-01T00:00:00Z&to=2026-12-31T00:00:00Z`, { headers: delegatedHeaders })).status, 403);
     assert.equal((await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: delegatedHeaders, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) })).status, 409);
+    const receiptToken = await machineToken("usage:receipts");
+    const receiptHeaders = { authorization: `Bearer ${receiptToken}` };
+    assert.equal((await fetch(`${origin}/api/usage/agent-forge/delegated-call`, { headers: receiptHeaders })).status, 200, "a service recovers its user's completed receipt independently of the per-call token");
+    assert.equal((await fetch(`${origin}/api/usage/agent-models/browser-model-call`, { headers: receiptHeaders })).status, 404, "receipt authority is restricted to the issuing service");
+    assert.equal((await fetch(`${origin}/api/usage?from=2026-01-01T00:00:00Z&to=2026-12-31T00:00:00Z`, { headers: receiptHeaders })).status, 403);
+    assert.equal((await fetch(`${origin}/v1/models`, { headers: receiptHeaders })).status, 403);
+    assert.equal((await fetch(`${origin}/v1/chat/completions`, { method: "POST", headers: { ...receiptHeaders, "content-type": "application/json" }, body: JSON.stringify({ model: "local/fixture-model", messages: [] }) })).status, 403);
     assert.ok(auth.api.deleteOAuthClient);
     await auth.api.deleteOAuthClient({ headers: adminHeaders, body: { client_id: machineClient.client_id } });
     assert.equal((await fetch(`${origin}/v1/models`, { headers: { authorization: `Bearer ${serviceToken}` } })).status, 401);

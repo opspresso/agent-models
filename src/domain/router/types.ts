@@ -24,6 +24,8 @@ export interface Principal {
   service: string;
   admin: boolean;
   canInvoke: boolean;
+  /** Trusted service-only authority to recover receipts for this service's user calls. */
+  serviceReceipts?: boolean;
   /** Set only by the authenticated delegation boundary. */
   agentId?: string;
   modelCall?: ModelCallGrant;
@@ -160,6 +162,7 @@ export interface UsageQuery {
   from: string;
   to: string;
   subject?: string;
+  principalKind?: Principal["kind"];
   agentId?: string;
   modelId?: string;
   service?: string;

@@ -45,7 +45,7 @@ export function createRouterRepository(pool: Pool): RouterRepository {
     if (!group) throw new RouterError("invalid_usage_query", 400, "Invalid usage grouping");
     const parameters: unknown[] = [query.from, query.to];
     const filters = ["started_at >= $1", "started_at < $2"];
-    for (const [column, value] of [["subject", query.subject], ["agent_id", query.agentId], ["model_id", query.modelId], ["service", query.service]]) {
+    for (const [column, value] of [["subject", query.subject], ["principal_kind", query.principalKind], ["agent_id", query.agentId], ["model_id", query.modelId], ["service", query.service]]) {
       if (value !== undefined) { parameters.push(value); filters.push(`${column}=$${parameters.length}`); }
     }
     if (grouped && query.after !== undefined) {

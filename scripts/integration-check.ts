@@ -121,6 +121,12 @@ async function check() {
     assert.equal((await management.requestUsage(authorized, member.service, "inference")).agentId, member.agentId);
     await assert.rejects(management.requestUsage(authorized, member.service, "single"), { code: "request_not_found" });
     assert.throws(() => management.usageOverview(authorized, query), { code: "invocation_grant_only" });
+    const receiptService: Principal = { kind: "service", subject: "service:agent-studio", service: member.service, admin: false, canInvoke: false, serviceReceipts: true };
+    assert.equal((await management.requestUsage(receiptService, member.service, "inference")).subject, member.subject);
+    await assert.rejects(management.requestUsage({ ...receiptService, service: "agent-memory" }, member.service, "inference"), { code: "request_not_found" });
+    await assert.rejects(management.requestUsage({ ...receiptService, serviceReceipts: false }, member.service, "inference"), { code: "request_not_found" });
+    await assert.rejects(management.requestUsage({ ...member, kind: "service" }, member.service, "inference"), { code: "request_not_found" });
+    assert.deepEqual(await management.usage({ ...member, kind: "service" }, query), [], "equal subject strings cannot mix user and service usage");
     const mine = await management.usage(member, { ...query, subject: "service:agent-memory" });
     assert.deepEqual(mine.map(row => row.key), [member.subject]);
     assert.equal(mine[0]!.requests, 4);
