@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-23T00:17:36.719Z",
+  "updatedAt": "2026-10-24T00:10:47.301Z",
   "source": "https://github.com/opspresso/agent-models",
   "providers": [
     "openai",
@@ -2964,10 +2964,10 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4 Pro 0423",
       "pricing": {
-        "inputPer1M": 0.96,
-        "outputPer1M": 1.91,
-        "cachedInputPer1M": 0.08,
-        "discount": 0.451
+        "inputPer1M": 0.66,
+        "outputPer1M": 1.32,
+        "cachedInputPer1M": 0.06,
+        "discount": 0.6194
       },
       "capabilities": {
         "tools": true,
@@ -3073,10 +3073,10 @@
       "maker": "google",
       "displayName": "Gemma 4 26B A4B",
       "pricing": {
-        "inputPer1M": 0.08,
-        "outputPer1M": 0.26,
+        "inputPer1M": 0.07,
+        "outputPer1M": 0.23,
         "cachedInputPer1M": 0.04,
-        "discount": 0.15
+        "discount": 0.25
       },
       "capabilities": {
         "tools": true,
@@ -3845,28 +3845,6 @@
       "hidden": true
     },
     {
-      "id": "openrouter/gemini-2.5-pro-preview-05-06",
-      "provider": "openrouter",
-      "family": "gemini-2.5-pro-preview-05-06",
-      "maker": "google",
-      "displayName": "Gemini 2.5 Pro Preview 05-06",
-      "pricing": {
-        "inputPer1M": 1.25,
-        "outputPer1M": 10,
-        "cachedInputPer1M": 0.125
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": true,
-        "reasoning": true
-      },
-      "contextWindow": 1048576,
-      "maxTokens": 65535,
-      "wireId": "google/gemini-2.5-pro-preview-05-06",
-      "hidden": true
-    },
-    {
       "id": "openrouter/o4-mini-high",
       "provider": "openrouter",
       "family": "o4-mini-high",
@@ -4243,27 +4221,6 @@
       "contextWindow": 200000,
       "maxTokens": 4096,
       "wireId": "anthropic/claude-3-haiku",
-      "hidden": true
-    },
-    {
-      "id": "openrouter/gpt-4-turbo-preview",
-      "provider": "openrouter",
-      "family": "gpt-4-turbo-preview",
-      "maker": "openai",
-      "displayName": "GPT-4 Turbo Preview",
-      "pricing": {
-        "inputPer1M": 10,
-        "outputPer1M": 30
-      },
-      "capabilities": {
-        "tools": true,
-        "structuredOutput": true,
-        "imageInput": false,
-        "reasoning": false
-      },
-      "contextWindow": 128000,
-      "maxTokens": 4096,
-      "wireId": "openai/gpt-4-turbo-preview",
       "hidden": true
     },
     {
@@ -4785,7 +4742,7 @@
       "displayName": "Kimi K3",
       "pricing": {
         "inputPer1M": 0.24,
-        "outputPer1M": 11.94,
+        "outputPer1M": 10.8,
         "cachedInputPer1M": 0.21
       },
       "capabilities": {
@@ -4849,9 +4806,9 @@
       "maker": "zhipu",
       "displayName": "GLM 5.3 Flash",
       "pricing": {
-        "inputPer1M": 0.01,
-        "outputPer1M": 0.2,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.5,
+        "cachedInputPer1M": 0.03
       },
       "capabilities": {
         "tools": true,
@@ -4860,7 +4817,7 @@
         "reasoning": true
       },
       "contextWindow": 1048576,
-      "maxTokens": 943718,
+      "maxTokens": 943717,
       "wireId": "z-ai/glm-5.3-flash"
     },
     {
@@ -6077,9 +6034,9 @@
       "maker": "deepseek",
       "displayName": "DeepSeek V4.1 Flash",
       "pricing": {
-        "inputPer1M": 0.17,
-        "outputPer1M": 0.66,
-        "cachedInputPer1M": 0.01
+        "inputPer1M": 0.02,
+        "outputPer1M": 1,
+        "cachedInputPer1M": 0.02
       },
       "capabilities": {
         "tools": true,
@@ -6867,9 +6824,9 @@
       "maker": "qwen",
       "displayName": "Qwen3.8 27B",
       "pricing": {
-        "inputPer1M": 0.04,
-        "outputPer1M": 1.35,
-        "cachedInputPer1M": 0.02
+        "inputPer1M": 0.2,
+        "outputPer1M": 2.5,
+        "cachedInputPer1M": 0.09
       },
       "capabilities": {
         "tools": true,
@@ -6878,7 +6835,7 @@
         "reasoning": true
       },
       "contextWindow": 1000000,
-      "maxTokens": 65536,
+      "maxTokens": 235929,
       "wireId": "qwen/qwen3.8-27b"
     },
     {
@@ -6945,7 +6902,8 @@
       },
       "contextWindow": 262144,
       "maxTokens": 235929,
-      "wireId": "perplexity/pplx-decider-v1.1-27b"
+      "wireId": "perplexity/pplx-decider-v1.1-27b",
+      "hidden": true
     },
     {
       "id": "openrouter/claude-haiku-5.5",
@@ -7435,7 +7393,7 @@
         "imageInput": true,
         "reasoning": true
       },
-      "contextWindow": 1000000,
+      "contextWindow": 1048576,
       "maxTokens": 524288,
       "wireId": "minimax/minimax-m3.1-flash"
     }
