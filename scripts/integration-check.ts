@@ -52,9 +52,26 @@ async function check() {
       capabilities: discovered.capabilities, pricing: discovered.pricing, enabled: true, operations: ["chat/completions"] };
     const selected = await management.saveModel(admin, selection, null);
     assert.equal((await management.models(member))[0]?.providerRevision, updated.revision, "selected metadata carries the current provider binding revision");
+    const binding=(await management.models(member))[0]!.binding;
+    assert.match(binding,/^[a-f0-9]{64}$/);
+    assert.ok(!binding.includes(configuration.baseUrl),"the binding never exposes the provider address");
     await assert.rejects(management.saveModel(admin, { ...selection, id: "local/duplicate" }, null), { code: "model_already_selected" });
     const admission = (id: string, actor = member): Admission => ({ requestId: id, modelId: selection.id, principal: actor,
       operation: "chat/completions", executionId: `execution-${id}`, deadlineAt: new Date(Date.now() + 60_000).toISOString() });
+    for(const expectedRevision of [{model:selected.revision+1,provider:updated.revision},{model:selected.revision,provider:provider.revision}]) {
+      await assert.rejects(repository.admit({...admission("stale-binding"),expectedRevision},8),{code:"binding_changed"});
+    }
+    assert.equal(await repository.getUsage(member.service,"stale-binding"),null,"stale metadata cannot create an intent or dispatch");
+    await assert.rejects(repository.admit({...admission("wrong-binding"),expectedBinding:"0".repeat(64)},8),{code:"binding_changed"});
+    assert.equal(await repository.getUsage(member.service,"wrong-binding"),null);
+    const originalProvider=(await pool.query("SELECT configuration FROM agent_models_providers WHERE id='local'")).rows[0].configuration;
+    try {
+      await pool.query("UPDATE agent_models_providers SET configuration=jsonb_set(configuration,'{baseUrl}',to_jsonb($1::text)) WHERE id='local'",["https://restored.example.test/v1"]);
+      const restored=(await management.models(member))[0]!;
+      assert.equal(restored.providerRevision,updated.revision);
+      assert.notEqual(restored.binding,binding,"an equivalent revision counter cannot hide a different restored connection");
+      await assert.rejects(repository.admit({...admission("restored-binding"),expectedBinding:binding,expectedRevision:{model:selected.revision,provider:updated.revision}},8),{code:"binding_changed"});
+    } finally {await pool.query("UPDATE agent_models_providers SET configuration=$1 WHERE id='local'",[originalProvider]);}
     const simultaneous = await Promise.allSettled(Array.from({ length: 8 }, () => repository.admit(admission("single"), 8)));
     assert.equal(simultaneous.filter(result => result.status === "fulfilled").length, 1, "concurrent duplicate calls have one durable dispatch intent");
     assert.equal((await pool.query("SELECT count(*)::int AS n FROM agent_models_requests")).rows[0].n, 1);

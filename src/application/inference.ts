@@ -24,11 +24,15 @@ export function createInference(deps: InferenceDependencies) {
   return async (principal: Principal, input: {
     requestId: string; modelId: string; operation: Operation; body: InferenceBody;
     headers?: Readonly<Record<string, string>>; signal: AbortSignal;
+    expectedRevision?: { model: number; provider: number };
+    expectedBinding?: string;
     onDispatch?(): void;
   }) => {
     const { requestId, modelId, operation, signal: incomingSignal } = input;
     if (!principal.canInvoke) throw new RouterError("execution_forbidden", 403, "This account cannot invoke models");
     if (!validIdentifier(requestId) || !validIdentifier(modelId)) throw new RouterError("invalid_request", 400, "Invalid request or model ID");
+    if (input.expectedRevision && Object.values(input.expectedRevision).some(value => !Number.isSafeInteger(value) || value < 1)) throw new RouterError("invalid_revision", 400, "Invalid model binding revision");
+    if (input.expectedBinding !== undefined && !/^[a-f0-9]{64}$/.test(input.expectedBinding)) throw new RouterError("invalid_binding", 400, "Invalid model binding");
     if (principal.modelCall && (principal.modelCall.requestId !== requestId || principal.modelCall.modelId !== modelId || principal.modelCall.operation !== operation)) {
       throw new RouterError("invocation_grant_mismatch", 403, "This credential authorizes a different model request");
     }
@@ -39,6 +43,8 @@ export function createInference(deps: InferenceDependencies) {
     const admission: Admission = {
       requestId: requestId, modelId: modelId, operation: operation, principal,
       executionId: deps.executionId(), deadlineAt: new Date(started + deps.timeoutMs).toISOString(),
+      ...(input.expectedRevision ? { expectedRevision: input.expectedRevision } : {}),
+      ...(input.expectedBinding ? { expectedBinding: input.expectedBinding } : {}),
     };
     const routed = await deps.repository.admit(admission, deps.concurrencyLimit);
     const controller = new AbortController();
@@ -91,6 +97,7 @@ export function createInference(deps: InferenceDependencies) {
         });
       }
     }
-    return { status: response.status, headers: response.headers, requestId: requestId, body: body() };
+    return { status: response.status, headers: response.headers, requestId: requestId,
+      binding: routed.binding, revision: { model: routed.model.revision, provider: routed.provider.revision }, body: body() };
   };
 }

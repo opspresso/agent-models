@@ -8,6 +8,13 @@ export async function inferenceResponse(request: Request, path: string, onDispat
   const { app, principal } = await authorize(request, "models:invoke");
   if (!OPERATIONS.includes(path as Operation)) throw new RouterError("operation_not_found", 404, "Inference operation is not supported");
   const operation = path as Operation;
+  const expectedBinding = request.headers.get("x-model-binding") ?? undefined;
+  if (expectedBinding !== undefined && !/^[a-f0-9]{64}$/.test(expectedBinding)) throw new RouterError("invalid_binding", 400, "Invalid model binding");
+  const modelRevision = request.headers.get("x-model-revision"), providerRevision = request.headers.get("x-provider-revision");
+  const expectedRevision = modelRevision !== null || providerRevision !== null ? { model: Number(modelRevision), provider: Number(providerRevision) } : undefined;
+  if (expectedRevision && (modelRevision === null || providerRevision === null || Object.values(expectedRevision).some(value => !Number.isSafeInteger(value) || value < 1))) {
+    throw new RouterError("invalid_revision", 400, "Both model and provider revisions must be positive integers");
+  }
   return withInferenceBody(request, app.config.maxRequestBytes, async bytes => {
     const contentType = request.headers.get("content-type") ?? "";
     let body: InferenceBody;
@@ -31,7 +38,7 @@ export async function inferenceResponse(request: Request, path: string, onDispat
       body = { kind: "json", value: value as Record<string, unknown> };
     }
     const result = await app.inference(principal, { requestId: request.headers.get("idempotency-key") ?? request.headers.get("x-request-id") ?? randomUUID(),
-      modelId, operation, body, headers: Object.fromEntries(request.headers), signal: request.signal, onDispatch });
+      modelId, operation, body, headers: Object.fromEntries(request.headers), signal: request.signal, onDispatch, ...(expectedRevision ? { expectedRevision } : {}), ...(expectedBinding ? { expectedBinding } : {}) });
     const iterator = result.body[Symbol.asyncIterator]();
     const output = new ReadableStream<Uint8Array>({
       async pull(controller) {
@@ -43,6 +50,9 @@ export async function inferenceResponse(request: Request, path: string, onDispat
     const headers = new Headers(result.headers);
     if (headers.has("x-request-id")) headers.set("x-upstream-request-id", headers.get("x-request-id")!);
     headers.set("x-request-id", result.requestId);
+    headers.set("x-model-binding", result.binding);
+    headers.set("x-model-revision", String(result.revision.model));
+    headers.set("x-provider-revision", String(result.revision.provider));
     return new Response(output, { status: result.status, headers });
   });
 }

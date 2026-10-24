@@ -87,6 +87,8 @@ export interface SelectedModelView extends SelectedModel {
   providerName: string;
   providerEnabled: boolean;
   providerRevision: number;
+  /** Opaque identity includes the provider incarnation without disclosing connection or credentials. */
+  binding: string;
 }
 
 export interface UsageOverview { groups: UsageSummary[]; totals: UsageSummary }
@@ -131,12 +133,16 @@ export interface Admission {
   principal: Principal;
   modelId: string;
   operation: Operation;
+  /** Optimistic binding for clients that persist derived data such as embedding vectors. */
+  expectedRevision?: { model: number; provider: number };
+  expectedBinding?: string;
   /** Globally unique owner for this execution; never supplied by a caller. */
   executionId: string;
   deadlineAt: string;
 }
 
 export interface RoutedRequest extends Admission {
+  binding: string;
   model: SelectedModel;
   provider: StoredProvider;
   startedAt: string;

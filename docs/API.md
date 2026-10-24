@@ -44,7 +44,15 @@ HTTP 인증은 요청 시작 시 확인한다. 이미 승인한 스트림은 별
 | GET | `/api/usage/{service}/{requestId}` | 허용된 요청 한 건의 상태·사용량·가격 snapshot |
 
 선택 모델에는 `providerKind`, `providerName`, `providerEnabled`, `providerRevision`을 함께 제공한다.
-소비 서비스의 embedding 캐시는 선택 ID·공급자 ID·공급자 revision·wire ID·차원을 구분한다.
+소비 서비스의 embedding 캐시는 선택 ID·공급자 ID·공급자 revision·wire ID·`binding`·차원을 구분한다.
+`binding`은 공급자 연결·credential·생성 상태를 구분하는 불투명 식별자다. 연결 주소나 credential을 노출하지 않는다.
+공급자를 복원하거나 다시 만들었을 때 revision 숫자가 같아도 다른 연결의 벡터를 재사용하지 않는다.
+
+`GET /v1/models`의 `X-Model-Binding-Revisions: 1`은 조건부 호출 지원을 나타낸다.
+영속 파생 데이터를 만드는 호출자는 조회한 `X-Model-Revision`, `X-Provider-Revision`, `X-Model-Binding`을 함께 보낸다.
+접수 transaction이 현재 선택과 공급자를 잠그고 비교한다. 달라졌으면 `409 binding_changed`를 반환하며 원장 접수나 공급자 호출을 하지 않는다.
+성공 응답에는 실제 사용한 세 값을 같은 header로 반환한다. 소비자는 이를 확인한 뒤 그 구성의 결과로 저장한다.
+새 metadata 조회는 허용하지만, 이 응답만으로 이전의 불확실한 inference를 자동 재실행해서는 안 된다.
 공급자 연결 변경 후 이전 공간의 query vector를 재사용하지 않는다. 공급자 주소나
 자격 증명은 일반 모델 조회 응답에 포함하지 않는다. 서로 다른 공급자의 wire ID가 같아도 선택 ID로
 구분한다. 호출 시 현재 선택 ID를 사용하며, router가 승인된 wire ID로 바꾼다.

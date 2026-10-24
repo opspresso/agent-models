@@ -198,9 +198,23 @@ async function main() {
     await dialog.getByRole("button", { name: "Pricing", exact: true }).click(); await dialog.getByLabel(new RegExp("^Pricing\\ is\\ known(?:\\s*\\*)?$")).check();
     await dialog.getByLabel(new RegExp("^Input\\ /\\ 1M\\ tokens(?:\\s*\\*)?$")).fill("2"); await dialog.getByLabel(new RegExp("^Output\\ /\\ 1M\\ tokens(?:\\s*\\*)?$")).fill("6");
     await dialog.getByRole("button", { name: "Save", exact: true }).click(); await dialog.waitFor({ state: "hidden" });
-    const call = await page.request.post(`${origin}/v1/chat/completions`, { headers: { origin, "idempotency-key": "browser-model-call" }, data: { model: "local/fixture-model", messages: [{ role: "user", content: "Reply with OK" }] } });
+    const catalog = await page.request.get(`${origin}/v1/models`);
+    assert.equal(catalog.headers()["x-model-binding-revisions"], "1");
+    const selected = (await catalog.json()).data[0];
+    const bindingHeaders = { "x-model-revision": String(selected.revision), "x-provider-revision": String(selected.providerRevision), "x-model-binding": selected.binding };
+    for (const [headers, status] of [
+      [{ "x-model-revision": "1" }, 400],
+      [{ ...bindingHeaders, "x-model-binding": "invalid" }, 400],
+      [{ ...bindingHeaders, "x-provider-revision": String(selected.providerRevision + 1) }, 409],
+      [{ ...bindingHeaders, "x-model-binding": "0".repeat(64) }, 409],
+    ] as const) {
+      assert.equal((await page.request.post(`${origin}/v1/chat/completions`, { headers: { origin, ...headers }, data: { model: selected.id, messages: [] } })).status(), status);
+    }
+    assert.equal(providerCalls, 0, "invalid or stale bindings never reach the provider");
+    const call = await page.request.post(`${origin}/v1/chat/completions`, { headers: { origin, ...bindingHeaders, "idempotency-key": "browser-model-call" }, data: { model: "local/fixture-model", messages: [{ role: "user", content: "Reply with OK" }] } });
     assert.equal(call.status(), 200); assert.equal((await call.json()).choices[0].message.content, "OK");
     assert.equal(call.headers()["x-request-id"], "browser-model-call");
+    for (const [name, value] of Object.entries(bindingHeaders)) assert.equal(call.headers()[name], value);
     assert.equal((await page.request.post(`${origin}/v1/chat/completions`, { headers: { origin, "idempotency-key": "browser-model-call" }, data: { model: "local/fixture-model", messages: [] } })).status(), 409);
     assert.equal(providerCalls, 1);
     const usage = await page.request.get(`${origin}/api/usage/agent-models/browser-model-call`);

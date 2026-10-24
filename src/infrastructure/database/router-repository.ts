@@ -1,4 +1,5 @@
 import type { Pool, PoolClient } from "pg";
+import { createHash } from "node:crypto";
 import { RouterError } from "../../domain/router/errors.ts";
 import type { RouterRepository } from "../../domain/router/repository.ts";
 import type { Admission, DiscoveredModel, Provider, SelectedModel, Settlement, StoredProvider, UsageQuery, UsageRecord } from "../../domain/router/types.ts";
@@ -8,6 +9,9 @@ type ProviderRow = { id: string; configuration: Omit<Provider, "revision" | "upd
 type ModelRow = { id: string; provider_id: string; configuration: Omit<SelectedModel, "revision" | "updatedAt">; revision: number; updated_at: Date };
 const asProvider = (row: ProviderRow): StoredProvider => ({ ...row.configuration, id: row.id, encryptedSecret: row.encrypted_secret, revision: row.revision, updatedAt: row.updated_at.toISOString() });
 const asModel = (row: ModelRow): SelectedModel => ({ ...row.configuration, id: row.id, providerId: row.provider_id, revision: row.revision, updatedAt: row.updated_at.toISOString() });
+const modelBinding = (model: SelectedModel, provider: StoredProvider) => createHash("sha256").update(JSON.stringify([
+  model.id, model.providerId, model.wireId, provider.kind, provider.baseUrl, provider.auth, provider.encryptedSecret, provider.revision, provider.updatedAt,
+])).digest("hex");
 const publicProvider = (provider: StoredProvider): Provider => {
   return { id: provider.id, name: provider.name, kind: provider.kind, baseUrl: provider.baseUrl, auth: provider.auth,
     enabled: provider.enabled, revision: provider.revision, updatedAt: provider.updatedAt };
@@ -91,11 +95,13 @@ export function createRouterRepository(pool: Pool): RouterRepository {
       });
     },
     async listModels(includeDisabled) {
-      const rows = await pool.query<ModelRow & { provider_configuration: Provider; provider_revision: number }>(`SELECT model.*,provider.configuration AS provider_configuration,provider.revision AS provider_revision FROM agent_models_selected_models AS model
-        JOIN agent_models_providers AS provider ON provider.id=model.provider_id
-        ${includeDisabled ? "" : "WHERE (model.configuration->>'enabled')::boolean AND (provider.configuration->>'enabled')::boolean"}
-        ORDER BY model.id LIMIT 500`);
-      return rows.rows.map(row => ({ ...asModel(row), providerKind: row.provider_configuration.kind, providerName: row.provider_configuration.name, providerEnabled: row.provider_configuration.enabled, providerRevision: row.provider_revision }));
+      const rows = await pool.query<ModelRow & { provider: ProviderRow }>(`SELECT model.*,to_jsonb(provider) AS provider FROM agent_models_selected_models model
+        JOIN agent_models_providers provider ON provider.id=model.provider_id
+        ${includeDisabled ? "" : "WHERE (model.configuration->>'enabled')::boolean AND (provider.configuration->>'enabled')::boolean"} ORDER BY model.id LIMIT 500`);
+      return rows.rows.map(row => {
+        const model = asModel(row), provider = asProvider({ ...row.provider, updated_at: new Date(row.provider.updated_at) });
+        return { ...model, providerKind: provider.kind, providerName: provider.name, providerEnabled: provider.enabled, providerRevision: provider.revision, binding: modelBinding(model, provider) };
+      });
     },
     async saveModel(model, expectedRevision) {
       return transaction(async client => {
@@ -142,6 +148,11 @@ export function createRouterRepository(pool: Pool): RouterRepository {
         const model = asModel(row);
         // to_jsonb carries dates as strings; ordinary row decoding carries Date instances.
         const provider = asProvider({ ...row.provider, updated_at: new Date(row.provider.updated_at) });
+        const binding = modelBinding(model, provider);
+        if (input.expectedBinding !== undefined && input.expectedBinding !== binding) throw new RouterError("binding_changed", 409, "Selected model binding changed; refresh metadata before a new request");
+        if (input.expectedRevision && (input.expectedRevision.model !== model.revision || input.expectedRevision.provider !== provider.revision)) {
+          throw new RouterError("binding_changed",409,"Selected model binding changed; refresh metadata before a new request");
+        }
         if (!model.enabled || !provider.enabled) throw new RouterError("model_disabled", 403, "Model or provider is disabled");
         if (!model.operations.includes(input.operation)) throw new RouterError("operation_not_allowed", 400, "This operation is not enabled for the selected model");
         const active = (await client.query<{ count: number }>("SELECT count(*)::int AS count FROM agent_models_requests WHERE state='running'")).rows[0]!.count;
@@ -151,7 +162,7 @@ export function createRouterRepository(pool: Pool): RouterRepository {
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'running',$12) RETURNING started_at`,
         [input.principal.service, input.requestId, input.executionId, input.principal.subject, input.principal.kind, input.principal.agentId ?? null,
           model.id, provider.id, input.operation, model, provider.revision, input.deadlineAt]);
-        return { ...input, model, provider, startedAt: result.rows[0]!.started_at.toISOString() };
+        return { ...input, model, provider, binding, startedAt: result.rows[0]!.started_at.toISOString() };
       });
     },
     async settle(service, requestId, executionId, settlement: Settlement) {

@@ -13,6 +13,13 @@ const remote: Array<[Operation, Record<string, unknown>]> = [
   ["audio/transcriptions", { file: "https://remote.test/recording.wav" }],
   ["embeddings", { images: ["https://remote.test/image"] }],
 ];
+it("accepts caller-executed custom tools, including namespace members, while refusing hosted tools", () => {
+  const custom = { type: "custom", name: "apply_patch", format: { type: "grammar", syntax: "lark", definition: 'start: "patch"' } };
+  for (const tool of [custom, { type: "namespace", name: "functions", description: "Caller tools", tools: [custom] }]) {
+    assert.doesNotThrow(() => assertIndependentContext({ tools: [tool], input: [{ type: "custom_tool_call_output", call_id: "call-1", output: "Completed locally" }] }, "responses"));
+  }
+  assert.throws(() => assertIndependentContext({ tools: [{ type: "namespace", name: "hosted", tools: [{ type: "file_search", vector_store_ids: ["private"] }] }] }, "responses"), { code: "provider_state_forbidden" });
+});
 for (const [index, [operation, body]] of remote.entries()) {
   it(`refuses provider-side media fetching for ${operation} case ${index}`, () => {
     assert.throws(() => assertIndependentContext(body, operation), { code: "provider_state_forbidden" });
